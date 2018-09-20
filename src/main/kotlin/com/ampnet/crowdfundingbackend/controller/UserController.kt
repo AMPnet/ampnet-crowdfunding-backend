@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import javax.validation.Valid
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
@@ -38,7 +39,7 @@ class UserController {
         return ResponseEntity.ok(UsersResponse(users))
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/users/{id}")
     fun getUser(@PathVariable("id") id: Int): ResponseEntity<UserResponse> {
         val user = UserResponse(userService.find(id).get())

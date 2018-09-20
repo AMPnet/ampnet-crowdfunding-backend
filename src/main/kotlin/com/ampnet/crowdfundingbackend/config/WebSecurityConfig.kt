@@ -49,6 +49,8 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http.cors().and().csrf().disable().
                 authorizeRequests()
+                .antMatchers("/actuator/health").permitAll()
+                .antMatchers("/actuator/**").hasAnyRole("ADMIN")
                 .antMatchers("/token/**", "/signup", "/signup/facebook", "/signup/google").permitAll()
                 .anyRequest().authenticated()
                 .and()
