@@ -11,8 +11,9 @@ INSERT INTO role VALUES
 
 CREATE TABLE app_user (
     id SERIAL PRIMARY KEY,
-    username VARCHAR NOT NULL,
-    password VARCHAR(60) NOT NULL,
+    email VARCHAR NOT NULL,
+    password VARCHAR(60),
     role_id INT REFERENCES role(id),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    login_method VARCHAR(8)
 );

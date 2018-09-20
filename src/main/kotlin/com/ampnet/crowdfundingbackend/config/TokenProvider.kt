@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.config
 
+import com.ampnet.crowdfundingbackend.persistence.model.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -7,7 +8,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
 import java.io.Serializable
 import java.util.*
@@ -60,12 +60,12 @@ class TokenProvider: Serializable {
                 .compact()
     }
 
-    fun validateToken(token: String, userDetails: UserDetails): Boolean {
+    fun validateToken(token: String, userDetails: User): Boolean {
         val username = getUsernameFromToken(token)
-        return username.equals(userDetails.username) && !isTokenExpired(token)
+        return username.equals(userDetails.email) && !isTokenExpired(token)
     }
 
-    fun getAuthentication(token: String, existingAuth: Authentication, userDetails: UserDetails): UsernamePasswordAuthenticationToken {
+    fun getAuthentication(token: String, userDetails: User): UsernamePasswordAuthenticationToken {
         val jwtParser = Jwts.parser().setSigningKey(SIGNING_KEY)
         val claimsJws = jwtParser.parseClaimsJws(token)
         val claims = claimsJws.body

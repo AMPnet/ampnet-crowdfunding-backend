@@ -1,11 +1,11 @@
-package com.ampnet.crowdfundingbackend.controller.pojo
+package com.ampnet.crowdfundingbackend.controller.pojo.response
 
 import com.ampnet.crowdfundingbackend.persistence.model.User
 
-data class UserResponse(val username: String,
+data class UserResponse(val email: String,
                         val role: String) {
     constructor(user: User) : this(
-            user.username,
+            user.email,
             user.role.name
     )
 }
