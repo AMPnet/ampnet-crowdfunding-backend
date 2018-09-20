@@ -10,7 +10,6 @@ import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.test.web.servlet.setup.MockMvcConfigurer
 import org.springframework.web.context.WebApplicationContext
 
 @RunWith(SpringRunner::class)
@@ -20,15 +19,23 @@ abstract class TestBase {
     @Autowired
     private lateinit var wac: WebApplicationContext
 
-    protected lateinit var mockMvc: MockMvc
-
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
+
+    protected lateinit var mockMvc: MockMvc
 
     @Before
     fun init() {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
                 .apply<DefaultMockMvcBuilder>(springSecurity())
                 .build()
+    }
+
+    protected fun suppose(description: String, function: () -> Unit) {
+        function.invoke()
+    }
+
+    protected fun verify(description: String, function: () -> Unit) {
+        function.invoke()
     }
 }
