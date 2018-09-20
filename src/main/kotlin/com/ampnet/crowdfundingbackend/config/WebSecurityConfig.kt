@@ -10,21 +10,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import javax.annotation.Resource
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig: WebSecurityConfigurerAdapter() {
 
-    @Resource(name = "userService")
-    lateinit var userDetailsService: UserDetailsService
-
     @Autowired
     lateinit var unauthorizedHandler: JwtAuthenticationEntryPoint
+
+    @Autowired
+    lateinit var authenticationProvider: CustomAuthenticationProvider
 
     @Override
     @Bean
@@ -34,7 +33,12 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
 
     @Autowired
     fun globalUserDetails(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService(userDetailsService).passwordEncoder(encoder())
+        auth.authenticationProvider(authenticationProvider)
+    }
+
+    @Bean
+    fun passwordEncoder(): PasswordEncoder {
+        return BCryptPasswordEncoder()
     }
 
     @Bean
@@ -47,7 +51,7 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
                 authorizeRequests()
                 .antMatchers("/actuator/health").permitAll()
                 .antMatchers("/actuator/**").hasAnyRole("ADMIN")
-                .antMatchers("/token/*", "/signup").permitAll()
+                .antMatchers("/token/**", "/signup", "/signup/facebook", "/signup/google").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
@@ -55,11 +59,5 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
         http
                 .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter::class.java)
     }
-
-    @Bean
-    fun encoder(): BCryptPasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
-
 
 }

@@ -1,7 +1,5 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 import javax.persistence.*
 
@@ -14,16 +12,20 @@ data class User (
     val id: Int,
 
     @Column(nullable = false)
-    var username: String,
+    var email: String,
 
-    @Column(nullable = false)
-    var password: String,
+    @Column
+    var password: String?,
 
     @ManyToOne
     @JoinColumn(name = "role_id")
     var role: Role,
 
     @Column(nullable = false)
-    var createdAt: ZonedDateTime
+    var createdAt: ZonedDateTime,
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 8)
+    var loginMethod: LoginMethod
 
 )

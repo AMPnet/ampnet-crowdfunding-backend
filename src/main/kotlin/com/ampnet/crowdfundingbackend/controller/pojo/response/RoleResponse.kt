@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.controller.pojo
+package com.ampnet.crowdfundingbackend.controller.pojo.response
 
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 
