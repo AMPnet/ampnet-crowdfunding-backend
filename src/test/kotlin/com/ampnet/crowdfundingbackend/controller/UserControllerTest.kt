@@ -1,17 +1,17 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
-import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersResponse
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
+import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.UserService
+import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -57,15 +57,17 @@ class UserControllerTest : TestBase() {
 
     @Test
     fun mustBeAbleToSignUpUser() {
-        val email = "userX"
+        val email = "user@gmail.com"
         lateinit var result: MvcResult
 
         suppose("The user send request to sign up") {
-            val requestJson = """{
-            |"email": "$email",
-            |"password": "password",
-            |"age": 0,
-            |"salary": 0
+            val requestJson = """
+            |{
+                |"signup_method" : "EMAIL",
+                |"user_info" : {
+                    |"email" : "$email",
+                    |"password" : "password"
+                |}
             |}""".trimMargin()
 
             result = mockMvc.perform(
@@ -80,7 +82,6 @@ class UserControllerTest : TestBase() {
         verify("The controller returned valid user") {
             val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(userResponse.email).isEqualTo(email)
-
         }
         verify("The user is stored in database") {
             val optionalUserInRepo = userService.find(email)
@@ -90,7 +91,7 @@ class UserControllerTest : TestBase() {
     }
 
     private fun createTestUsers(email: String): User {
-        val request = SignupRequest(email, "password", 0, 0)
+        val request = CreateUserServiceRequest(email, "password", AuthMethod.EMAIL)
         return userService.create(request)
     }
 }

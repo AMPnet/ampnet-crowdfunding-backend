@@ -11,20 +11,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-class WebSecurityConfig: WebSecurityConfigurerAdapter() {
-
-    @Autowired
-    lateinit var unauthorizedHandler: JwtAuthenticationEntryPoint
-
-    @Autowired
-    lateinit var authenticationProvider: CustomAuthenticationProvider
+class WebSecurityConfig(
+        val unauthorizedHandler: JwtAuthenticationEntryPoint,
+        val authenticationProvider: CustomAuthenticationProvider,
+        val authenticationTokenFilter: JwtAuthenticationFilter
+): WebSecurityConfigurerAdapter() {
 
     @Override
     @Bean
@@ -37,28 +33,18 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
         auth.authenticationProvider(authenticationProvider)
     }
 
-    @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
-
-    @Bean
-    fun authenticationTokenFilterBean(): JwtAuthenticationFilter {
-        return JwtAuthenticationFilter()
-    }
-
     override fun configure(http: HttpSecurity) {
         http.cors().and().csrf().disable().
                 authorizeRequests()
                 .antMatchers("/actuator/health").permitAll()
                 .antMatchers("/actuator/**").hasAnyAuthority(PrivilegeType.MONITORING.name)
-                .antMatchers("/token/**", "/signup", "/signup/facebook", "/signup/google").permitAll()
+                .antMatchers("/token/**", "/signup").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         http
-                .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter::class.java)
+                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
     }
 
 }

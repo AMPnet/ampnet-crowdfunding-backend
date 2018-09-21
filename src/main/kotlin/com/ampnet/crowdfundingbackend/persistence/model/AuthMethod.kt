@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
-enum class LoginMethod {
+enum class AuthMethod {
     FACEBOOK,
     GOOGLE,
-    REGULAR
+    EMAIL
 }

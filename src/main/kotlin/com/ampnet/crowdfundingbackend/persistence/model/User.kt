@@ -26,6 +26,6 @@ data class User (
 
     @Enumerated(EnumType.STRING)
     @Column(length = 8)
-    var loginMethod: LoginMethod
+    var authMethod: AuthMethod
 
 )

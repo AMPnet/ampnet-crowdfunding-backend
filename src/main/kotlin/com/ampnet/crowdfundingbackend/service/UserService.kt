@@ -1,16 +1,12 @@
 package com.ampnet.crowdfundingbackend.service
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.FacebookSignupRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.request.GoogleSignupRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.util.*
 
 interface UserService {
-    fun create(request: SignupRequest): User
-    fun create(request: FacebookSignupRequest): User
-    fun create(request: GoogleSignupRequest): User
+    fun create(request: CreateUserServiceRequest): User
     fun findAll(): List<User>
     fun delete(id: Int)
     fun find(username: String): Optional<User>
