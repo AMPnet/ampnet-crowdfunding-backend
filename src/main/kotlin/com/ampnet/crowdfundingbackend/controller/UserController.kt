@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import javax.validation.Valid
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
@@ -32,7 +31,7 @@ class UserController {
         return ResponseEntity.ok(user.email)
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     @GetMapping("/users")
     fun getUsers(): ResponseEntity<UsersResponse> {
         val users = userService.findAll().map { UserResponse(it) }

@@ -1,9 +1,10 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
-import com.ampnet.crowdfundingbackend.controller.pojo.SignupUserRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.UserResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.UsersResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersResponse
+import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
@@ -24,18 +25,11 @@ class UserControllerTest : TestBase() {
 
     private val pathUsers = "/users"
 
-    private lateinit var testContext: TestContext
-
     @Autowired
     private lateinit var userService: UserService
 
-    @Before
-    fun initContext() {
-        testContext = TestContext()
-    }
-
     @Test
-    @WithMockCrowdfoundUser
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_PROFILE])
     fun mustBeAbleToGetAListOfUsers() {
         suppose("Some user exists in database") {
             createTestUsers("tester1")
@@ -54,7 +48,7 @@ class UserControllerTest : TestBase() {
 
     @Test
     @WithMockCrowdfoundUser(role = UserRoleType.USER)
-    fun mustNotBeAbleToGetAListOfUsersWithUserRole() {
+    fun mustNotBeAbleToGetAListOfUsersWithAdminPermission() {
         verify("The user with role USER cannot fetch a list of users") {
             mockMvc.perform(get(pathUsers))
                     .andExpect(status().isForbidden)
@@ -63,17 +57,18 @@ class UserControllerTest : TestBase() {
 
     @Test
     fun mustBeAbleToSignUpUser() {
-        val username = "userX"
+        val email = "userX"
+        lateinit var result: MvcResult
 
         suppose("The user send request to sign up") {
             val requestJson = """{
-            |"username": "$username",
+            |"email": "$email",
             |"password": "password",
             |"age": 0,
             |"salary": 0
             |}""".trimMargin()
 
-            testContext.result = mockMvc.perform(
+            result = mockMvc.perform(
                     post("/signup")
                             .content(requestJson)
                             .contentType(MediaType.APPLICATION_JSON))
@@ -83,21 +78,19 @@ class UserControllerTest : TestBase() {
         }
 
         verify("The controller returned valid user") {
-            val userResponse: UserResponse = objectMapper.readValue(testContext.result.response.contentAsString)
-            assertThat(userResponse.username).isEqualTo(username)
+            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(userResponse.email).isEqualTo(email)
+
         }
         verify("The user is stored in database") {
-            val optionalUserInRepo = userService.find(username)
+            val optionalUserInRepo = userService.find(email)
             assertThat(optionalUserInRepo.isPresent).isTrue()
+            // TODO: verify user values with request values
         }
     }
 
-    private fun createTestUsers(username: String): User {
-        val request = SignupUserRequest(username, "password", 0, 0)
+    private fun createTestUsers(email: String): User {
+        val request = SignupRequest(email, "password", 0, 0)
         return userService.create(request)
-    }
-
-    private class TestContext {
-        lateinit var result: MvcResult
     }
 }
