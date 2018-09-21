@@ -14,6 +14,9 @@ enum class PrivilegeType {
         - PWA - PERM_WRITE_ADMIN
      */
 
+    // Administration
+    MONITORING,
+
     // Profile
     PRO_PROFILE,
     PWO_PROFILE,
