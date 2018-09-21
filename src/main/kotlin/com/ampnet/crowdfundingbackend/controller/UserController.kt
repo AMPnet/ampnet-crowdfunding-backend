@@ -1,29 +1,27 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.FacebookSignupRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.request.GoogleSignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocialInfo
+import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersResponse
-import com.ampnet.crowdfundingbackend.exception.FacebookNoAccessException
-import com.ampnet.crowdfundingbackend.exception.GoogleNoAccessException
-import com.ampnet.crowdfundingbackend.exception.UserAlreadyExistsException
+import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
+import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import javax.validation.Valid
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
-class UserController {
-
-    @Autowired
-    lateinit var userService: UserService
+class UserController(val userService: UserService,
+                     val socialService: SocialService,
+                     val objectMapper: ObjectMapper) {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/me")
@@ -48,36 +46,24 @@ class UserController {
 
     @PostMapping("/signup")
     fun createUser(@RequestBody request: SignupRequest): ResponseEntity<Any> {
-        try {
-            val user = UserResponse(userService.create(request))
-            return ResponseEntity.ok(user)
-        } catch (ex: UserAlreadyExistsException) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists.")
+        val createUserRequest = when (request.signupMethod) {
+            AuthMethod.EMAIL -> {
+                val userInfo: SignupRequestUserInfo = objectMapper.convertValue(request.userInfo)
+                CreateUserServiceRequest(userInfo.email, userInfo.password, request.signupMethod)
+            }
+            AuthMethod.GOOGLE -> {
+                val socialInfo: SignupRequestSocialInfo = objectMapper.convertValue(request.userInfo)
+                val userInfo = socialService.getGoogleUserInfo(socialInfo.token)
+                CreateUserServiceRequest(userInfo.email, null, request.signupMethod)
+            }
+            AuthMethod.FACEBOOK -> {
+                val socialInfo: SignupRequestSocialInfo = objectMapper.convertValue(request.userInfo)
+                val userInfo = socialService.getFacebookUserInfo(socialInfo.token)
+                CreateUserServiceRequest(userInfo.email, null, request.signupMethod)
+            }
         }
-    }
-
-    @PostMapping("/signup/facebook")
-    fun facebookSignUp(@RequestBody request: FacebookSignupRequest): ResponseEntity<Any> {
-        try {
-            val user = UserResponse(userService.create(request))
-            return ResponseEntity.ok(user)
-        } catch (ex: FacebookNoAccessException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Could not fetch user data using FB api.")
-        } catch (ex: UserAlreadyExistsException) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists.")
-        }
-    }
-
-    @PostMapping("/signup/google")
-    fun googleSignUp(@RequestBody request: GoogleSignupRequest): ResponseEntity<Any> {
-        try {
-            val user = UserResponse(userService.create(request))
-            return ResponseEntity.ok(user)
-        } catch (ex: GoogleNoAccessException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Could not fetch user data using Google api.")
-        } catch (ex: UserAlreadyExistsException) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists.")
-        }
+        val user = userService.create(createUserRequest)
+        return ResponseEntity.ok(UserResponse(user))
     }
 
 }
