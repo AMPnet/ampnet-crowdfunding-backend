@@ -23,21 +23,21 @@ class UserController(val userService: UserService,
                      val socialService: SocialService,
                      val objectMapper: ObjectMapper) {
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRO_PROFILE)")
     @GetMapping("/me")
     fun me(): ResponseEntity<Any> {
         val user = SecurityContextHolder.getContext().authentication.principal as User
         return ResponseEntity.ok(user.email)
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     @GetMapping("/users")
     fun getUsers(): ResponseEntity<UsersResponse> {
         val users = userService.findAll().map { UserResponse(it) }
         return ResponseEntity.ok(UsersResponse(users))
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     @GetMapping("/users/{id}")
     fun getUser(@PathVariable("id") id: Int): ResponseEntity<UserResponse> {
         val user = UserResponse(userService.find(id).get())

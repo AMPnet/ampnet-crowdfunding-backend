@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.config
 
+import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -36,7 +37,7 @@ class WebSecurityConfig(
         http.cors().and().csrf().disable().
                 authorizeRequests()
                 .antMatchers("/actuator/health").permitAll()
-                .antMatchers("/actuator/**").hasAnyRole("ADMIN")
+                .antMatchers("/actuator/**").hasAnyAuthority(PrivilegeType.MONITORING.name)
                 .antMatchers("/token/**", "/signup").permitAll()
                 .anyRequest().authenticated()
                 .and()
