@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.exception.UserAlreadyExistsException
+import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
@@ -34,7 +34,7 @@ class UserServiceImpl(val userDao: UserDao,
 
     override fun create(request: CreateUserServiceRequest): User {
         if (userDao.findByEmail(request.email).isPresent) {
-            throw UserAlreadyExistsException()
+            throw ResourceAlreadyExistsException("User with email: ${request.email} already exists!")
         }
 
         val user = User::class.java.newInstance()
