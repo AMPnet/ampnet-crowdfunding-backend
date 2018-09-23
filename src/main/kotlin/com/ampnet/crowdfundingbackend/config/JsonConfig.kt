@@ -12,7 +12,7 @@ class JsonConfig {
     @Bean
     fun objectMapper(): ObjectMapper {
         val mapper = ObjectMapper()
-        mapper.propertyNamingStrategy = PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
+        mapper.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
         return mapper.registerModule(KotlinModule())
     }
 
