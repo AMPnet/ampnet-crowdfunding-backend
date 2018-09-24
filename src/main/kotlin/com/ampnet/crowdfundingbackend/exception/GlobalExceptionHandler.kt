@@ -12,7 +12,7 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceAlreadyExistsException::class)
     @ResponseBody
-    fun hangleResourceAlreadyExists(exception: ResourceAlreadyExistsException): ErrorResponse {
+    fun handleResourceAlreadyExists(exception: ResourceAlreadyExistsException): ErrorResponse {
         val reason = exception::class.java.canonicalName as String
         return generateErrorResponse(reason, exception.message)
     }
