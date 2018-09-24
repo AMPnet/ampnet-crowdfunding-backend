@@ -11,7 +11,7 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
     private val password = "password"
 
     override fun createSecurityContext(annotation: WithMockCrowdfoundUser?): SecurityContext {
-        val authorities = mapPrivilegesOrRoleToAuhtorities(annotation)
+        val authorities = mapPrivilegesOrRoleToAuthorities(annotation)
         val token = UsernamePasswordAuthenticationToken(
                 annotation?.username,
                 password,
@@ -23,7 +23,7 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
         return context
     }
 
-    private fun mapPrivilegesOrRoleToAuhtorities(annotation: WithMockCrowdfoundUser?): List<SimpleGrantedAuthority> {
+    private fun mapPrivilegesOrRoleToAuthorities(annotation: WithMockCrowdfoundUser?): List<SimpleGrantedAuthority> {
         return annotation?.privileges?.map { SimpleGrantedAuthority(it.name) }
                 ?: annotation?.role?.getPrivileges()?.map { SimpleGrantedAuthority(it.name) }
                         .orEmpty()
