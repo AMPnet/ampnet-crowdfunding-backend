@@ -20,7 +20,7 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceNotFoundException::class)
     @ResponseBody
-    fun hangleResourceDoesNotExists(exception: ResourceNotFoundException): ErrorResponse {
+    fun handleResourceDoesNotExists(exception: ResourceNotFoundException): ErrorResponse {
         val reason = exception::class.java.canonicalName as String
         return generateErrorResponse(reason, exception.message)
     }
