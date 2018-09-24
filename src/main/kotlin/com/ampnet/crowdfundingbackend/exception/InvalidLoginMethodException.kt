@@ -1,3 +1,3 @@
 package com.ampnet.crowdfundingbackend.exception
 
-class InvalidLoginMethodException: Exception()
+class InvalidLoginMethodException(exceptionMessage: String): Exception(exceptionMessage)

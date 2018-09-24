@@ -6,7 +6,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.TokenRequestSocial
 import com.ampnet.crowdfundingbackend.controller.pojo.request.TokenRequestUserInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
-import com.ampnet.crowdfundingbackend.exception.UserDoesNotExistException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
@@ -28,7 +28,6 @@ class AuthenticationController(val authenticationManager: AuthenticationManager,
                                val userService: UserService,
                                val socialService: SocialService,
                                val objectMapper: ObjectMapper) {
-
 
     @PostMapping("token")
     fun generateToken(@RequestBody tokenRequest: TokenRequest): ResponseEntity<AuthTokenResponse> {
@@ -60,8 +59,13 @@ class AuthenticationController(val authenticationManager: AuthenticationManager,
 
     private fun validateLoginParamsOrThrowException(email: String, loginMethod: AuthMethod) {
         val storedUser = userService.find(email)
-        if (!storedUser.isPresent) { throw UserDoesNotExistException() }
-        if(storedUser.get().authMethod !=  loginMethod) { throw InvalidLoginMethodException() }
+        if (!storedUser.isPresent) {
+            throw ResourceNotFoundException("User with email: $email does not exists")
+        }
+        val userAuthMethod = storedUser.get().authMethod
+        if (userAuthMethod != loginMethod) {
+            throw InvalidLoginMethodException("Invalid method. Try to login using ${userAuthMethod.name}")
+        }
     }
 
 }
