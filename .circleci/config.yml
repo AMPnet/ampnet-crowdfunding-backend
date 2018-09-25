@@ -30,6 +30,8 @@ jobs:
     steps:
       - checkout
 
+      - run: gradle ktlin
+
       # Download and cache dependencies
       - restore_cache:
           keys:
