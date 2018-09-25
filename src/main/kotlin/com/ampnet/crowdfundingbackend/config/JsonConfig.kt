@@ -15,5 +15,4 @@ class JsonConfig {
         mapper.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
         return mapper.registerModule(KotlinModule())
     }
-
 }

@@ -12,12 +12,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.Optional
 
 @Service
-class UserServiceImpl(val userDao: UserDao,
-                      val roleDao: RoleDao,
-                      val passwordEncoder: PasswordEncoder): UserService {
+class UserServiceImpl(
+    val userDao: UserDao,
+    val roleDao: RoleDao,
+    val passwordEncoder: PasswordEncoder
+) : UserService {
 
     val userRole: Role by lazy {
         roleDao.getOne(UserRoleType.USER.id)

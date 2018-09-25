@@ -21,5 +21,4 @@ enum class PrivilegeType {
     PRO_PROFILE,
     PWO_PROFILE,
     PRA_PROFILE
-
 }

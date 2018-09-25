@@ -11,16 +11,18 @@ import javax.servlet.http.HttpServletResponse
 
 @Component
 class JwtAuthenticationFilter(
-        val userService: UserService,
-        val tokenProvider: TokenProvider
-): OncePerRequestFilter() {
+    val userService: UserService,
+    val tokenProvider: TokenProvider
+) : OncePerRequestFilter() {
 
     val HEADER_STRING = "Authorization"
     val TOKEN_PREFIX = "Bearer "
 
-    override fun doFilterInternal(request: HttpServletRequest,
-                                  response: HttpServletResponse,
-                                  chain: FilterChain) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain
+    ) {
 
         val header = request.getHeader(HEADER_STRING)
         if (header != null && header.startsWith(TOKEN_PREFIX)) {
@@ -40,5 +42,4 @@ class JwtAuthenticationFilter(
 
         chain.doFilter(request, response)
     }
-
 }
