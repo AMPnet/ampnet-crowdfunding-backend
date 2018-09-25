@@ -8,4 +8,4 @@ DROP USER IF EXISTS crowdfunding;
 CREATE USER crowdfunding WITH PASSWORD 'password';
 
 DROP USER IF EXISTS crowdfunding_test;
-CREATE USER crowdfunding_test WITH PASSWORD 'password';
+CREATE USER crowdfunding_test;
