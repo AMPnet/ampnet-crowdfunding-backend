@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class CustomAuthenticationProvider(
-        val userService: UserService,
-        val passwordEncoder: PasswordEncoder
-): AuthenticationProvider {
+    val userService: UserService,
+    val passwordEncoder: PasswordEncoder
+) : AuthenticationProvider {
 
     // TODO: Analyze security architecture (jwt, custom auth provider, etc)
     override fun authenticate(authentication: Authentication): Authentication {
@@ -44,5 +44,4 @@ class CustomAuthenticationProvider(
     override fun supports(authentication: Class<*>): Boolean {
         return authentication == UsernamePasswordAuthenticationToken::class.java
     }
-
 }

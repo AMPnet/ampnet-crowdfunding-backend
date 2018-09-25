@@ -7,7 +7,7 @@ import org.springframework.social.google.api.impl.GoogleTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class SocialServiceImpl: SocialService {
+class SocialServiceImpl : SocialService {
 
     override fun getFacebookUserInfo(token: String): SocialUser {
         val facebook = FacebookTemplate(token)
@@ -24,5 +24,4 @@ class SocialServiceImpl: SocialService {
         val userInfo = template.userOperations().userInfo
         return SocialUser(userInfo.email)
     }
-
 }

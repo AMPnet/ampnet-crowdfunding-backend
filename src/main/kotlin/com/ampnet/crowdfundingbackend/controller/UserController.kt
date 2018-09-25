@@ -15,13 +15,20 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
-class UserController(val userService: UserService,
-                     val socialService: SocialService,
-                     val objectMapper: ObjectMapper) {
+class UserController(
+    val userService: UserService,
+    val socialService: SocialService,
+    val objectMapper: ObjectMapper
+) {
 
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRO_PROFILE)")
     @GetMapping("/me")
@@ -65,5 +72,4 @@ class UserController(val userService: UserService,
         val user = userService.create(createUserRequest)
         return ResponseEntity.ok(UserResponse(user))
     }
-
 }

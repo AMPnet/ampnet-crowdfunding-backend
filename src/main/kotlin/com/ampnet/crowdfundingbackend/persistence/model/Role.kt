@@ -8,12 +8,12 @@ import javax.persistence.Table
 @Entity
 @Table(name = "role")
 data class Role(
-        @Id
-        val id: Int,
+    @Id
+    val id: Int,
 
-        @Column(nullable = false)
-        val name: String,
+    @Column(nullable = false)
+    val name: String,
 
-        @Column(nullable = false)
-        val description: String
+    @Column(nullable = false)
+    val description: String
 )
