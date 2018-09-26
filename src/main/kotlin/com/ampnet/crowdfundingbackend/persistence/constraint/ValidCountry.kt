@@ -10,10 +10,10 @@ import kotlin.reflect.KClass
 @Constraint(validatedBy = [CountryConstraintValidator::class])
 annotation class ValidCountry constructor (
 
-        val message: String = "Invalid Country",
+    val message: String = "Invalid Country",
 
-        val groups: Array<KClass<*>> = [],
+    val groups: Array<KClass<*>> = [],
 
-        val payload: Array<KClass<out Payload>> = []
+    val payload: Array<KClass<out Payload>> = []
 
 )

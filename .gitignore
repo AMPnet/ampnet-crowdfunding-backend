@@ -24,6 +24,7 @@
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
 .idea/**/dataSources.xml
+.idea/codeStyles/*
 
 # Gradle
 .idea/**/gradle.xml

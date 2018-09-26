@@ -5,7 +5,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
 import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
 
-class CountryConstraintValidator(val countryDao: CountryDao): ConstraintValidator<ValidCountry, String> {
+class CountryConstraintValidator(val countryDao: CountryDao) : ConstraintValidator<ValidCountry, String> {
 
     override fun initialize(constraintAnnotation: ValidCountry?) { }
 
@@ -13,5 +13,4 @@ class CountryConstraintValidator(val countryDao: CountryDao): ConstraintValidato
         if (countryNicename == null) { return true }
         return countryDao.findByNicename(countryNicename).isPresent
     }
-
 }

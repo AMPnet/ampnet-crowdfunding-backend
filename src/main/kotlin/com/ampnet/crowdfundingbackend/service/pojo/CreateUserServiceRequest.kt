@@ -10,25 +10,26 @@ import javax.validation.constraints.Size
 
 data class CreateUserServiceRequest(
 
-        @field:Email(message = "Invalid email format.")
-        val email: String,
+    @field:Email(message = "Invalid email format.")
+    val email: String,
 
-        @ValidPassword
-        val password: String?,
+    @ValidPassword
+    val password: String?,
 
-        @field:Size(min = 1, max = 30)
-        val firstName: String?,
+    @field:Size(min = 1, max = 30)
+    val firstName: String?,
 
-        @field:Size(min = 1, max = 30)
-        val lastName: String?,
+    @field:Size(min = 1, max = 30)
+    val lastName: String?,
 
-        @field:ValidCountry(message = "Provided country does not exist.")
-        val country: String?,
+    @field:ValidCountry(message = "Provided country does not exist.")
+    val country: String?,
 
-        @field:Pattern(regexp="(^$|[0-9]{8,12})", message = "Phone number must consist of 8-12 digits.")
-        val phoneNumber: String?,
+    @field:Pattern(regexp = "(^$|[0-9]{8,12})", message = "Phone number must consist of 8-12 digits.")
+    val phoneNumber: String?,
 
-        val authMethod: AuthMethod) {
+    val authMethod: AuthMethod
+) {
 
     constructor(signupRequestUserInfo: SignupRequestUserInfo, signupMethod: AuthMethod): this(
             signupRequestUserInfo.email,
@@ -49,5 +50,4 @@ data class CreateUserServiceRequest(
             null,
             signupMethod
     )
-
 }

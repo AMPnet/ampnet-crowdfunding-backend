@@ -8,7 +8,7 @@ import org.springframework.social.google.api.impl.GoogleTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class SocialServiceImpl: SocialService {
+class SocialServiceImpl : SocialService {
 
     override fun getFacebookUserInfo(token: String): SocialUser {
         val facebook = FacebookTemplate(token)
@@ -24,7 +24,7 @@ class SocialServiceImpl: SocialService {
             (which we need for location access) app has to be reviewed and approved by Facebook.
             For now, catch and do nothing.
              */
-            try {  // this block will always throw since facebook app still not reviewed
+            try { // this block will always throw since facebook app still not reviewed
                 val page = facebook.fetchObject(userProfile.location.id, Page::class.java, "location")
                 country = page.location.country
             } catch (ex: Exception) { }
@@ -47,5 +47,4 @@ class SocialServiceImpl: SocialService {
                 country = null
         )
     }
-
 }

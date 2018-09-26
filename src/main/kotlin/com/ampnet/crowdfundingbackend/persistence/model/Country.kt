@@ -1,29 +1,35 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.GenerationType
+import javax.persistence.Id
+import javax.persistence.Table
 
 @Entity
-@Table(name="country")
-data class Country (
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        val id: Int,
+@Table(name = "country")
+data class Country(
+    @Id
 
-        @Column(nullable = false)
-        val iso: String,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Int,
 
-        @Column(nullable = false)
-        val name: String,
+    @Column(nullable = false)
+    val iso: String,
 
-        @Column(nullable = false)
-        val nicename: String,
+    @Column(nullable = false)
+    val name: String,
 
-        @Column
-        val iso3: String?,
+    @Column(nullable = false)
+    val nicename: String,
 
-        @Column
-        val numcode: Short?,
+    @Column
+    val iso3: String?,
 
-        @Column(nullable = false)
-        val phonecode: Int
+    @Column
+    val numcode: Short?,
+
+    @Column(nullable = false)
+    val phonecode: Int
 )

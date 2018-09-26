@@ -12,15 +12,16 @@ import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import org.springframework.validation.annotation.Validated
 import java.time.ZonedDateTime
 import java.util.Optional
 
 @Service
-class UserServiceImpl(val userDao: UserDao,
-                      val roleDao: RoleDao,
-                      val countryDao: CountryDao,
-                      val passwordEncoder: PasswordEncoder): UserService {
+class UserServiceImpl(
+    val userDao: UserDao,
+    val roleDao: RoleDao,
+    val countryDao: CountryDao,
+    val passwordEncoder: PasswordEncoder
+) : UserService {
 
     val userRole: Role by lazy {
         roleDao.getOne(UserRoleType.USER.id)

@@ -11,5 +11,4 @@ class MethodValidationConfig {
     fun methodValidationPostProcessor(): MethodValidationPostProcessor {
         return MethodValidationPostProcessor()
     }
-
 }
