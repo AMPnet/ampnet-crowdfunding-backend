@@ -4,6 +4,7 @@ import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
 import com.ampnet.crowdfundingbackend.service.UserService
@@ -11,12 +12,15 @@ import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.validation.annotation.Validated
 import java.time.ZonedDateTime
 import java.util.*
 
 @Service
+@Validated
 class UserServiceImpl(val userDao: UserDao,
                       val roleDao: RoleDao,
+                      val countryDao: CountryDao,
                       val passwordEncoder: PasswordEncoder): UserService {
 
     val userRole: Role by lazy {
@@ -38,11 +42,21 @@ class UserServiceImpl(val userDao: UserDao,
         }
 
         val user = User::class.java.newInstance()
+
         user.email = request.email
         user.password = passwordEncoder.encode(request.password.orEmpty())
+        user.firstName = request.firstName
+        user.lastName = request.lastName
+        user.phoneNumber = request.phoneNumber
         user.role = userRole
         user.createdAt = ZonedDateTime.now()
         user.authMethod = request.authMethod
+        user.deleted = false
+        user.enabled = true
+
+        request.country?.let { countryName ->
+            user.country = countryDao.findByNicename(countryName).orElse(null)
+        }
 
         return userDao.save(user)
     }

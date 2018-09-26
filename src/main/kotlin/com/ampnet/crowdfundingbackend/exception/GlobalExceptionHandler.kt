@@ -25,6 +25,14 @@ class GlobalExceptionHandler {
         return generateErrorResponse(reason, exception.message)
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidRequestException::class)
+    @ResponseBody
+    fun handleInvalidRequestException(exception: InvalidRequestException): ErrorResponse {
+        val reason = exception::class.java.canonicalName as String
+        return generateErrorResponse(reason, exception.message)
+    }
+
     private fun generateErrorResponse(reason: String, message: String?): ErrorResponse {
         // TODO: maybe add data for translation
         val errorMessage = message ?: "Error not defined"

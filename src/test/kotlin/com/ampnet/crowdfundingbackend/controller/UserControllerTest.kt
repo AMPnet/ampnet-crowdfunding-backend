@@ -91,7 +91,15 @@ class UserControllerTest : TestBase() {
     }
 
     private fun createTestUsers(email: String): User {
-        val request = CreateUserServiceRequest(email, "password", AuthMethod.EMAIL)
+        val request = CreateUserServiceRequest(
+                email = email,
+                password = "password",
+                firstName = "Filip",
+                lastName = "Dujmusic",
+                country = "Croatia",
+                phoneNumber = null,
+                authMethod = AuthMethod.EMAIL
+        )
         return userService.create(request)
     }
 }
