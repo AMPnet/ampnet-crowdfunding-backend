@@ -3,7 +3,7 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import java.util.*
+import java.util.Optional
 
 interface UserService {
     fun create(request: CreateUserServiceRequest): User

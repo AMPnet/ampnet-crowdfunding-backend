@@ -1,11 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
-import com.ampnet.crowdfundingbackend.persistence.constraint.ValidPassword
 import java.time.ZonedDateTime
 import javax.persistence.*
-import javax.validation.constraints.Email
-import javax.validation.constraints.Pattern
-import javax.validation.constraints.Size
 
 @Entity
 @Table(name = "app_user")

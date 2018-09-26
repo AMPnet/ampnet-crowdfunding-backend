@@ -23,11 +23,13 @@ import org.springframework.web.bind.annotation.RestController
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
-class AuthenticationController(val authenticationManager: AuthenticationManager,
-                               val jwtTokenUtil: TokenProvider,
-                               val userService: UserService,
-                               val socialService: SocialService,
-                               val objectMapper: ObjectMapper) {
+class AuthenticationController(
+    val authenticationManager: AuthenticationManager,
+    val jwtTokenUtil: TokenProvider,
+    val userService: UserService,
+    val socialService: SocialService,
+    val objectMapper: ObjectMapper
+) {
 
     @PostMapping("token")
     fun generateToken(@RequestBody tokenRequest: TokenRequest): ResponseEntity<AuthTokenResponse> {
@@ -42,7 +44,6 @@ class AuthenticationController(val authenticationManager: AuthenticationManager,
                 val facebookProfile = socialService.getFacebookUserInfo(userInfo.token)
                 validateLoginParamsOrThrowException(facebookProfile.email, AuthMethod.FACEBOOK)
                 UsernamePasswordAuthenticationToken(facebookProfile.email, null)
-
             }
             AuthMethod.GOOGLE -> {
                 val userInfo: TokenRequestSocialInfo = objectMapper.convertValue(tokenRequest.credentials)
@@ -67,5 +68,4 @@ class AuthenticationController(val authenticationManager: AuthenticationManager,
             throw InvalidLoginMethodException("Invalid method. Try to login using ${userAuthMethod.name}")
         }
     }
-
 }

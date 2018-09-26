@@ -8,6 +8,7 @@ data class UserResponse(val email: String,
                         val country: String?,
                         val phoneNumber: String?,
                         val role: String) {
+
     constructor(user: User) : this(
             user.email,
             user.firstName,

@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
-import com.ampnet.crowdfundingbackend.persistence.model.FacebookLocation
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import org.springframework.social.facebook.api.Page
