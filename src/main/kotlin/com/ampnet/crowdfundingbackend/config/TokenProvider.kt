@@ -10,17 +10,15 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.io.Serializable
-import java.util.*
+import java.util.Date
 import java.util.stream.Collectors
 
-
 @Component
-class TokenProvider: Serializable {
+class TokenProvider : Serializable {
 
     val SIGNING_KEY = "dujma"
     val AUTHORITIES_KEY = "scopes"
-    val ACCESS_TOKEN_VALIDITY_SECONDS = 5*60*60
-
+    val ACCESS_TOKEN_VALIDITY_SECONDS = 5 * 60 * 60
 
     fun getUsernameFromToken(token: String): String {
         return getClaimFromToken(token, Claims::getSubject)
@@ -30,7 +28,7 @@ class TokenProvider: Serializable {
         return getClaimFromToken(token, Claims::getExpiration)
     }
 
-    fun <T: Any> getClaimFromToken(token: String, claimsResolver: (Claims) -> T): T {
+    fun <T : Any> getClaimFromToken(token: String, claimsResolver: (Claims) -> T): T {
         val claims = getAllClaimsFromToken(token)
         return claimsResolver.invoke(claims)
     }
@@ -76,5 +74,4 @@ class TokenProvider: Serializable {
                         .toList()
         return UsernamePasswordAuthenticationToken(userDetails, "", authorities)
     }
-
 }

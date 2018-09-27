@@ -17,10 +17,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig(
-        val unauthorizedHandler: JwtAuthenticationEntryPoint,
-        val authenticationProvider: CustomAuthenticationProvider,
-        val authenticationTokenFilter: JwtAuthenticationFilter
-): WebSecurityConfigurerAdapter() {
+    val unauthorizedHandler: JwtAuthenticationEntryPoint,
+    val authenticationProvider: CustomAuthenticationProvider,
+    val authenticationTokenFilter: JwtAuthenticationFilter
+) : WebSecurityConfigurerAdapter() {
 
     @Override
     @Bean
@@ -34,8 +34,8 @@ class WebSecurityConfig(
     }
 
     override fun configure(http: HttpSecurity) {
-        http.cors().and().csrf().disable().
-                authorizeRequests()
+        http.cors().and().csrf().disable()
+                .authorizeRequests()
                 .antMatchers("/actuator/health").permitAll()
                 .antMatchers("/actuator/**").hasAnyAuthority(PrivilegeType.MONITORING.name)
                 .antMatchers("/token/**", "/signup").permitAll()
@@ -46,5 +46,4 @@ class WebSecurityConfig(
         http
                 .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
     }
-
 }

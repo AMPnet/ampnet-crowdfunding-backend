@@ -1,3 +1,3 @@
 package com.ampnet.crowdfundingbackend.exception
 
-class ResourceNotFoundException(exceptionMessage: String): Exception(exceptionMessage)
+class ResourceNotFoundException(exceptionMessage: String) : Exception(exceptionMessage)

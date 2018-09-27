@@ -12,5 +12,4 @@ class PasswordEncoderConfig {
     fun passwordEncoder(): PasswordEncoder {
         return BCryptPasswordEncoder()
     }
-
 }
