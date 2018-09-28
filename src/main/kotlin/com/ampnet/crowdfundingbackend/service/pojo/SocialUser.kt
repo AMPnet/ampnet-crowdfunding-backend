@@ -4,5 +4,5 @@ data class SocialUser(
     val email: String,
     val firstName: String?,
     val lastName: String?,
-    val country: String?
+    val countryId: Int?
 )

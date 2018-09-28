@@ -96,7 +96,7 @@ class UserControllerTest : TestBase() {
                 password = "password",
                 firstName = "Filip",
                 lastName = "Dujmusic",
-                country = "Croatia",
+                countryId = 1,
                 phoneNumber = null,
                 authMethod = AuthMethod.EMAIL
         )

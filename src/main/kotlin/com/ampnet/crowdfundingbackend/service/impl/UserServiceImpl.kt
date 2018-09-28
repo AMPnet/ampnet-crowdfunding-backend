@@ -51,11 +51,10 @@ class UserServiceImpl(
         user.role = userRole
         user.createdAt = ZonedDateTime.now()
         user.authMethod = request.authMethod
-        user.deleted = false
         user.enabled = true
 
-        request.country?.let { countryName ->
-            user.country = countryDao.findByNicename(countryName).orElse(null)
+        request.countryId?.let { id ->
+            user.country = countryDao.findById(id).orElse(null)
         }
 
         return userDao.save(user)

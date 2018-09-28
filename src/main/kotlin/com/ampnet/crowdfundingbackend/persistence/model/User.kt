@@ -15,7 +15,6 @@ import javax.persistence.Table
 @Entity
 @Table(name = "app_user")
 data class User(
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
@@ -51,9 +50,5 @@ data class User(
     var authMethod: AuthMethod,
 
     @Column(nullable = false)
-    var enabled: Boolean,
-
-    @Column(nullable = false)
-    var deleted: Boolean
-
+    var enabled: Boolean
 )

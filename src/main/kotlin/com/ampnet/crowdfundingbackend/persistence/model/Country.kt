@@ -11,7 +11,6 @@ import javax.persistence.Table
 @Table(name = "country")
 data class Country(
     @Id
-
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
 

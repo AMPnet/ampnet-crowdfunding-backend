@@ -23,7 +23,7 @@ data class CreateUserServiceRequest(
     val lastName: String?,
 
     @field:ValidCountry(message = "Provided country does not exist.")
-    val country: String?,
+    val countryId: Int?,
 
     @field:Pattern(regexp = "(^$|[0-9]{8,12})", message = "Phone number must consist of 8-12 digits.")
     val phoneNumber: String?,
@@ -36,7 +36,7 @@ data class CreateUserServiceRequest(
             signupRequestUserInfo.password,
             signupRequestUserInfo.firstName,
             signupRequestUserInfo.lastName,
-            signupRequestUserInfo.country,
+            signupRequestUserInfo.countryId,
             signupRequestUserInfo.phoneNumber,
             signupMethod
     )
@@ -46,7 +46,7 @@ data class CreateUserServiceRequest(
             null,
             socialUserInfo.firstName,
             socialUserInfo.lastName,
-            socialUserInfo.country,
+            socialUserInfo.countryId,
             null,
             signupMethod
     )

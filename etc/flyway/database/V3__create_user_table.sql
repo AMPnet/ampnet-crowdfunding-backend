@@ -9,6 +9,5 @@ CREATE TABLE app_user (
     role_id INT REFERENCES role(id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     auth_method VARCHAR(8) NOT NULL,
-    enabled BOOLEAN NOT NULL,
-    deleted BOOLEAN NOT NULL
+    enabled BOOLEAN NOT NULL
 );
