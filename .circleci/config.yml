@@ -79,13 +79,13 @@ jobs:
 
       - run:
           name: Stop current backend service
-          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io /var/crowdfunding-backend/stopService.sh
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io "cd /var/crowdfunding-backend; ./stopService.sh"
       - run:
           name: deploy-to-server
           command: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./build/libs/crowdfunding-backend-0.0.1.jar root@ampnet.io:/var/www/crowdfunding-backend/crowdfunding-backend.jar
       - run:
           name: Run new backend service
-          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io /var/crowdfunding-backend/silentStartService.sh
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io "cd /var/crowdfunding-backend; ./silentStartService.sh"
 
 workflows:
   version: 2
