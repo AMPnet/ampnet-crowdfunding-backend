@@ -95,6 +95,7 @@ workflows:
           filters:
             branches:
               ignore: master
+              ignore: fix_circle_deploy
   deploy:
     jobs:
       - deploy:
