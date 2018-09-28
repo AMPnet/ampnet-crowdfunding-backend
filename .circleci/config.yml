@@ -39,7 +39,6 @@ jobs:
       - run:
           name: Run all tests
           command: gradle test
-
       - run:
           name: Kotlin linter
           command: gradle ktlin
@@ -72,20 +71,17 @@ jobs:
           - v1-dependencies-
 
       - run: gradle dependencies
-
       - run: gradle build
 
       - run:
           name: Stop current backend service
-          command: ssh root@ampnet.io service crowdfunding-backend stop
-
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io service crowdfunding-backend stop
       - run:
           name: deploy-to-server
           command: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./build/libs/crowdfunding-backend-0.0.1.jar root@ampnet.io:/var/www/crowdfunding-backend/crowdfunding-backend.jar
-
       - run:
           name: Run new backend service
-          command: ssh root@ampnet.io service crowdfunding-backend start
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io service crowdfunding-backend start
 
 workflows:
   version: 2
