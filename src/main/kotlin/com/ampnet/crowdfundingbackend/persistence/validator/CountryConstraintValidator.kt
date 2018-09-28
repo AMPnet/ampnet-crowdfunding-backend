@@ -13,5 +13,4 @@ class CountryConstraintValidator(val countryDao: CountryDao) : ConstraintValidat
         if (countryId == null) { return true }
         return countryDao.findById(countryId).isPresent
     }
-
 }

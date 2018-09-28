@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
-import com.ampnet.crowdfundingbackend.persistence.model.Country
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
@@ -34,7 +33,7 @@ class SocialServiceImpl : SocialService {
                 val page = facebook.fetchObject(userProfile.location.id, Page::class.java, "location")
                 val country = countryDao.findByNicename(page.location.country)
                 if (country.isPresent) { countryId = country.get().id }
-            } catch (ex: Exception) { }  //TODO: Log specific exception when this starts working as expected
+            } catch (ex: Exception) { } // TODO: Log specific exception when this starts working as expected
         }
         return SocialUser(
                 email = userProfile.email,
