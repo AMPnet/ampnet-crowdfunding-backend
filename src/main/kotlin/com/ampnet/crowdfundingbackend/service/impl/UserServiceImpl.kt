@@ -4,6 +4,7 @@ import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
 import com.ampnet.crowdfundingbackend.service.UserService
@@ -18,6 +19,7 @@ import java.util.Optional
 class UserServiceImpl(
     val userDao: UserDao,
     val roleDao: RoleDao,
+    val countryDao: CountryDao,
     val passwordEncoder: PasswordEncoder
 ) : UserService {
 
@@ -40,11 +42,20 @@ class UserServiceImpl(
         }
 
         val user = User::class.java.newInstance()
+
         user.email = request.email
         user.password = passwordEncoder.encode(request.password.orEmpty())
+        user.firstName = request.firstName
+        user.lastName = request.lastName
+        user.phoneNumber = request.phoneNumber
         user.role = userRole
         user.createdAt = ZonedDateTime.now()
         user.authMethod = request.authMethod
+        user.enabled = true
+
+        request.countryId?.let { id ->
+            user.country = countryDao.findById(id).orElse(null)
+        }
 
         return userDao.save(user)
     }

@@ -1,17 +1,15 @@
 package com.ampnet.crowdfundingbackend.exception
 
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestControllerAdvice
 
-@ControllerAdvice
+@RestControllerAdvice
 class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceAlreadyExistsException::class)
-    @ResponseBody
     fun handleResourceAlreadyExists(exception: ResourceAlreadyExistsException): ErrorResponse {
         val reason = exception::class.java.canonicalName as String
         return generateErrorResponse(reason, exception.message)
@@ -19,8 +17,14 @@ class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceNotFoundException::class)
-    @ResponseBody
     fun handleResourceDoesNotExists(exception: ResourceNotFoundException): ErrorResponse {
+        val reason = exception::class.java.canonicalName as String
+        return generateErrorResponse(reason, exception.message)
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidRequestException::class)
+    fun handleInvalidRequestException(exception: InvalidRequestException): ErrorResponse {
         val reason = exception::class.java.canonicalName as String
         return generateErrorResponse(reason, exception.message)
     }

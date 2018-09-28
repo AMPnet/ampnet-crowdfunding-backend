@@ -66,7 +66,11 @@ class UserControllerTest : TestBase() {
                 |"signup_method" : "EMAIL",
                 |"user_info" : {
                     |"email" : "$email",
-                    |"password" : "password"
+                    |"password" : "Password1578!",
+                    |"first_name" : "filip",
+                    |"last_name" : "dujma",
+                    |"phone_number" : "0958915667",
+                    |"country_id" : 1
                 |}
             |}""".trimMargin()
 
@@ -91,7 +95,15 @@ class UserControllerTest : TestBase() {
     }
 
     private fun createTestUsers(email: String): User {
-        val request = CreateUserServiceRequest(email, "password", AuthMethod.EMAIL)
+        val request = CreateUserServiceRequest(
+                email = email,
+                password = "Password123!",
+                firstName = "Filip",
+                lastName = "Dujmusic",
+                countryId = 1,
+                phoneNumber = "0958915667",
+                authMethod = AuthMethod.EMAIL
+        )
         return userService.create(request)
     }
 }
