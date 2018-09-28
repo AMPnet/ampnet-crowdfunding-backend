@@ -25,6 +25,11 @@ group = 'com.ampnet'
 version = '0.0.1-SNAPSHOT'
 description = "crowdfunding-backend"
 
+bootJar {
+    baseName = 'crowdfunding-backend'
+    version =  '0.0.1'
+}
+
 sourceCompatibility = 1.8
 compileKotlin {
     kotlinOptions {
