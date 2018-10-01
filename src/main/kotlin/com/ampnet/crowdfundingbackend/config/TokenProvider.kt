@@ -14,11 +14,7 @@ import java.util.Date
 import java.util.stream.Collectors
 
 @Component
-class TokenProvider : Serializable {
-
-    val SIGNING_KEY = "dujma"
-    val AUTHORITIES_KEY = "scopes"
-    val ACCESS_TOKEN_VALIDITY_SECONDS = 5 * 60 * 60
+class TokenProvider(val applicationProperties: ApplicationProperties) : Serializable {
 
     fun getUsernameFromToken(token: String): String {
         return getClaimFromToken(token, Claims::getSubject)
@@ -35,7 +31,7 @@ class TokenProvider : Serializable {
 
     fun getAllClaimsFromToken(token: String): Claims {
         return Jwts.parser()
-                .setSigningKey(SIGNING_KEY)
+                .setSigningKey(applicationProperties.jwt.signingKey)
                 .parseClaimsJws(token)
                 .body
     }
@@ -51,27 +47,30 @@ class TokenProvider : Serializable {
                 .collect(Collectors.joining(","))
         return Jwts.builder()
                 .setSubject(authentication.name)
-                .claim(AUTHORITIES_KEY, authorities)
-                .signWith(SignatureAlgorithm.HS256, SIGNING_KEY)
+                .claim(applicationProperties.jwt.authoritiesKey, authorities)
+                .signWith(SignatureAlgorithm.HS256, applicationProperties.jwt.signingKey)
                 .setIssuedAt(Date())
-                .setExpiration(Date(System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY_SECONDS * 1000))
+                .setExpiration(Date(System.currentTimeMillis() +
+                        minutesToMilliSeconds(applicationProperties.jwt.validityInMinutes.toInt())))
                 .compact()
     }
 
     fun validateToken(token: String, userDetails: User): Boolean {
         val username = getUsernameFromToken(token)
-        return username.equals(userDetails.email) && !isTokenExpired(token)
+        return username == userDetails.email && !isTokenExpired(token)
     }
 
     fun getAuthentication(token: String, userDetails: User): UsernamePasswordAuthenticationToken {
-        val jwtParser = Jwts.parser().setSigningKey(SIGNING_KEY)
+        val jwtParser = Jwts.parser().setSigningKey(applicationProperties.jwt.signingKey)
         val claimsJws = jwtParser.parseClaimsJws(token)
         val claims = claimsJws.body
         val authorities =
-                claims.get(AUTHORITIES_KEY).toString()
+                claims[applicationProperties.jwt.authoritiesKey].toString()
                         .split(",").toTypedArray()
                         .map { SimpleGrantedAuthority(it) }
                         .toList()
         return UsernamePasswordAuthenticationToken(userDetails, "", authorities)
     }
+
+    private fun minutesToMilliSeconds(minutes: Int): Int = minutes * 60 * 1000
 }

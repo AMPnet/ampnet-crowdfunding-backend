@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class AuthenticationController(
     val authenticationManager: AuthenticationManager,
-    val jwtTokenUtil: TokenProvider,
+    var jwtTokenUtil: TokenProvider,
     val userService: UserService,
     val socialService: SocialService,
     val objectMapper: ObjectMapper
