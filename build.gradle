@@ -68,6 +68,7 @@ dependencies {
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
+    testCompile('org.mockito:mockito-core:2.+')
 
     ktlint "com.github.shyiko:ktlint:0.28.0"
 }
