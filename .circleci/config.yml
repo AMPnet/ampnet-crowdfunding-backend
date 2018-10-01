@@ -1,8 +1,7 @@
-# Java Gradle CircleCI 2.0 configuration file
-
 version: 2
+
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
@@ -24,9 +23,6 @@ jobs:
     steps:
       - checkout
 
-      - run: gradle ktlin
-
-      # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "build.gradle" }}
@@ -40,5 +36,68 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
         
-      # run tests!
-      - run: gradle test
+      - run:
+          name: Run all tests
+          command: gradle test
+      - run:
+          name: Kotlin linter
+          command: gradle ktlin
+          
+  deploy:
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          TEST_DATABASE_URL: postgresql://crowdfunding_test@localhost:5432/crowdfunding_test
+
+      - image: circleci/postgres:9.6
+        environment:
+          POSTGRES_USER: crowdfunding_test
+          POSTGRES_DB: crowdfunding_test
+          POSTGRES_PASSWORD: password
+
+    working_directory: ~/repo
+
+    environment:
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "96:2c:54:e3:52:7c:c8:89:e3:0f:58:44:d8:be:71:fb"
+            
+      - checkout
+      
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "build.gradle" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run: gradle dependencies
+      - run: gradle build
+
+      - run:
+          name: Stop current backend service
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io service crowdfunding-backend stop
+      - run:
+          name: deploy-to-server
+          command: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./build/libs/crowdfunding-backend-0.0.1.jar root@ampnet.io:/var/www/crowdfunding-backend/crowdfunding-backend.jar
+      - run:
+          name: Run new backend service
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io service crowdfunding-backend start
+
+workflows:
+  version: 2
+  test:
+    jobs: 
+      - test:
+          filters:
+            branches:
+              ignore: master
+  deploy:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              only: master
