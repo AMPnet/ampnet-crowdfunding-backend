@@ -9,6 +9,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
+import mu.KLogging
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -22,6 +23,8 @@ class UserServiceImpl(
     val countryDao: CountryDao,
     val passwordEncoder: PasswordEncoder
 ) : UserService {
+
+    companion object : KLogging()
 
     val userRole: Role by lazy {
         roleDao.getOne(UserRoleType.USER.id)
@@ -38,25 +41,11 @@ class UserServiceImpl(
 
     override fun create(request: CreateUserServiceRequest): User {
         if (userDao.findByEmail(request.email).isPresent) {
+            logger.info { "Trying to create user with email that already exists: ${request.email}" }
             throw ResourceAlreadyExistsException("User with email: ${request.email} already exists!")
         }
 
-        val user = User::class.java.newInstance()
-
-        user.email = request.email
-        user.password = passwordEncoder.encode(request.password.orEmpty())
-        user.firstName = request.firstName
-        user.lastName = request.lastName
-        user.phoneNumber = request.phoneNumber
-        user.role = userRole
-        user.createdAt = ZonedDateTime.now()
-        user.authMethod = request.authMethod
-        user.enabled = true
-
-        request.countryId?.let { id ->
-            user.country = countryDao.findById(id).orElse(null)
-        }
-
+        val user = createUserFromRequest(request)
         return userDao.save(user)
     }
 
@@ -74,5 +63,23 @@ class UserServiceImpl(
 
     override fun find(id: Int): Optional<User> {
         return userDao.findById(id)
+    }
+
+    private fun createUserFromRequest(request: CreateUserServiceRequest): User {
+        val user = User::class.java.newInstance()
+        user.email = request.email
+        user.password = passwordEncoder.encode(request.password.orEmpty())
+        user.firstName = request.firstName
+        user.lastName = request.lastName
+        user.phoneNumber = request.phoneNumber
+        user.role = userRole
+        user.createdAt = ZonedDateTime.now()
+        user.authMethod = request.authMethod
+        user.enabled = true
+
+        request.countryId?.let { id ->
+            user.country = countryDao.findById(id).orElse(null)
+        }
+        return user
     }
 }
