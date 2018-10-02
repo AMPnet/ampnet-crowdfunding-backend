@@ -65,7 +65,7 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "96:2c:54:e3:52:7c:c8:89:e3:0f:58:44:d8:be:71:fb"
-            
+
       - checkout
       
       - restore_cache:
@@ -79,13 +79,13 @@ jobs:
 
       - run:
           name: Stop current backend service
-          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io service crowdfunding-backend stop
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t root@ampnet.io "cd /var/crowdfunding-backend ; bash -s" < .circleci/script/stopService.sh
       - run:
-          name: deploy-to-server
-          command: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./build/libs/crowdfunding-backend-0.0.1.jar root@ampnet.io:/var/www/crowdfunding-backend/crowdfunding-backend.jar
+          name: Copy jar to server
+          command: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./build/libs/crowdfunding-backend-0.0.1.jar root@ampnet.io:/var/crowdfunding-backend/crowdfunding-backend.jar
       - run:
           name: Run new backend service
-          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ampnet.io service crowdfunding-backend start
+          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t root@ampnet.io "cd /var/crowdfunding-backend ; bash -s" < .circleci/script/startService.sh
 
 workflows:
   version: 2
@@ -95,9 +95,11 @@ workflows:
           filters:
             branches:
               ignore: master
+              ignore: fix_circle_deploy
   deploy:
     jobs:
       - deploy:
           filters:
             branches:
               only: master
+              only: fix_circle_deploy
