@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.config
 
 import com.ampnet.crowdfundingbackend.service.UserService
+import mu.KLogging
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
@@ -15,8 +16,10 @@ class JwtAuthenticationFilter(
     val tokenProvider: TokenProvider
 ) : OncePerRequestFilter() {
 
-    val HEADER_STRING = "Authorization"
-    val TOKEN_PREFIX = "Bearer "
+    companion object : KLogging()
+
+    val headerName = "Authorization"
+    val tokenPrefix = "Bearer "
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -24,9 +27,9 @@ class JwtAuthenticationFilter(
         chain: FilterChain
     ) {
 
-        val header = request.getHeader(HEADER_STRING)
-        if (header != null && header.startsWith(TOKEN_PREFIX)) {
-            val authToken = header.replace(TOKEN_PREFIX, "")
+        val header = request.getHeader(headerName)
+        if (header != null && header.startsWith(tokenPrefix)) {
+            val authToken = header.replace(tokenPrefix, "")
 
             // TODO: try to use inmemory
             val username = tokenProvider.getUsernameFromToken(authToken)

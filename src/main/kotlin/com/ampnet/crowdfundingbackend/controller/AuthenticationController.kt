@@ -12,6 +12,7 @@ import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -31,8 +32,11 @@ class AuthenticationController(
     val objectMapper: ObjectMapper
 ) {
 
+    companion object : KLogging()
+
     @PostMapping("token")
     fun generateToken(@RequestBody tokenRequest: TokenRequest): ResponseEntity<AuthTokenResponse> {
+        logger.debug { "Received request for token: $tokenRequest" }
         val usernamePasswordAuthenticationToken = when (tokenRequest.loginMethod) {
             AuthMethod.EMAIL -> {
                 val userInfo: TokenRequestUserInfo = objectMapper.convertValue(tokenRequest.credentials)
@@ -55,6 +59,8 @@ class AuthenticationController(
         val authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken)
         SecurityContextHolder.getContext().authentication = authentication
         val token = jwtTokenUtil.generateToken(authentication)
+
+        logger.debug { "User authenticated. Token: $token" }
         return ResponseEntity.ok(AuthTokenResponse(token))
     }
 

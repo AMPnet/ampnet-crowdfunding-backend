@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.exception
 
+import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -8,9 +9,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
+    companion object : KLogging()
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceAlreadyExistsException::class)
     fun handleResourceAlreadyExists(exception: ResourceAlreadyExistsException): ErrorResponse {
+        logger.info("ResourceAlreadyExistsException", exception)
         val reason = exception::class.java.canonicalName as String
         return generateErrorResponse(reason, exception.message)
     }
@@ -18,6 +22,7 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceNotFoundException::class)
     fun handleResourceDoesNotExists(exception: ResourceNotFoundException): ErrorResponse {
+        logger.info("ResourceNotFoundException", exception)
         val reason = exception::class.java.canonicalName as String
         return generateErrorResponse(reason, exception.message)
     }
@@ -25,6 +30,7 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRequestException::class)
     fun handleInvalidRequestException(exception: InvalidRequestException): ErrorResponse {
+        logger.info("InvalidRequestException", exception)
         val reason = exception::class.java.canonicalName as String
         return generateErrorResponse(reason, exception.message)
     }
