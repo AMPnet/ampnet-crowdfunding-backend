@@ -1,9 +1,11 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.exception.SocialException
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import mu.KLogging
+import org.springframework.social.NotAuthorizedException
 import org.springframework.social.facebook.api.Page
 import org.springframework.social.facebook.api.User
 import org.springframework.social.facebook.api.impl.FacebookTemplate
@@ -15,40 +17,53 @@ class SocialServiceImpl(val countryDao: CountryDao) : SocialService {
 
     companion object : KLogging()
 
+    @Throws(SocialException::class)
     override fun getFacebookUserInfo(token: String): SocialUser {
         logger.debug { "Getting Facebook user info" }
-        val facebook = FacebookTemplate(token)
-        val userProfile = facebook.fetchObject(
-                "me",
-                User::class.java,
-                "id", "email", "first_name", "last_name", "location"
-        )
-        logger.debug { "Received Facebook user info with mail: ${userProfile.email}" }
 
-        var countryId: Int? = null
-        if (userProfile.location != null && userProfile.location.id != null) {
-            countryId = getCountryIdFromFacebook(facebook, userProfile)
+        try {
+            val facebook = FacebookTemplate(token)
+            val userProfile = facebook.fetchObject(
+                    "me",
+                    User::class.java,
+                    "id", "email", "first_name", "last_name", "location"
+            )
+            logger.debug { "Received Facebook user info with mail: ${userProfile.email}" }
+
+            var countryId: Int? = null
+            if (userProfile.location != null && userProfile.location.id != null) {
+                countryId = getCountryIdFromFacebook(facebook, userProfile)
+            }
+            return SocialUser(
+                    email = userProfile.email,
+                    firstName = userProfile.firstName,
+                    lastName = userProfile.lastName,
+                    countryId = countryId
+            )
+        } catch (ex: NotAuthorizedException) {
+            logger.info("Not authorized to get data from Facebook", ex)
+            throw SocialException("Cannot fetch data from Facebook", ex)
         }
-
-        return SocialUser(
-                email = userProfile.email,
-                firstName = userProfile.firstName,
-                lastName = userProfile.lastName,
-                countryId = countryId
-        )
     }
 
+    @Throws(SocialException::class)
     override fun getGoogleUserInfo(token: String): SocialUser {
         logger.debug { "Getting Google user info" }
-        val template = GoogleTemplate(token)
-        val userInfo = template.userOperations().userInfo
-        logger.debug { "Received Google user info with mail: ${userInfo.email}" }
-        return SocialUser(
-                email = userInfo.email,
-                firstName = userInfo.firstName,
-                lastName = userInfo.lastName,
-                countryId = null
-        )
+
+        try {
+            val template = GoogleTemplate(token)
+            val userInfo = template.userOperations().userInfo
+            logger.debug { "Received Google user info with mail: ${userInfo.email}" }
+            return SocialUser(
+                    email = userInfo.email,
+                    firstName = userInfo.firstName,
+                    lastName = userInfo.lastName,
+                    countryId = null
+            )
+        } catch (ex: Exception) {
+            logger.info("Cannot fetch data form Google", ex)
+            throw SocialException("Cannot fetch data from Google", ex)
+        }
     }
 
     private fun getCountryIdFromFacebook(facebook: FacebookTemplate, userProfile: User): Int? {

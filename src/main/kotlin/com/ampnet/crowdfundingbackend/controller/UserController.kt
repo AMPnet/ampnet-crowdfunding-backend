@@ -92,7 +92,7 @@ class UserController(
             }
         } catch (ex: MissingKotlinParameterException) {
             logger.info("Could not parse SignupRequest: $request", ex)
-            throw InvalidRequestException("Some fields missing or could not be parsed from JSON request.")
+            throw InvalidRequestException("Some fields missing or could not be parsed from JSON request.", ex)
         }
     }
 
