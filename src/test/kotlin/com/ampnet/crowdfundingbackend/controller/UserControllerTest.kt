@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.ZonedDateTime
 
 @ActiveProfiles("SocialMockConfig")
 class UserControllerTest : TestBase() {
@@ -114,16 +115,18 @@ class UserControllerTest : TestBase() {
             val optionalUserInRepo = userService.find(email)
 
             assertThat(optionalUserInRepo.isPresent).isTrue()
+            val userInRepo = optionalUserInRepo.get()
 
-            assert(optionalUserInRepo.get().email == email)
-            assert(passwordEncoder.matches(password, optionalUserInRepo.get().password))
-            assert(optionalUserInRepo.get().firstName == firstName)
-            assert(optionalUserInRepo.get().lastName == lastName)
-            assert(optionalUserInRepo.get().country?.id == countryId)
-            assert(optionalUserInRepo.get().phoneNumber == phoneNumber)
-            assert(optionalUserInRepo.get().authMethod == signupMethod)
-            assert(optionalUserInRepo.get().role.id == UserRoleType.USER.id)
-            // TODO: decide how to test createdAt and enabled properties
+            assert(userInRepo.email == email)
+            assert(passwordEncoder.matches(password, userInRepo.password))
+            assert(userInRepo.firstName == firstName)
+            assert(userInRepo.lastName == lastName)
+            assert(userInRepo.country?.id == countryId)
+            assert(userInRepo.phoneNumber == phoneNumber)
+            assert(userInRepo.authMethod == signupMethod)
+            assert(userInRepo.role.id == UserRoleType.USER.id)
+            assert(userInRepo.createdAt.isBefore(ZonedDateTime.now()))
+            // TODO: decide how to test enabled properties
         }
 
         databaseCleanerService.deleteAll()
@@ -171,13 +174,13 @@ class UserControllerTest : TestBase() {
     @Test
     fun signupShouldFailIfUserAlreadyExists() {
         val email = "john@smith.com"
+
         suppose("User with email $email exists in database") {
             createTestUsers(email)
         }
 
-        val requestJson = generateSignupJson(email = email)
-
         verify("The user cannnot sign up with already existing email") {
+            val requestJson = generateSignupJson(email = email)
             val result = mockMvc.perform(
                     post(pathSignup)
                             .content(requestJson)
@@ -203,10 +206,14 @@ class UserControllerTest : TestBase() {
         )
         val fbToken = "token"
 
-        Mockito.`when`(socialService.getFacebookUserInfo(fbToken))
-                .thenReturn(socialUser)
+        suppose("Social service is mocked to return Facebook user") {
+            Mockito.`when`(socialService.getFacebookUserInfo(fbToken))
+                    .thenReturn(socialUser)
+        }
 
-        testSocialServiceSignup(AuthMethod.FACEBOOK, fbToken, socialUser)
+        verify("The user can sign up with Facebook account") {
+            verifySocialSignUp(AuthMethod.FACEBOOK, fbToken, socialUser)
+        }
 
         databaseCleanerService.deleteAll()
     }
@@ -221,10 +228,14 @@ class UserControllerTest : TestBase() {
         )
         val googleToken = "token"
 
-        Mockito.`when`(socialService.getGoogleUserInfo(googleToken))
-                .thenReturn(socialUser)
+        suppose("Social service is mocked to return Google user") {
+            Mockito.`when`(socialService.getGoogleUserInfo(googleToken))
+                    .thenReturn(socialUser)
+        }
 
-        testSocialServiceSignup(AuthMethod.GOOGLE, googleToken, socialUser)
+        verify("The user can sign up with Google account") {
+            verifySocialSignUp(AuthMethod.GOOGLE, googleToken, socialUser)
+        }
 
         databaseCleanerService.deleteAll()
     }
@@ -265,20 +276,20 @@ class UserControllerTest : TestBase() {
         """.trimMargin()
     }
 
-    private fun testSocialServiceSignup(authMethod: AuthMethod, token: String, expectedSocialUser: SocialUser) {
-        val token = "token"
-        val request = """
+    private fun verifySocialSignUp(
+            authMethod: AuthMethod, token: String, expectedSocialUser: SocialUser) {
+        lateinit var result: MvcResult
+
+        suppose("User has obtained token on frontend and sends signup request") {
+            val request = """
             |{
             |  "signup_method" : "$authMethod",
             |  "user_info" : {
             |    "token" : "$token"
             |  }
             |}
-        """.trimMargin()
+            """.trimMargin()
 
-        lateinit var result: MvcResult
-
-        suppose("User has obtained token on frontend and sends signup request") {
             result = mockMvc.perform(
                     post(pathSignup)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -295,14 +306,15 @@ class UserControllerTest : TestBase() {
             val optionalUserInRepo = userService.find(expectedSocialUser.email)
 
             assertThat(optionalUserInRepo.isPresent).isTrue()
+            val userInRepo = optionalUserInRepo.get()
 
-            assert(optionalUserInRepo.get().email == expectedSocialUser.email)
-            assert(optionalUserInRepo.get().firstName == expectedSocialUser.firstName)
-            assert(optionalUserInRepo.get().lastName == expectedSocialUser.lastName)
-            if(expectedSocialUser.countryId != null) {
-                assert(expectedSocialUser.countryId == optionalUserInRepo.get().country?.id)
+            assert(userInRepo.email == expectedSocialUser.email)
+            assert(userInRepo.firstName == expectedSocialUser.firstName)
+            assert(userInRepo.lastName == expectedSocialUser.lastName)
+            if (expectedSocialUser.countryId != null) {
+                assert(expectedSocialUser.countryId == userInRepo.country?.id)
             }
-            assert(optionalUserInRepo.get().role.id == UserRoleType.USER.id)
+            assert(userInRepo.role.id == UserRoleType.USER.id)
         }
     }
 
