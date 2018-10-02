@@ -51,10 +51,7 @@ class SocialServiceImpl(val countryDao: CountryDao) : SocialService {
         )
     }
 
-    private fun getCountryIdFromFacebook(
-        facebook: FacebookTemplate,
-        userProfile: User
-    ): Int? {
+    private fun getCountryIdFromFacebook(facebook: FacebookTemplate, userProfile: User): Int? {
         var countryId: Int? = null
 
         logger.debug { "Trying to get Facebook user location." }

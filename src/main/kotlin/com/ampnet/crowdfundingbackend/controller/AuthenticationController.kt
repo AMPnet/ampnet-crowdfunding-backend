@@ -60,7 +60,7 @@ class AuthenticationController(
         SecurityContextHolder.getContext().authentication = authentication
         val token = jwtTokenUtil.generateToken(authentication)
 
-        logger.debug { "User authenticated. Token: $token" }
+        logger.debug { "User successfully authenticated." }
         return ResponseEntity.ok(AuthTokenResponse(token))
     }
 
