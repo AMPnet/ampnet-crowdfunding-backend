@@ -240,7 +240,6 @@ class UserControllerTest : TestBase() {
         databaseCleanerService.deleteAll()
     }
 
-
     private fun createTestUsers(email: String, authMethod: AuthMethod = AuthMethod.EMAIL): User {
         val request = CreateUserServiceRequest(
                 email = email,
@@ -255,12 +254,13 @@ class UserControllerTest : TestBase() {
     }
 
     private fun generateSignupJson(
-            email: String = "john@smith.com",
-            password: String = "Password157!",
-            firstName: String = "John",
-            lastName: String = "Smith",
-            countryId: Int = 1,
-            phoneNumber: String = "0951234567"): String {
+        email: String = "john@smith.com",
+        password: String = "Password157!",
+        firstName: String = "John",
+        lastName: String = "Smith",
+        countryId: Int = 1,
+        phoneNumber: String = "0951234567"
+    ): String {
         return """
             |{
             |  "signup_method" : "${AuthMethod.EMAIL}",
@@ -277,7 +277,10 @@ class UserControllerTest : TestBase() {
     }
 
     private fun verifySocialSignUp(
-            authMethod: AuthMethod, token: String, expectedSocialUser: SocialUser) {
+        authMethod: AuthMethod,
+        token: String,
+        expectedSocialUser: SocialUser
+    ) {
         lateinit var result: MvcResult
 
         suppose("User has obtained token on frontend and sends signup request") {
@@ -317,5 +320,4 @@ class UserControllerTest : TestBase() {
             assert(userInRepo.role.id == UserRoleType.USER.id)
         }
     }
-
 }

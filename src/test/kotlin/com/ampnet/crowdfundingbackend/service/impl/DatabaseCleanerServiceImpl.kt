@@ -6,11 +6,10 @@ import javax.persistence.EntityManager
 import javax.transaction.Transactional
 
 @Service
-class DatabaseCleanerServiceImpl(val em: EntityManager): DatabaseCleanerService {
+class DatabaseCleanerServiceImpl(val em: EntityManager) : DatabaseCleanerService {
 
     @Transactional
     override fun deleteAll() {
         em.createNativeQuery("TRUNCATE app_user CASCADE").executeUpdate()
     }
-
 }
