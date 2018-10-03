@@ -1,0 +1,8 @@
+= AMPnet Crowdfunding backend API documentations rm
+:toc: left
+:sectnums:
+
+== Users API
+Collection of endpoints for managing users: new user registration or existing user details.
+
+=== Signup new user

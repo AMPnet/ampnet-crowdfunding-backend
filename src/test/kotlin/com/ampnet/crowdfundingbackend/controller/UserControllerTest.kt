@@ -15,6 +15,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -39,6 +40,7 @@ class UserControllerTest : TestBase() {
             val result = mockMvc.perform(get(pathUsers))
                     .andExpect(status().isOk)
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andDo(document("{ClassName}/{methodName}"))
                     .andReturn()
 
             val response: UsersResponse = objectMapper.readValue(result.response.contentAsString)

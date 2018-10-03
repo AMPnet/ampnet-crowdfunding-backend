@@ -37,6 +37,7 @@ class WebSecurityConfig(
         http.cors().and().csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/actuator/health").permitAll()
+                .antMatchers("/docs/index.html").permitAll()
                 .antMatchers("/actuator/**").hasAnyAuthority(PrivilegeType.MONITORING.name)
                 .antMatchers("/token/**", "/signup").permitAll()
                 .anyRequest().authenticated()
