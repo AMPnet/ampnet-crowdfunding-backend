@@ -1,0 +1,57 @@
+= AMPnet Crowdfunding API documentation
+:toc: left
+:sectnums:
+:toclevels: 2
+:source-highlighter: prettify
+
+== Users API
+Collection of endpoints for managing users: new user registration or existing user details.
+
+=== Successful user signup (EMAIL method)
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToSignUpUser/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToSignUpUser/http-response.adoc[]
+
+=== Successful user signup (FACEBOOK method)
+.Request
+include::{snippets}/UserControllerTest/signupUsingFacebookMethod/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/signupUsingFacebookMethod/http-response.adoc[]
+
+=== Successful user signup (GOOGLE method)
+.Request
+include::{snippets}/UserControllerTest/signupUsingGoogleMethod/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/signupUsingGoogleMethod/http-response.adoc[]
+
+=== Incomplete signup information (EMAIL method)
+.Request
+include::{snippets}/UserControllerTest/incompleteSignupRequestShouldFail/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/incompleteSignupRequestShouldFail/http-response.adoc[]
+
+=== Signup information complete but invalid (EMAIL method)
+.Request
+include::{snippets}/UserControllerTest/invalidDataSignupRequestShouldFail/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/invalidDataSignupRequestShouldFail/http-response.adoc[]
+
+=== Signup failed because user exists (EMAIL method)
+.Request
+include::{snippets}/UserControllerTest/signupShouldFailIfUserAlreadyExists/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/signupShouldFailIfUserAlreadyExists/http-response.adoc[]
+
+=== Sucessful fetch list of users (admin)
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-response.adoc[]
+
+=== Failed fetch list of users (not admin)
+.Request
+include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
+
