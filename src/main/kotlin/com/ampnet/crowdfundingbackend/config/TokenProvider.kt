@@ -4,6 +4,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import mu.KLogging
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
@@ -15,6 +16,8 @@ import java.util.stream.Collectors
 
 @Component
 class TokenProvider(val applicationProperties: ApplicationProperties) : Serializable {
+
+    companion object : KLogging()
 
     fun getUsernameFromToken(token: String): String {
         return getClaimFromToken(token, Claims::getSubject)
@@ -69,7 +72,7 @@ class TokenProvider(val applicationProperties: ApplicationProperties) : Serializ
                         .split(",").toTypedArray()
                         .map { SimpleGrantedAuthority(it) }
                         .toList()
-        return UsernamePasswordAuthenticationToken(userDetails, "", authorities)
+        return UsernamePasswordAuthenticationToken(userDetails, "Hidden", authorities)
     }
 
     private fun minutesToMilliSeconds(minutes: Int): Int = minutes * 60 * 1000
