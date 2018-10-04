@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.auth.AuthUserDetails
+import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocialInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
@@ -41,12 +41,12 @@ class UserController(
     @GetMapping("/me")
     fun me(): ResponseEntity<UserResponse> {
         logger.debug { "Received request for my profile" }
-        val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUserDetails
-        val userOptional = userService.find(authUser.username)
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        val userOptional = userService.find(userPrincipal.email)
         return if (userOptional.isPresent) {
             ResponseEntity.ok(UserResponse(userOptional.get()))
         } else {
-            logger.error("Non existing user: ${authUser.username} trying to get his profile")
+            logger.error("Non existing user: ${userPrincipal.email} trying to get his profile")
             ResponseEntity.notFound().build()
         }
     }

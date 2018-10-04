@@ -47,8 +47,8 @@ class CustomAuthenticationProvider(
                 // additional checking not needed
             }
         }
-        val principal = AuthUserDetails(user)
-        val authToken = UsernamePasswordAuthenticationToken(principal, hidden, userRights)
+        val userPrincipal = UserPrincipal(user)
+        val authToken = UsernamePasswordAuthenticationToken(userPrincipal, hidden, userRights)
 
         logger.debug { "User is authenticate using ${user.authMethod} method." }
         return authToken

@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.security
 
-import com.ampnet.crowdfundingbackend.config.auth.AuthUserDetails
+import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContext
@@ -13,9 +13,9 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
 
     override fun createSecurityContext(annotation: WithMockCrowdfoundUser): SecurityContext {
         val authorities = mapPrivilegesOrRoleToAuthorities(annotation)
-        val authUserDetails = AuthUserDetails(annotation.email, authorities, annotation.enabled)
+        val userPrincipal = UserPrincipal(annotation.email, authorities, annotation.enabled)
         val token = UsernamePasswordAuthenticationToken(
-                authUserDetails,
+                userPrincipal,
                 password,
                 authorities
         )
