@@ -13,6 +13,7 @@ import mu.KLogging
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
 import java.util.Optional
 
@@ -34,11 +35,7 @@ class UserServiceImpl(
         roleDao.getOne(UserRoleType.ADMIN.id)
     }
 
-    override fun getAuthority(user: User): Set<SimpleGrantedAuthority> {
-        val role = "ROLE_" + user.role.name
-        return setOf(SimpleGrantedAuthority(role))
-    }
-
+    @Transactional
     override fun create(request: CreateUserServiceRequest): User {
         if (userDao.findByEmail(request.email).isPresent) {
             logger.info { "Trying to create user with email that already exists: ${request.email}" }
@@ -49,20 +46,30 @@ class UserServiceImpl(
         return userDao.save(user)
     }
 
+    @Transactional(readOnly = true)
+    override fun getAuthority(user: User): Set<SimpleGrantedAuthority> {
+        val role = "ROLE_" + user.role.name
+        return setOf(SimpleGrantedAuthority(role))
+    }
+
+    @Transactional(readOnly = true)
     override fun findAll(): List<User> {
         return userDao.findAll()
     }
 
-    override fun delete(id: Int) {
-        userDao.deleteById(id)
-    }
-
+    @Transactional(readOnly = true)
     override fun find(username: String): Optional<User> {
         return userDao.findByEmail(username)
     }
 
+    @Transactional(readOnly = true)
     override fun find(id: Int): Optional<User> {
         return userDao.findById(id)
+    }
+
+    @Transactional
+    override fun delete(id: Int) {
+        userDao.deleteById(id)
     }
 
     private fun createUserFromRequest(request: CreateUserServiceRequest): User {
