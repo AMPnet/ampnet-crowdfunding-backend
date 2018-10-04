@@ -10,7 +10,6 @@ import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import mu.KLogging
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -44,12 +43,6 @@ class UserServiceImpl(
 
         val user = createUserFromRequest(request)
         return userDao.save(user)
-    }
-
-    @Transactional(readOnly = true)
-    override fun getAuthority(user: User): Set<SimpleGrantedAuthority> {
-        val role = "ROLE_" + user.role.name
-        return setOf(SimpleGrantedAuthority(role))
     }
 
     @Transactional(readOnly = true)

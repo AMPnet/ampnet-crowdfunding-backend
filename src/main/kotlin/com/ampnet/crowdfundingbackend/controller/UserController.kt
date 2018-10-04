@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.config.auth.AuthUserDetails
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocialInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
@@ -7,7 +8,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -41,8 +41,8 @@ class UserController(
     @GetMapping("/me")
     fun me(): ResponseEntity<Any> {
         logger.debug { "Received request for my profile" }
-        val user = SecurityContextHolder.getContext().authentication.principal as User
-        return ResponseEntity.ok(user.email)
+        val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUserDetails
+        return ResponseEntity.ok(authUser.user.email)
     }
 
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")

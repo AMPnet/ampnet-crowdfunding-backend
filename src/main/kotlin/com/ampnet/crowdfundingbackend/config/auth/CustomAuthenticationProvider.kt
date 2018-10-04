@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.config
+package com.ampnet.crowdfundingbackend.config.auth
 
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.service.UserService
@@ -18,36 +18,39 @@ class CustomAuthenticationProvider(
 
     companion object : KLogging()
 
+    private val hidden = "Hidden"
+
     // TODO: Analyze security architecture (jwt, custom auth provider, etc)
     override fun authenticate(authentication: Authentication): Authentication {
         val email = authentication.name
-        val user = userService.find(email)
+        val userOptional = userService.find(email)
 
-        if (!user.isPresent) {
+        if (!userOptional.isPresent) {
             logger.info { "User with email: $email not present in database." }
             throw BadCredentialsException("1000")
         }
 
-        val userRights = userService.getAuthority(user.get())
+        val user = userOptional.get()
+        val userRights = user.getAuthorities()
         logger.debug { "User has authorities: ${userRights.joinToString(", ")}" }
 
-        val authToken = when (user.get().authMethod) {
+        when (user.authMethod) {
             AuthMethod.EMAIL -> {
-                val storedPasswordHash = user.get().password
+                val storedPasswordHash = user.password
                 val providedPassword = authentication.credentials.toString()
                 if (!passwordEncoder.matches(providedPassword, storedPasswordHash)) {
                     logger.info { "User passwords do not match" }
                     throw BadCredentialsException("Wrong password!")
                 }
-                UsernamePasswordAuthenticationToken(email, providedPassword, userRights)
             }
             AuthMethod.FACEBOOK, AuthMethod.GOOGLE -> {
-                // TODO: rethink about credentials null
-                UsernamePasswordAuthenticationToken(email, null, userRights)
+                // additional checking not needed
             }
         }
+        val principal = AuthUserDetails(user)
+        val authToken = UsernamePasswordAuthenticationToken(principal, hidden, userRights)
 
-        logger.debug { "User is authenticate using ${user.get().authMethod} method." }
+        logger.debug { "User is authenticate using ${user.authMethod} method." }
         return authToken
     }
 

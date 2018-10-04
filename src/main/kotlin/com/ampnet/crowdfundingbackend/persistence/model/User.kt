@@ -1,5 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -51,4 +53,12 @@ data class User(
 
     @Column(nullable = false)
     var enabled: Boolean
-)
+) {
+    fun getAuthorities(): Set<SimpleGrantedAuthority> {
+        val roleAuthority = SimpleGrantedAuthority("ROLE_" + role.name)
+        val privileges = UserRoleType.fromInt(role.id)
+                ?.getPrivileges()
+                ?.map { SimpleGrantedAuthority(it.name) }.orEmpty()
+        return (privileges + roleAuthority).toSet()
+    }
+}

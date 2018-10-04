@@ -1,5 +1,8 @@
 package com.ampnet.crowdfundingbackend.config
 
+import com.ampnet.crowdfundingbackend.config.auth.CustomAuthenticationProvider
+import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationEntryPoint
+import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationFilter
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -17,9 +20,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig(
-    val unauthorizedHandler: JwtAuthenticationEntryPoint,
-    val authenticationProvider: CustomAuthenticationProvider,
-    val authenticationTokenFilter: JwtAuthenticationFilter
+        val unauthorizedHandler: JwtAuthenticationEntryPoint,
+        val authenticationProvider: CustomAuthenticationProvider,
+        val authenticationTokenFilter: JwtAuthenticationFilter
 ) : WebSecurityConfigurerAdapter() {
 
     @Override
