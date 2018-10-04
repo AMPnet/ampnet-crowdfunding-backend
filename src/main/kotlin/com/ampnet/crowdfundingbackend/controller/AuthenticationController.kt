@@ -25,11 +25,11 @@ import org.springframework.web.bind.annotation.RestController
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
 class AuthenticationController(
-        val authenticationManager: AuthenticationManager,
-        val jwtTokenUtil: TokenProvider,
-        val userService: UserService,
-        val socialService: SocialService,
-        val objectMapper: ObjectMapper
+    val authenticationManager: AuthenticationManager,
+    val jwtTokenUtil: TokenProvider,
+    val userService: UserService,
+    val socialService: SocialService,
+    val objectMapper: ObjectMapper
 ) {
 
     companion object : KLogging()
