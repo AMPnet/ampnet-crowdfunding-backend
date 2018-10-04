@@ -69,7 +69,7 @@ class UserController(
             val user = UserResponse(optionalUser.get())
             ResponseEntity.ok(user)
         } else {
-            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+            ResponseEntity.notFound().build()
         }
     }
 
