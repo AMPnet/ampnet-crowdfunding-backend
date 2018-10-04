@@ -9,5 +9,6 @@ class ResourceAlreadyExistsException(exceptionMessage: String) : Exception(excep
 
 class ResourceNotFoundException(exceptionMessage: String) : Exception(exceptionMessage)
 
-class SocialException(exceptionMessage: String, throwable: Throwable? = null)
-    : Exception(exceptionMessage, throwable)
+class SocialException(exceptionMessage: String, throwable: Throwable? = null) : Exception(exceptionMessage, throwable)
+
+class TokenException(exceptionMessage: String, throwable: Throwable? = null) : Exception(exceptionMessage, throwable)

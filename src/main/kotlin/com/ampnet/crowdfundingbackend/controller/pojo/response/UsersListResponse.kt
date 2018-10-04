@@ -1,3 +1,3 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.response
 
-data class UsersResponse(val users: List<UserResponse>)
+data class UsersListResponse(val users: List<UserResponse>)

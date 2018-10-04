@@ -1,10 +1,12 @@
-package com.ampnet.crowdfundingbackend.config
+package com.ampnet.crowdfundingbackend.config.auth
 
+import com.ampnet.crowdfundingbackend.config.ApplicationProperties
+import com.ampnet.crowdfundingbackend.exception.TokenException
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import io.jsonwebtoken.Claims
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
-import mu.KLogging
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
@@ -16,8 +18,6 @@ import java.util.stream.Collectors
 
 @Component
 class TokenProvider(val applicationProperties: ApplicationProperties) : Serializable {
-
-    companion object : KLogging()
 
     fun getUsernameFromToken(token: String): String {
         return getClaimFromToken(token, Claims::getSubject)
@@ -63,16 +63,21 @@ class TokenProvider(val applicationProperties: ApplicationProperties) : Serializ
         return username == userDetails.email && !isTokenExpired(token)
     }
 
+    @Throws(TokenException::class)
     fun getAuthentication(token: String, userDetails: User): UsernamePasswordAuthenticationToken {
-        val jwtParser = Jwts.parser().setSigningKey(applicationProperties.jwt.signingKey)
-        val claimsJws = jwtParser.parseClaimsJws(token)
-        val claims = claimsJws.body
-        val authorities =
-                claims[applicationProperties.jwt.authoritiesKey].toString()
-                        .split(",").toTypedArray()
-                        .map { SimpleGrantedAuthority(it) }
-                        .toList()
-        return UsernamePasswordAuthenticationToken(userDetails, "Hidden", authorities)
+        try {
+            val jwtParser = Jwts.parser().setSigningKey(applicationProperties.jwt.signingKey)
+            val claimsJws = jwtParser.parseClaimsJws(token)
+            val claims = claimsJws.body
+            val authorities =
+                    claims[applicationProperties.jwt.authoritiesKey].toString()
+                            .split(",").toTypedArray()
+                            .map { SimpleGrantedAuthority(it) }
+                            .toList()
+            return UsernamePasswordAuthenticationToken(userDetails, "Hidden", authorities)
+        } catch (ex: JwtException) {
+            throw TokenException("Could not validate JWT token", ex)
+        }
     }
 
     private fun minutesToMilliSeconds(minutes: Int): Int = minutes * 60 * 1000

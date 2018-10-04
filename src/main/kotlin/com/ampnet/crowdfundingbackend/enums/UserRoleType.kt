@@ -20,5 +20,10 @@ enum class UserRoleType(val id: Int) {
         }
     };
 
+    companion object {
+        private val map = UserRoleType.values().associateBy(UserRoleType::id)
+        fun fromInt(type: Int) = map[type]
+    }
+
     abstract fun getPrivileges(): List<PrivilegeType>
 }
