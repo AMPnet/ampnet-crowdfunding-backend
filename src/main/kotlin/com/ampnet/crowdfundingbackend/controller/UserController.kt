@@ -5,7 +5,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocialInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.service.SocialService
@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KLogging
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
@@ -39,26 +40,37 @@ class UserController(
 
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRO_PROFILE)")
     @GetMapping("/me")
-    fun me(): ResponseEntity<Any> {
+    fun me(): ResponseEntity<UserResponse> {
         logger.debug { "Received request for my profile" }
         val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUserDetails
-        return ResponseEntity.ok(authUser.user.email)
+        val userOptional = userService.find(authUser.username)
+        return if (userOptional.isPresent) {
+            ResponseEntity.ok(UserResponse(userOptional.get()))
+        } else {
+            logger.error("Non existing user: ${authUser.username} trying to get his profile")
+            ResponseEntity.notFound().build()
+        }
     }
 
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     @GetMapping("/users")
-    fun getUsers(): ResponseEntity<UsersResponse> {
+    fun getUsers(): ResponseEntity<UsersListResponse> {
         logger.debug { "Received request to list all users" }
         val users = userService.findAll().map { UserResponse(it) }
-        return ResponseEntity.ok(UsersResponse(users))
+        return ResponseEntity.ok(UsersListResponse(users))
     }
 
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     @GetMapping("/users/{id}")
     fun getUser(@PathVariable("id") id: Int): ResponseEntity<UserResponse> {
         logger.debug { "Received request for user info with id: $id" }
-        val user = UserResponse(userService.find(id).get())
-        return ResponseEntity.ok(user)
+        val optionalUser = userService.find(id)
+        return if (optionalUser.isPresent) {
+            val user = UserResponse(optionalUser.get())
+            ResponseEntity.ok(user)
+        } else {
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
     }
 
     @PostMapping("/signup")

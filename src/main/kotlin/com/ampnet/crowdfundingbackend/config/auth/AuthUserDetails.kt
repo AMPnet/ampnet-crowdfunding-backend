@@ -2,23 +2,28 @@ package com.ampnet.crowdfundingbackend.config.auth
 
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
-class AuthUserDetails(val user: User): UserDetails {
+class AuthUserDetails(
+    private val email: String,
+    private val userAuthorities: Collection<GrantedAuthority>,
+    private val enabled: Boolean
+) : UserDetails {
+
+    constructor(user: User): this(user.email, user.getAuthorities(), user.enabled)
 
     private val hidden = "Hidden"
 
     override fun getAuthorities(): Collection<GrantedAuthority> {
-        return user.getAuthorities()
+        return userAuthorities
     }
 
     override fun isEnabled(): Boolean {
-        return user.enabled
+        return enabled
     }
 
     override fun getUsername(): String {
-        return user.email
+        return email
     }
 
     override fun getPassword(): String {
