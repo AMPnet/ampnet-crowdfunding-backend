@@ -48,7 +48,8 @@ class GlobalExceptionHandler {
     fun handleInvalidLoginMethod(exception: InvalidLoginMethodException): ErrorResponse {
         logger.info("InvalidRequestException", exception)
         val reason = exception::class.java.canonicalName as String
-        return generateErrorResponse(reason, exception.message)    }
+        return generateErrorResponse(reason, exception.message)
+    }
 
     private fun generateErrorResponse(reason: String, message: String?): ErrorResponse {
         // TODO: maybe add data for translation

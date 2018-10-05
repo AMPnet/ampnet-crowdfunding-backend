@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
-import com.ampnet.crowdfundingbackend.config.TokenProvider
+import com.ampnet.crowdfundingbackend.config.auth.TokenProvider
 import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
@@ -27,9 +27,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-
 @ActiveProfiles("SocialMockConfig")
-class AuthenticationControllerTest: TestBase() {
+class AuthenticationControllerTest : TestBase() {
 
     @Autowired
     private lateinit var userService: UserService
@@ -74,7 +73,7 @@ class AuthenticationControllerTest: TestBase() {
                 |  }
                 |}
             """.trimMargin()
-         result = mockMvc.perform(
+            result = mockMvc.perform(
                     post(tokenPath)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -193,7 +192,6 @@ class AuthenticationControllerTest: TestBase() {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                     .andExpect(status().isUnauthorized)
-
         }
     }
 
@@ -299,5 +297,4 @@ class AuthenticationControllerTest: TestBase() {
         val googleToken = "token"
         val authMethod = AuthMethod.GOOGLE
     }
-
 }
