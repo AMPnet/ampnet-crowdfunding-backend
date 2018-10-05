@@ -17,8 +17,7 @@ import java.io.Serializable
 import java.util.Date
 
 @Component
-class TokenProvider(val applicationProperties: ApplicationProperties,
-                    val objectMapper: ObjectMapper) : Serializable {
+class TokenProvider(val applicationProperties: ApplicationProperties, val objectMapper: ObjectMapper) : Serializable {
 
     private val userKey = "User"
     private val hidden = "Hidden"
