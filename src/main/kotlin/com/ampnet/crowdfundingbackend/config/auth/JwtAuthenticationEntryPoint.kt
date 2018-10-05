@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.config
+package com.ampnet.crowdfundingbackend.config.auth
 
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint

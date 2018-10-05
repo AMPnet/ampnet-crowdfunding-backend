@@ -2,7 +2,7 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
@@ -49,6 +49,25 @@ class UserControllerTest : TestBase() {
     private lateinit var databaseCleanerService: DatabaseCleanerService
 
     @Test
+    @WithMockCrowdfoundUser(email = "test@test.com", privileges = [PrivilegeType.PRO_PROFILE])
+    fun mustBeAbleToGetOwnProfile() {
+        suppose("User exists in database") {
+            createTestUsers("test@test.com")
+        }
+
+        verify("The controller must return user data") {
+            val result = mockMvc.perform(get("/me"))
+                    .andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andReturn()
+            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(userResponse.email).isEqualTo("test@test.com")
+        }
+
+        databaseCleanerService.deleteAll()
+    }
+
+    @Test
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_PROFILE])
     fun mustBeAbleToGetAListOfUsers() {
         suppose("Some user exists in database") {
@@ -61,8 +80,8 @@ class UserControllerTest : TestBase() {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn()
 
-            val response: UsersResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(response.users).hasSize(1)
+            val listResponse: UsersListResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(listResponse.users).hasSize(1)
         }
 
         databaseCleanerService.deleteAll()

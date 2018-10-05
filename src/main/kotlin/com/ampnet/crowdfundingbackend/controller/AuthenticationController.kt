@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.TokenProvider
+import com.ampnet.crowdfundingbackend.config.auth.TokenProvider
 import com.ampnet.crowdfundingbackend.controller.pojo.request.TokenRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.TokenRequestSocialInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.TokenRequestUserInfo

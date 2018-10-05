@@ -1,5 +1,6 @@
-package com.ampnet.crowdfundingbackend.config
+package com.ampnet.crowdfundingbackend.config.auth
 
+import com.ampnet.crowdfundingbackend.exception.TokenException
 import com.ampnet.crowdfundingbackend.service.UserService
 import mu.KLogging
 import org.springframework.security.core.context.SecurityContextHolder
@@ -18,8 +19,8 @@ class JwtAuthenticationFilter(
 
     companion object : KLogging()
 
-    val headerName = "Authorization"
-    val tokenPrefix = "Bearer "
+    private val headerName = "Authorization"
+    private val tokenPrefix = "Bearer "
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -36,9 +37,15 @@ class JwtAuthenticationFilter(
             val userDetails = userService.find(username)
             userDetails.ifPresent { user ->
                 if (tokenProvider.validateToken(authToken, user)) {
-                    val authentication = tokenProvider.getAuthentication(authToken, user)
-                    authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
-                    SecurityContextHolder.getContext().authentication = authentication
+                    try {
+                        val authentication = tokenProvider.getAuthentication(authToken, user)
+                        authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+                        SecurityContextHolder.getContext().authentication = authentication
+                    } catch (ex: TokenException) {
+                        logger.info("Invalid token structure", ex)
+                    }
+                } else {
+                    logger.info("Invalid token")
                 }
             }
         }

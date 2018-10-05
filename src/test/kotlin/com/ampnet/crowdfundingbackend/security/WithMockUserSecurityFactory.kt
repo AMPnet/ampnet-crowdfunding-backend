@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.security
 
+import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContext
@@ -10,10 +11,11 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
 
     private val password = "password"
 
-    override fun createSecurityContext(annotation: WithMockCrowdfoundUser?): SecurityContext {
+    override fun createSecurityContext(annotation: WithMockCrowdfoundUser): SecurityContext {
         val authorities = mapPrivilegesOrRoleToAuthorities(annotation)
+        val userPrincipal = UserPrincipal(annotation.email, authorities, annotation.enabled)
         val token = UsernamePasswordAuthenticationToken(
-                annotation?.username,
+                userPrincipal,
                 password,
                 authorities
         )
@@ -23,9 +25,11 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
         return context
     }
 
-    private fun mapPrivilegesOrRoleToAuthorities(annotation: WithMockCrowdfoundUser?): List<SimpleGrantedAuthority> {
-        return annotation?.privileges?.map { SimpleGrantedAuthority(it.name) }
-                ?: annotation?.role?.getPrivileges()?.map { SimpleGrantedAuthority(it.name) }
-                        .orEmpty()
+    private fun mapPrivilegesOrRoleToAuthorities(annotation: WithMockCrowdfoundUser): List<SimpleGrantedAuthority> {
+        return if (annotation.privileges.isNotEmpty()) {
+            annotation.privileges.map { SimpleGrantedAuthority(it.name) }
+        } else {
+            annotation.role.getPrivileges().map { SimpleGrantedAuthority(it.name) }
+        }
     }
 }
