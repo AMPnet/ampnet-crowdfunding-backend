@@ -21,7 +21,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig(
     val unauthorizedHandler: JwtAuthenticationEntryPoint,
-    val authenticationProvider: CustomAuthenticationProvider,
     val authenticationTokenFilter: JwtAuthenticationFilter
 ) : WebSecurityConfigurerAdapter() {
 
@@ -32,8 +31,11 @@ class WebSecurityConfig(
     }
 
     @Autowired
-    fun globalUserDetails(auth: AuthenticationManagerBuilder) {
-        auth.authenticationProvider(authenticationProvider)
+    fun globalUserDetails(
+        authBuilder: AuthenticationManagerBuilder,
+        authenticationProvider: CustomAuthenticationProvider
+    ) {
+        authBuilder.authenticationProvider(authenticationProvider)
     }
 
     override fun configure(http: HttpSecurity) {

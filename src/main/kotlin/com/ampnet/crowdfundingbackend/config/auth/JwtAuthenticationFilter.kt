@@ -34,6 +34,7 @@ class JwtAuthenticationFilter(val tokenProvider: TokenProvider) : OncePerRequest
                 SecurityContextHolder.getContext().authentication = authentication
             } catch (ex: TokenException) {
                 logger.info("Invalid token", ex)
+                SecurityContextHolder.clearContext()
             }
         }
 
