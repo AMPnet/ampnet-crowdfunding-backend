@@ -19,7 +19,7 @@ import java.util.Date
 @Component
 class TokenProvider(val applicationProperties: ApplicationProperties, val objectMapper: ObjectMapper) : Serializable {
 
-    private val userKey = "User"
+    private val userKey = "user"
     private val hidden = "Hidden"
 
     fun generateToken(authentication: Authentication): String {
