@@ -11,6 +11,5 @@ class ApplicationProperties {
 
 class JwtProperties {
     lateinit var signingKey: String
-    lateinit var authoritiesKey: String
     lateinit var validityInMinutes: String
 }
