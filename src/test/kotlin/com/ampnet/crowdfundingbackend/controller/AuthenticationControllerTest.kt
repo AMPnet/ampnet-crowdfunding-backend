@@ -15,7 +15,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.hamcrest.Matchers.hasKey
-import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +49,11 @@ class AuthenticationControllerTest : TestBase() {
     private val regularTestUser = RegularTestUser()
     private val facebookTestUser = FacebookTestUser()
     private val googleTestUser = GoogleTestUser()
+
+    @Before
+    fun clearDatabase() {
+        databaseCleanerService.deleteAll()
+    }
 
     @Test
     fun signInRegular() {
@@ -259,11 +264,6 @@ class AuthenticationControllerTest : TestBase() {
             val errorResponse = objectMapper.readValue<ErrorResponse>(result.response.contentAsString)
             assert(errorResponse.reason == InvalidLoginMethodException::class.java.canonicalName)
         }
-    }
-
-    @After
-    fun clearDatabase() {
-        databaseCleanerService.deleteAll()
     }
 
     private class RegularTestUser {
