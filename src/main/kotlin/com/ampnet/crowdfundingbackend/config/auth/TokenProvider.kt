@@ -45,11 +45,12 @@ class TokenProvider(val applicationProperties: ApplicationProperties) : Serializ
     }
 
     fun generateToken(authentication: Authentication): String {
+        val userPrincipal = authentication.principal as UserPrincipal
         val authorities = authentication.authorities.stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","))
         return Jwts.builder()
-                .setSubject(authentication.name)
+                .setSubject(userPrincipal.email)
                 .claim(applicationProperties.jwt.authoritiesKey, authorities)
                 .signWith(SignatureAlgorithm.HS256, applicationProperties.jwt.signingKey)
                 .setIssuedAt(Date())
