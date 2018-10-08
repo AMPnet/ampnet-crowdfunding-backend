@@ -3,6 +3,7 @@
 :sectnums:
 :toclevels: 2
 :source-highlighter: prettify
+:docinfo: shared
 
 == Users API
 Collection of endpoints for managing users: new user registration or existing user details.
@@ -55,3 +56,50 @@ include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdmi
 .Response
 include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
 
+== Authentication API
+
+=== Successful user signin (EMAIL method)
+.Request
+include::{snippets}/AuthenticationControllerTest/signInRegular/http-request.adoc[]
+.Response
+include::{snippets}/AuthenticationControllerTest/signInRegular/http-response.adoc[]
+
+=== Successful user signin (GOOGLE method)
+
+Token in this case is obtained from Google on frontend, and then passed as request parameter.
+
+.Request
+include::{snippets}/AuthenticationControllerTest/signInGoogle/http-request.adoc[]
+.Response
+include::{snippets}/AuthenticationControllerTest/signInGoogle/http-response.adoc[]
+
+=== Successful user signin (FACEBOOK method)
+
+Token in this case is obtained from Facebook on frontend, and then passed as request parameter.
+
+.Request
+include::{snippets}/AuthenticationControllerTest/signInFacebook/http-request.adoc[]
+.Response
+include::{snippets}/AuthenticationControllerTest/signInFacebook/http-response.adoc[]
+
+=== Invalid credentials
+.Request
+include::{snippets}/AuthenticationControllerTest/signInWithInvalidCredentialsShouldFail/http-request.adoc[]
+.Response
+include::{snippets}/AuthenticationControllerTest/signInWithInvalidCredentialsShouldFail/http-response.adoc[]
+
+=== Invalid login method
+
+For example, user was registered using regular method (filling out email, password...) but he is trying
+to login using Google oauth.
+
+.Request
+include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodShouldFail/http-request.adoc[]
+.Response
+include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodShouldFail/http-response.adoc[]
+
+=== Nonexisting user login
+.Request
+include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-request.adoc[]
+.Response
+include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-response.adoc[]
