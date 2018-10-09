@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.auth.TokenProvider
+import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
@@ -14,6 +15,7 @@ import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasKey
 import org.junit.Before
 import org.junit.Test
@@ -89,7 +91,7 @@ class AuthenticationControllerTest : TestBase() {
         }
         verify("Token is valid.") {
             val response = objectMapper.readValue<AuthTokenResponse>(result.response.contentAsString)
-            // TODO: verify token contains UserPrincipal
+            verifyTokenForUserData(response.token)
         }
     }
 
@@ -127,7 +129,7 @@ class AuthenticationControllerTest : TestBase() {
         }
         verify("Token is valid.") {
             val response = objectMapper.readValue<AuthTokenResponse>(result.response.contentAsString)
-            // TODO: verify token contains UserPrincipal
+            verifyTokenForUserData(response.token)
         }
     }
 
@@ -165,7 +167,7 @@ class AuthenticationControllerTest : TestBase() {
         }
         verify("Token is valid.") {
             val response = objectMapper.readValue<AuthTokenResponse>(result.response.contentAsString)
-            // TODO: verify token contains UserPrincipal
+            verifyTokenForUserData(response.token)
         }
     }
 
@@ -264,6 +266,12 @@ class AuthenticationControllerTest : TestBase() {
             val errorResponse = objectMapper.readValue<ErrorResponse>(result.response.contentAsString)
             assert(errorResponse.reason == InvalidLoginMethodException::class.java.canonicalName)
         }
+    }
+
+    private fun verifyTokenForUserData(token: String) {
+        val tokenPrincipal = tokenProvider.getAuthentication(token).principal as UserPrincipal
+        val storedUserPrincipal = UserPrincipal(user)
+        assertThat(tokenPrincipal).isEqualTo(storedUserPrincipal)
     }
 
     private class RegularTestUser {
