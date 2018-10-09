@@ -44,7 +44,7 @@ include::{snippets}/UserControllerTest/signupShouldFailIfUserAlreadyExists/http-
 .Response
 include::{snippets}/UserControllerTest/signupShouldFailIfUserAlreadyExists/http-response.adoc[]
 
-=== Sucessful fetch list of users (admin)
+=== Successful fetch list of users (admin)
 .Request
 include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-request.adoc[]
 .Response
@@ -55,6 +55,12 @@ include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-response
 include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-request.adoc[]
 .Response
 include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
+
+=== Successful fetch own profile
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-response.adoc[]
 
 == Authentication API
 
