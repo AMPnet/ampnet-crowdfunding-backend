@@ -43,19 +43,10 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
             validateExpiration(claims)
 
             val userPrincipal = getUserPrincipal(claims)
-            validateSubject(claims, userPrincipal.email)
-
             return UsernamePasswordAuthenticationToken(
                     userPrincipal, hidden, userPrincipal.authorities.map { SimpleGrantedAuthority(it) })
         } catch (ex: JwtException) {
             throw TokenException("Could not validate JWT token", ex)
-        }
-    }
-
-    private fun validateSubject(claims: Claims, email: String) {
-        val subject = claims.subject
-        if (subject != email) {
-            throw TokenException("Invalid subject. Subject is $subject but should be $email")
         }
     }
 
