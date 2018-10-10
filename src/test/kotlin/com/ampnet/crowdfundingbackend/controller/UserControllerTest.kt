@@ -17,6 +17,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +37,9 @@ class UserControllerTest : TestBase() {
     private val pathUsers = "/users"
     private val pathSignup = "/signup"
 
+    private lateinit var testUser: TestUser
+    private lateinit var testContext: TestContext
+
     @Autowired
     private lateinit var userService: UserService
 
@@ -48,11 +52,19 @@ class UserControllerTest : TestBase() {
     @Autowired
     private lateinit var databaseCleanerService: DatabaseCleanerService
 
+    @Before
+    fun initTestData() {
+        testUser = TestUser()
+        testContext = TestContext()
+    }
+
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com", privileges = [PrivilegeType.PRO_PROFILE])
     fun mustBeAbleToGetOwnProfile() {
         suppose("User exists in database") {
-            createTestUsers("test@test.com")
+            databaseCleanerService.deleteAll()
+            testUser.email = "test@test.com"
+            saveTestUser()
         }
 
         verify("The controller must return user data") {
@@ -61,17 +73,16 @@ class UserControllerTest : TestBase() {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn()
             val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(userResponse.email).isEqualTo("test@test.com")
+            assertThat(userResponse.email).isEqualTo(testUser.email)
         }
-
-        databaseCleanerService.deleteAll()
     }
 
     @Test
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_PROFILE])
     fun mustBeAbleToGetAListOfUsers() {
         suppose("Some user exists in database") {
-            createTestUsers("tester1")
+            databaseCleanerService.deleteAll()
+            saveTestUser()
         }
 
         verify("The controller returns a list of users") {
@@ -83,8 +94,6 @@ class UserControllerTest : TestBase() {
             val listResponse: UsersListResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(listResponse.users).hasSize(1)
         }
-
-        databaseCleanerService.deleteAll()
     }
 
     @Test
@@ -98,26 +107,10 @@ class UserControllerTest : TestBase() {
 
     @Test
     fun mustBeAbleToSignUpUser() {
-        val email = "johnsmith@gmail.com"
-        val password = "Password1578!"
-        val firstName = "john"
-        val lastName = "smith"
-        val phoneNumber = "0951234567"
-        val signupMethod = AuthMethod.EMAIL
-        val countryId = 1
-
-        lateinit var result: MvcResult
-
         suppose("The user send request to sign up") {
-            val requestJson = generateSignupJson(
-                    email = email,
-                    password = password,
-                    firstName = firstName,
-                    lastName = lastName,
-                    phoneNumber = phoneNumber,
-                    countryId = countryId
-            )
-            result = mockMvc.perform(
+            databaseCleanerService.deleteAll()
+            val requestJson = generateSignupJson()
+            testContext.mvcResult = mockMvc.perform(
                     post(pathSignup)
                             .content(requestJson)
                             .contentType(MediaType.APPLICATION_JSON))
@@ -127,28 +120,26 @@ class UserControllerTest : TestBase() {
         }
 
         verify("The controller returned valid user") {
-            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(userResponse.email).isEqualTo(email)
+            val userResponse: UserResponse = objectMapper.readValue(testContext.mvcResult.response.contentAsString)
+            assertThat(userResponse.email).isEqualTo(testUser.email)
         }
         verify("The user is stored in database") {
-            val optionalUserInRepo = userService.find(email)
+            val optionalUserInRepo = userService.find(testUser.email)
 
             assertThat(optionalUserInRepo.isPresent).isTrue()
             val userInRepo = optionalUserInRepo.get()
 
-            assert(userInRepo.email == email)
-            assert(passwordEncoder.matches(password, userInRepo.password))
-            assert(userInRepo.firstName == firstName)
-            assert(userInRepo.lastName == lastName)
-            assert(userInRepo.country?.id == countryId)
-            assert(userInRepo.phoneNumber == phoneNumber)
-            assert(userInRepo.authMethod == signupMethod)
+            assert(userInRepo.email == testUser.email)
+            assert(passwordEncoder.matches(testUser.password, userInRepo.password))
+            assert(userInRepo.firstName == testUser.firstName)
+            assert(userInRepo.lastName == testUser.lastName)
+            assert(userInRepo.country?.id == testUser.countryId)
+            assert(userInRepo.phoneNumber == testUser.phoneNumber)
+            assert(userInRepo.authMethod == testUser.authMethod)
             assert(userInRepo.role.id == UserRoleType.USER.id)
             assert(userInRepo.createdAt.isBefore(ZonedDateTime.now()))
             // TODO: decide how to test enabled properties
         }
-
-        databaseCleanerService.deleteAll()
     }
 
     @Test
@@ -173,14 +164,13 @@ class UserControllerTest : TestBase() {
     @Test
     fun invalidDataSignupRequestShouldFail() {
         verify("The user cannot send request with invalid data (e.g. wrong mail format)") {
-            val invalidJsonRequest = generateSignupJson(
-                    email = "invalid-mail.com",
-                    password = "unsafepassword123",
-                    firstName = "",
-                    lastName = "NoFirstName",
-                    countryId = 999,
-                    phoneNumber = "012abc345wrong"
-            )
+            testUser.email = "invalid-mail.com"
+            testUser.password = "unsafepassword123"
+            testUser.firstName = ""
+            testUser.lastName = "NoFirstName"
+            testUser.countryId = 999
+            testUser.phoneNumber = "012abc345wrong"
+            val invalidJsonRequest = generateSignupJson()
 
             mockMvc.perform(
                     post(pathSignup)
@@ -192,14 +182,13 @@ class UserControllerTest : TestBase() {
 
     @Test
     fun signupShouldFailIfUserAlreadyExists() {
-        val email = "john@smith.com"
-
-        suppose("User with email $email exists in database") {
-            createTestUsers(email)
+        suppose("User with email ${testUser.email} exists in database") {
+            databaseCleanerService.deleteAll()
+            saveTestUser()
         }
 
         verify("The user cannnot sign up with already existing email") {
-            val requestJson = generateSignupJson(email = email)
+            val requestJson = generateSignupJson()
             val result = mockMvc.perform(
                     post(pathSignup)
                             .content(requestJson)
@@ -211,97 +200,76 @@ class UserControllerTest : TestBase() {
             val response: ErrorResponse = objectMapper.readValue(result.response.contentAsString)
             assert(response.reason == ResourceAlreadyExistsException::class.java.canonicalName)
         }
-
-        databaseCleanerService.deleteAll()
     }
 
     @Test
     fun signupUsingFacebookMethod() {
-        val socialUser = SocialUser(
-                email = "johnsmith@gmail.com",
-                firstName = "John",
-                lastName = "Smith",
-                countryId = 1
-        )
-        val fbToken = "token"
-
         suppose("Social service is mocked to return Facebook user") {
-            Mockito.`when`(socialService.getFacebookUserInfo(fbToken))
-                    .thenReturn(socialUser)
+            databaseCleanerService.deleteAll()
+            testContext.socialUser = SocialUser(
+                    email = "johnsmith@gmail.com",
+                    firstName = "John",
+                    lastName = "Smith",
+                    countryId = 1
+            )
+            Mockito.`when`(socialService.getFacebookUserInfo(testContext.token))
+                    .thenReturn(testContext.socialUser)
         }
 
         verify("The user can sign up with Facebook account") {
-            verifySocialSignUp(AuthMethod.FACEBOOK, fbToken, socialUser)
+            verifySocialSignUp(AuthMethod.FACEBOOK, testContext.token, testContext.socialUser)
         }
-
-        databaseCleanerService.deleteAll()
     }
 
     @Test
     fun signupUsingGoogleMethod() {
-        val socialUser = SocialUser(
-                email = "johnsmith@gmail.com",
-                firstName = "John",
-                lastName = "Smith",
-                countryId = null
-        )
-        val googleToken = "token"
-
         suppose("Social service is mocked to return Google user") {
-            Mockito.`when`(socialService.getGoogleUserInfo(googleToken))
-                    .thenReturn(socialUser)
+            databaseCleanerService.deleteAll()
+            testContext.socialUser = SocialUser(
+                    email = "johnsmith@gmail.com",
+                    firstName = "John",
+                    lastName = "Smith",
+                    countryId = null
+            )
+            Mockito.`when`(socialService.getGoogleUserInfo(testContext.token))
+                    .thenReturn(testContext.socialUser)
         }
 
         verify("The user can sign up with Google account") {
-            verifySocialSignUp(AuthMethod.GOOGLE, googleToken, socialUser)
+            verifySocialSignUp(AuthMethod.GOOGLE, testContext.token, testContext.socialUser)
         }
-
-        databaseCleanerService.deleteAll()
     }
 
-    private fun createTestUsers(email: String, authMethod: AuthMethod = AuthMethod.EMAIL): User {
+    private fun saveTestUser(): User {
         val request = CreateUserServiceRequest(
-                email = email,
-                password = "Password175!",
-                firstName = "John",
-                lastName = "Smith",
-                countryId = 1,
-                phoneNumber = "0951234567",
-                authMethod = authMethod
+                email = testUser.email,
+                password = testUser.password,
+                firstName = testUser.firstName,
+                lastName = testUser.lastName,
+                countryId = testUser.countryId,
+                phoneNumber = testUser.phoneNumber,
+                authMethod = testUser.authMethod
         )
         return userService.create(request)
     }
 
-    private fun generateSignupJson(
-        email: String = "john@smith.com",
-        password: String = "Password157!",
-        firstName: String = "John",
-        lastName: String = "Smith",
-        countryId: Int = 1,
-        phoneNumber: String = "0951234567"
-    ): String {
+    private fun generateSignupJson(): String {
         return """
             |{
-            |  "signup_method" : "${AuthMethod.EMAIL}",
+            |  "signup_method" : "${testUser.authMethod}",
             |  "user_info" : {
-            |       "email" : "$email",
-            |       "password" : "$password",
-            |       "first_name" : "$firstName",
-            |       "last_name" : "$lastName",
-            |       "country_id" : $countryId,
-            |       "phone_number" : "$phoneNumber"
+            |       "email" : "${testUser.email}",
+            |       "password" : "${testUser.password}",
+            |       "first_name" : "${testUser.firstName}",
+            |       "last_name" : "${testUser.lastName}",
+            |       "country_id" : ${testUser.countryId},
+            |       "phone_number" : "${testUser.phoneNumber}"
             |   }
             |}
         """.trimMargin()
     }
 
-    private fun verifySocialSignUp(
-        authMethod: AuthMethod,
-        token: String,
-        expectedSocialUser: SocialUser
-    ) {
-        lateinit var result: MvcResult
-
+    private fun verifySocialSignUp(authMethod: AuthMethod, token: String, expectedSocialUser: SocialUser) {
         suppose("User has obtained token on frontend and sends signup request") {
             val request = """
             |{
@@ -312,7 +280,7 @@ class UserControllerTest : TestBase() {
             |}
             """.trimMargin()
 
-            result = mockMvc.perform(
+            testContext.mvcResult = mockMvc.perform(
                     post(pathSignup)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(request))
@@ -320,7 +288,7 @@ class UserControllerTest : TestBase() {
         }
 
         verify("The controller returned valid user") {
-            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
+            val userResponse: UserResponse = objectMapper.readValue(testContext.mvcResult.response.contentAsString)
             assertThat(userResponse.email).isEqualTo(expectedSocialUser.email)
         }
 
@@ -338,5 +306,21 @@ class UserControllerTest : TestBase() {
             }
             assert(userInRepo.role.id == UserRoleType.USER.id)
         }
+    }
+
+    private class TestUser {
+        var email = "john@smith.com"
+        var password = "Password157!"
+        var firstName = "John"
+        var lastName = "Smith"
+        var countryId = 1
+        var phoneNumber = "0951234567"
+        var authMethod = AuthMethod.EMAIL
+    }
+
+    private class TestContext {
+        lateinit var mvcResult: MvcResult
+        lateinit var socialUser: SocialUser
+        val token = "token"
     }
 }
