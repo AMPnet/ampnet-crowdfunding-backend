@@ -30,7 +30,7 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
                 .signWith(SignatureAlgorithm.HS256, applicationProperties.jwt.signingKey)
                 .setIssuedAt(Date())
                 .setExpiration(Date(System.currentTimeMillis() +
-                        minutesToMilliSeconds(applicationProperties.jwt.validityInMinutes.toInt())))
+                        minutesToMilliSeconds(applicationProperties.jwt.validityInMinutes)))
                 .compact()
     }
 
