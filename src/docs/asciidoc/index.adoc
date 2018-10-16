@@ -109,3 +109,18 @@ include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodSho
 include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-request.adoc[]
 .Response
 include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-response.adoc[]
+
+== Countries API
+Collection of endpoints for fetching countries
+
+=== Get all countries
+.Request
+include::{snippets}/CountryControllerTest/mustBeAbleToGetAListOfAllCountries/http-request.adoc[]
+.Response
+include::{snippets}/CountryControllerTest/mustBeAbleToGetAListOfAllCountries/http-response.adoc[]
+
+=== Get country by id
+.Request
+include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-request.adoc[]
+.Response
+include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-response.adoc[]
