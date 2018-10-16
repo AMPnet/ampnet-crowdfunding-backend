@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.controller.pojo.response.CountriesListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.CountryResponse
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -17,7 +18,7 @@ class CountryControllerTest : TestBase() {
     private val croatiaId = 3
 
     @Test
-    @WithMockCrowdfoundUser
+    @WithMockCrowdfoundUser(role = UserRoleType.USER)
     fun mustBeAbleToGetAListOfAllCountries() {
         suppose("Countries exists in database") {
             // 5 base countries are stored in database
@@ -37,7 +38,7 @@ class CountryControllerTest : TestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser
+    @WithMockCrowdfoundUser(role = UserRoleType.ADMIN)
     fun mustBeAbleToGetACountryById() {
         suppose("Country exists in database") {
             // 5 base countries are stored in database
