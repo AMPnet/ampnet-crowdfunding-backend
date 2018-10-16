@@ -5,7 +5,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.CountryResponse
 import com.ampnet.crowdfundingbackend.service.CountryService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
@@ -15,7 +14,6 @@ class CountryController(private val countryService: CountryService) {
 
     companion object : KLogging()
 
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PR_COUNTRY)")
     @GetMapping("/countries")
     fun getCountries(): ResponseEntity<CountriesListResponse> {
         logger.debug { "Received request to get all countries." }
@@ -23,7 +21,6 @@ class CountryController(private val countryService: CountryService) {
         return ResponseEntity.ok(CountriesListResponse(countries))
     }
 
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PR_COUNTRY)")
     @GetMapping("/countries/{id}")
     fun getCountry(@PathVariable("id") id: Int): ResponseEntity<CountryResponse> {
         logger.debug { "Received request to get country with id: $id" }

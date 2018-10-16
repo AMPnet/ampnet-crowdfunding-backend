@@ -20,8 +20,5 @@ enum class PrivilegeType {
     // Profile
     PRO_PROFILE,
     PWO_PROFILE,
-    PRA_PROFILE,
-
-    // Country
-    PR_COUNTRY
+    PRA_PROFILE
 }

@@ -45,6 +45,7 @@ class WebSecurityConfig(
                 .antMatchers("/docs/index.html").permitAll()
                 .antMatchers("/actuator/**").hasAnyAuthority(PrivilegeType.MONITORING.name)
                 .antMatchers("/token/**", "/signup").permitAll()
+                .antMatchers("/countries/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
