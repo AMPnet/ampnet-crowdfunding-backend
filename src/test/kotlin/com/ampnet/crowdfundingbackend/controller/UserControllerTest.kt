@@ -36,6 +36,7 @@ class UserControllerTest : TestBase() {
 
     private val pathUsers = "/users"
     private val pathSignup = "/signup"
+    private val pathMe = "/me"
 
     private lateinit var testUser: TestUser
     private lateinit var testContext: TestContext
@@ -68,7 +69,7 @@ class UserControllerTest : TestBase() {
         }
 
         verify("The controller must return user data") {
-            val result = mockMvc.perform(get("/me"))
+            val result = mockMvc.perform(get(pathMe))
                     .andExpect(status().isOk)
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn()
@@ -237,6 +238,40 @@ class UserControllerTest : TestBase() {
 
         verify("The user can sign up with Google account") {
             verifySocialSignUp(AuthMethod.GOOGLE, testContext.token, testContext.socialUser)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(completeProfile = false, email = "test@test.com")
+    fun mustEnableFetchingOwnProfileForIncompleteUserProfile() {
+        suppose("User with incomplete profile exists in database") {
+            databaseCleanerService.deleteAll()
+            val user = CreateUserServiceRequest("test@test.com", null, null, null, null, null, AuthMethod.EMAIL)
+            userService.create(user)
+        }
+
+        verify("The system returns user profile") {
+            val result = mockMvc.perform(get(pathMe))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(userResponse.email).isEqualTo("test@test.com")
+            assertThat(userResponse.firstName).isNull()
+            assertThat(userResponse.lastName).isNull()
+            assertThat(userResponse.country).isNull()
+            assertThat(userResponse.phoneNumber).isNull()
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(completeProfile = false, role = UserRoleType.ADMIN)
+    fun mustThrowErrorForIncompleteUserProfile() {
+        verify("User with incomplete profile with get an error") {
+            val result = mockMvc.perform(get(pathUsers))
+                    .andExpect(status().isConflict)
+                    .andReturn()
+            print(result.response.contentAsString)
         }
     }
 
