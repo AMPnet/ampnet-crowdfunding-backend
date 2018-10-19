@@ -1,7 +1,9 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
@@ -45,6 +47,16 @@ class UserServiceImpl(
         return userDao.save(user)
     }
 
+    @Transactional
+    override fun update(request: UserUpdateRequest): User {
+        val savedUser = userDao.findByEmail(request.email).orElseThrow {
+            logger.info { "Trying to update user with email ${request.email} which does not exists in db." }
+            throw ResourceNotFoundException("User with email: ${request.email} does not exists")
+        }
+        val user = updateUserFromRequest(savedUser, request)
+        return userDao.save(user)
+    }
+
     @Transactional(readOnly = true)
     override fun findAll(): List<User> {
         return userDao.findAll()
@@ -79,6 +91,17 @@ class UserServiceImpl(
 
         request.countryId?.let { id ->
             user.country = countryDao.findById(id).orElse(null)
+        }
+        return user
+    }
+
+    private fun updateUserFromRequest(user: User, request: UserUpdateRequest): User {
+        user.email = request.email
+        user.firstName = request.firstName
+        user.lastName = request.lastName
+        user.phoneNumber = request.phoneNumber
+        user.country = countryDao.findById(request.countryId).orElseThrow {
+            throw ResourceNotFoundException("Country with id: ${request.countryId} does not exists")
         }
         return user
     }

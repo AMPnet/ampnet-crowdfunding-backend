@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
@@ -268,10 +269,52 @@ class UserControllerTest : TestBase() {
     @WithMockCrowdfoundUser(completeProfile = false, role = UserRoleType.ADMIN)
     fun mustThrowErrorForIncompleteUserProfile() {
         verify("User with incomplete profile with get an error") {
-            val result = mockMvc.perform(get(pathUsers))
+            mockMvc.perform(get(pathUsers))
                     .andExpect(status().isConflict)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(completeProfile = false, email = "john@smith.com")
+    fun mustBeAbleToUpdateProfile() {
+        suppose("User exists in database") {
+            databaseCleanerService.deleteAll()
+            saveTestUser()
+        }
+
+        verify("User can update his profile") {
+            testUser.firstName = "NewFirstName"
+            testUser.phoneNumber = "099123123"
+            val request = getUpdateUserRequestFromTestUser()
+            val result = mockMvc.perform(
+                    post(pathMe)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk)
                     .andReturn()
-            print(result.response.contentAsString)
+
+            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(userResponse.phoneNumber).isEqualTo(testUser.phoneNumber)
+            assertThat(userResponse.firstName).isEqualTo(testUser.firstName)
+            assertThat(userResponse.email).isEqualTo(testUser.email)
+        }
+        verify("User profile is updated in database") {
+            val user = userService.find(testUser.email).get()
+            assertThat(user.firstName).isEqualTo(testUser.firstName)
+            assertThat(user.phoneNumber).isEqualTo(testUser.phoneNumber)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "other@user.com")
+    fun mustNotBeAbleToUpdateOthersUserProfile() {
+        verify("User cannot update others profile") {
+            val request = getUpdateUserRequestFromTestUser()
+            mockMvc.perform(
+                    post(pathMe)
+                            .contentType(MediaType.APPLICATION_JSON_UTF8)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden)
         }
     }
 
@@ -341,6 +384,16 @@ class UserControllerTest : TestBase() {
             }
             assert(userInRepo.role.id == UserRoleType.USER.id)
         }
+    }
+
+    private fun getUpdateUserRequestFromTestUser(): UserUpdateRequest {
+        return UserUpdateRequest(
+                testUser.email,
+                testUser.firstName,
+                testUser.lastName,
+                testUser.countryId,
+                testUser.phoneNumber
+        )
     }
 
     private class TestUser {
