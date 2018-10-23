@@ -9,12 +9,16 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.io.JacksonDeserializer
+import io.jsonwebtoken.io.JacksonSerializer
+import io.jsonwebtoken.security.Keys
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.io.Serializable
 import java.util.Date
+import javax.crypto.SecretKey
 
 @Component
 class TokenProvider(val applicationProperties: ApplicationProperties, val objectMapper: ObjectMapper) : Serializable {
@@ -22,12 +26,15 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
     private val userKey = "user"
     private val hidden = "Hidden"
 
+    private val key: SecretKey = Keys.hmacShaKeyFor(applicationProperties.jwt.signingKey.toByteArray())
+
     fun generateToken(authentication: Authentication): String {
         val principal = authentication.principal as UserPrincipal
         return Jwts.builder()
+                .serializeToJsonWith(JacksonSerializer(objectMapper))
                 .setSubject(principal.email)
-                .claim(userKey, principal)
-                .signWith(SignatureAlgorithm.HS256, applicationProperties.jwt.signingKey)
+                .claim(userKey, objectMapper.writeValueAsString(principal))
+                .signWith(key, SignatureAlgorithm.HS256)
                 .setIssuedAt(Date())
                 .setExpiration(Date(System.currentTimeMillis() +
                         minutesToMilliSeconds(applicationProperties.jwt.validityInMinutes)))
@@ -37,7 +44,9 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
     @Throws(TokenException::class)
     fun getAuthentication(token: String): UsernamePasswordAuthenticationToken {
         try {
-            val jwtParser = Jwts.parser().setSigningKey(applicationProperties.jwt.signingKey)
+            val jwtParser = Jwts.parser()
+                    .deserializeJsonWith(JacksonDeserializer(objectMapper))
+                    .setSigningKey(key)
             val claimsJws = jwtParser.parseClaimsJws(token)
             val claims = claimsJws.body
             validateExpiration(claims)
@@ -58,10 +67,9 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
     }
 
     private fun getUserPrincipal(claims: Claims): UserPrincipal {
-        val principalClaims = claims[userKey]
+        val principalClaims = claims[userKey] as String
         try {
-            val principalString = objectMapper.writeValueAsString(principalClaims)
-            return objectMapper.readValue(principalString)
+            return objectMapper.readValue(principalClaims)
         } catch (ex: MissingKotlinParameterException) {
             throw TokenException("Could not extract user principal from JWT token for key: $userKey", ex)
         }

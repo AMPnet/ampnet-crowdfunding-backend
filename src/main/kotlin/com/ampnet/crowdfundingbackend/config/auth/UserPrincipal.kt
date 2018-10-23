@@ -5,7 +5,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.User
 data class UserPrincipal(
     val email: String,
     val authorities: Set<String>,
-    val complete_profile: Boolean,
+    val completeProfile: Boolean,
     val enabled: Boolean
 ) {
     constructor(user: User): this(
