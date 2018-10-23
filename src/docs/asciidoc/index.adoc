@@ -56,11 +56,29 @@ include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdmi
 .Response
 include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
 
+=== Failed to fetch list of users because incomplete user profile
+.Request
+include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-response.adoc[]
+
 === Successful fetch own profile
 .Request
 include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-request.adoc[]
 .Response
 include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-response.adoc[]
+
+=== Successful update own profile
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-response.adoc[]
+
+=== Failed to update others profile
+.Request
+include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-response.adoc[]
 
 == Authentication API
 
