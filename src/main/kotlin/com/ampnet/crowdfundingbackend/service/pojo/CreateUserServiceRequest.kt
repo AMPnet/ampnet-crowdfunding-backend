@@ -1,31 +1,33 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
-import com.ampnet.crowdfundingbackend.persistence.constraint.ValidCountry
-import com.ampnet.crowdfundingbackend.persistence.constraint.ValidPassword
+import com.ampnet.crowdfundingbackend.validation.CountryConstraint
+import com.ampnet.crowdfundingbackend.validation.PasswordConstraint
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
-import javax.validation.constraints.Email
-import javax.validation.constraints.Pattern
-import javax.validation.constraints.Size
+import com.ampnet.crowdfundingbackend.validation.EmailConstraint
+import com.ampnet.crowdfundingbackend.validation.NameConstraint
+import com.ampnet.crowdfundingbackend.validation.PhoneNumberConstraint
+import javax.validation.constraints.NotNull
 
 data class CreateUserServiceRequest(
 
-    @field:Email(message = "Invalid email format.")
+    @EmailConstraint
+    @NotNull
     val email: String,
 
-    @ValidPassword
+    @PasswordConstraint
     val password: String?,
 
-    @field:Size(min = 1, max = 30)
+    @NameConstraint
     val firstName: String?,
 
-    @field:Size(min = 1, max = 30)
+    @NameConstraint
     val lastName: String?,
 
-    @field:ValidCountry(message = "Provided country does not exist.")
+    @CountryConstraint
     val countryId: Int?,
 
-    @field:Pattern(regexp = "(^$|[0-9]{8,12})", message = "Phone number must consist of 8-12 digits.")
+    @PhoneNumberConstraint
     val phoneNumber: String?,
 
     val authMethod: AuthMethod

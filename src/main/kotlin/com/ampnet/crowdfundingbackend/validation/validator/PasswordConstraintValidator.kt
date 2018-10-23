@@ -1,6 +1,6 @@
-package com.ampnet.crowdfundingbackend.persistence.validator
+package com.ampnet.crowdfundingbackend.validation.validator
 
-import com.ampnet.crowdfundingbackend.persistence.constraint.ValidPassword
+import com.ampnet.crowdfundingbackend.validation.PasswordConstraint
 import org.passay.CharacterRule
 import org.passay.EnglishCharacterData
 import org.passay.EnglishSequenceData
@@ -12,9 +12,9 @@ import org.passay.WhitespaceRule
 import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
 
-class PasswordConstraintValidator : ConstraintValidator<ValidPassword, String> {
+class PasswordConstraintValidator : ConstraintValidator<PasswordConstraint, String> {
 
-    override fun initialize(constraintAnnotation: ValidPassword?) { }
+    override fun initialize(constraintAnnotation: PasswordConstraint?) { }
 
     override fun isValid(password: String?, context: ConstraintValidatorContext): Boolean {
 
