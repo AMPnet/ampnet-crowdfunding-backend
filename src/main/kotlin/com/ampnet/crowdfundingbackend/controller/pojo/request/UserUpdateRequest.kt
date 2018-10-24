@@ -1,24 +1,30 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.request
 
-import com.ampnet.crowdfundingbackend.persistence.constraint.ValidCountry
-import javax.validation.constraints.Email
-import javax.validation.constraints.Pattern
-import javax.validation.constraints.Size
+import com.ampnet.crowdfundingbackend.validation.EmailConstraint
+import com.ampnet.crowdfundingbackend.validation.NameConstraint
+import com.ampnet.crowdfundingbackend.validation.PhoneNumberConstraint
+import com.ampnet.crowdfundingbackend.validation.CountryConstraint
+import javax.validation.constraints.NotNull
 
 data class UserUpdateRequest(
 
-    @field:Email(message = "Invalid email format.")
+    @EmailConstraint
+    @NotNull
     val email: String,
 
-    @field:Size(min = 1, max = 30)
+    @NameConstraint
+    @NotNull
     val firstName: String,
 
-    @field:Size(min = 1, max = 30)
+    @NameConstraint
+    @NotNull
     val lastName: String,
 
-    @field:ValidCountry(message = "Provided country does not exist.")
+    @CountryConstraint
+    @NotNull
     val countryId: Int,
 
-    @field:Pattern(regexp = "(^$|[0-9]{8,12})", message = "Phone number must consist of 8-12 digits.")
+    @PhoneNumberConstraint
+    @NotNull
     val phoneNumber: String
 )

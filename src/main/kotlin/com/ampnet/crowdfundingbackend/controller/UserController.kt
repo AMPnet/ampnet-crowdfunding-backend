@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import javax.validation.Valid
 import javax.validation.Validator
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
@@ -55,7 +56,7 @@ class UserController(
 
     @PostMapping("/me")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWO_PROFILE)")
-    fun updateMyProfile(@RequestBody request: UserUpdateRequest): ResponseEntity<UserResponse> {
+    fun updateMyProfile(@RequestBody @Valid request: UserUpdateRequest): ResponseEntity<UserResponse> {
         logger.debug { "User send request to update his profile" }
         val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
         return if (userPrincipal.email != request.email) {
