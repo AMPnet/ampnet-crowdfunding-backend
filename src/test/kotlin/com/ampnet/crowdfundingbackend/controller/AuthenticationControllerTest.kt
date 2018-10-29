@@ -205,7 +205,7 @@ class AuthenticationControllerTest : ControllerTestBase() {
     fun signInWithNonExistingUserShouldFail() {
         suppose("User with email ${regularTestUser.email} does not exist in database.") {
             val user = userService.find(regularTestUser.email)
-            assert(!user.isPresent)
+            assertThat(user).isNull()
         }
         verify("User cannot fetch token without signing up first.") {
             val requestBody = """

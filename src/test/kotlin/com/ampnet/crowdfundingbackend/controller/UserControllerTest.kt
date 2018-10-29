@@ -125,12 +125,10 @@ class UserControllerTest : ControllerTestBase() {
             assertThat(userResponse.email).isEqualTo(testUser.email)
         }
         verify("The user is stored in database") {
-            val optionalUserInRepo = userService.find(testUser.email)
+            val userInRepo = userService.find(testUser.email)
+            assertThat(userInRepo).isNotNull
 
-            assertThat(optionalUserInRepo.isPresent).isTrue()
-            val userInRepo = optionalUserInRepo.get()
-
-            assert(userInRepo.email == testUser.email)
+            assert(userInRepo!!.email == testUser.email)
             assert(passwordEncoder.matches(testUser.password, userInRepo.password))
             assert(userInRepo.firstName == testUser.firstName)
             assert(userInRepo.lastName == testUser.lastName)
@@ -298,8 +296,9 @@ class UserControllerTest : ControllerTestBase() {
             assertThat(userResponse.email).isEqualTo(testUser.email)
         }
         verify("User profile is updated in database") {
-            val user = userService.find(testUser.email).get()
-            assertThat(user.firstName).isEqualTo(testUser.firstName)
+            val user = userService.find(testUser.email)
+            assertThat(testUser).isNotNull
+            assertThat(user!!.firstName).isEqualTo(testUser.firstName)
             assertThat(user.phoneNumber).isEqualTo(testUser.phoneNumber)
         }
     }
@@ -370,12 +369,10 @@ class UserControllerTest : ControllerTestBase() {
         }
 
         verify("The user is stored in database") {
-            val optionalUserInRepo = userService.find(expectedSocialUser.email)
+            val userInRepo = userService.find(expectedSocialUser.email)
+            assertThat(userInRepo).isNotNull
 
-            assertThat(optionalUserInRepo.isPresent).isTrue()
-            val userInRepo = optionalUserInRepo.get()
-
-            assert(userInRepo.email == expectedSocialUser.email)
+            assert(userInRepo!!.email == expectedSocialUser.email)
             assert(userInRepo.firstName == expectedSocialUser.firstName)
             assert(userInRepo.lastName == expectedSocialUser.lastName)
             if (expectedSocialUser.countryId != null) {

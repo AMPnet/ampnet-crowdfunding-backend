@@ -23,14 +23,12 @@ class CustomAuthenticationProvider(
     // TODO: Analyze security architecture (jwt, custom auth provider, etc)
     override fun authenticate(authentication: Authentication): Authentication {
         val email = authentication.name
-        val userOptional = userService.find(email)
-
-        if (!userOptional.isPresent) {
+        val user = userService.find(email)
+        if (user == null) {
             logger.info { "User with email: $email not present in database." }
             throw BadCredentialsException("1000")
         }
 
-        val user = userOptional.get()
         val userRights = user.getAuthorities()
         logger.debug { "User has authorities: ${userRights.joinToString(", ")}" }
 
