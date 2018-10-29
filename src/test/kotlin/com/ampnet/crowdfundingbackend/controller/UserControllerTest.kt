@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
@@ -11,7 +11,6 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.service.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -33,7 +32,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
 
 @ActiveProfiles("SocialMockConfig")
-class UserControllerTest : TestBase() {
+class UserControllerTest : ControllerTestBase() {
 
     private val pathUsers = "/users"
     private val pathSignup = "/signup"

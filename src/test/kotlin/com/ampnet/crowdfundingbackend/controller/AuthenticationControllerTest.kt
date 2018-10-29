@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.config.auth.TokenProvider
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
@@ -9,7 +9,6 @@ import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.service.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -30,7 +29,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @ActiveProfiles("SocialMockConfig")
-class AuthenticationControllerTest : TestBase() {
+class AuthenticationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var userService: UserService

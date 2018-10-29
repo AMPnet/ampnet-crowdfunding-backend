@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.controller.pojo.response.CountriesListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.CountryResponse
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -10,7 +9,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
-class CountryControllerTest : TestBase() {
+class CountryControllerTest : ControllerTestBase() {
 
     private val pathCountries = "/countries"
     private val croatiaId = 3
