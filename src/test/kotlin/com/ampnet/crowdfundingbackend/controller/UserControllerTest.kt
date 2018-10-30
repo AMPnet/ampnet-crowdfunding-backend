@@ -63,7 +63,7 @@ class UserControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(email = "test@test.com", privileges = [PrivilegeType.PRO_PROFILE])
     fun mustBeAbleToGetOwnProfile() {
         suppose("User exists in database") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             testUser.email = "test@test.com"
             saveTestUser()
         }
@@ -82,7 +82,7 @@ class UserControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_PROFILE])
     fun mustBeAbleToGetAListOfUsers() {
         suppose("Some user exists in database") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             saveTestUser()
         }
 
@@ -109,7 +109,7 @@ class UserControllerTest : ControllerTestBase() {
     @Test
     fun mustBeAbleToSignUpUser() {
         suppose("The user send request to sign up") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             val requestJson = generateSignupJson()
             testContext.mvcResult = mockMvc.perform(
                     post(pathSignup)
@@ -182,7 +182,7 @@ class UserControllerTest : ControllerTestBase() {
     @Test
     fun signupShouldFailIfUserAlreadyExists() {
         suppose("User with email ${testUser.email} exists in database") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             saveTestUser()
         }
 
@@ -204,7 +204,7 @@ class UserControllerTest : ControllerTestBase() {
     @Test
     fun signupUsingFacebookMethod() {
         suppose("Social service is mocked to return Facebook user") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             testContext.socialUser = SocialUser(
                     email = "johnsmith@gmail.com",
                     firstName = "John",
@@ -223,7 +223,7 @@ class UserControllerTest : ControllerTestBase() {
     @Test
     fun signupUsingGoogleMethod() {
         suppose("Social service is mocked to return Google user") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             testContext.socialUser = SocialUser(
                     email = "johnsmith@gmail.com",
                     firstName = "John",
@@ -243,7 +243,7 @@ class UserControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(completeProfile = false, email = "test@test.com")
     fun mustEnableFetchingOwnProfileForIncompleteUserProfile() {
         suppose("User with incomplete profile exists in database") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             val user = CreateUserServiceRequest("test@test.com", null, null, null, null, null, AuthMethod.EMAIL)
             userService.create(user)
         }
@@ -275,7 +275,7 @@ class UserControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(completeProfile = false, email = "john@smith.com")
     fun mustBeAbleToUpdateProfile() {
         suppose("User exists in database") {
-            databaseCleanerService.deleteAll()
+            databaseCleanerService.deleteAllUsers()
             saveTestUser()
         }
 
