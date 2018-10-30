@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
@@ -11,7 +11,6 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.service.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -33,7 +32,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
 
 @ActiveProfiles("SocialMockConfig")
-class UserControllerTest : TestBase() {
+class UserControllerTest : ControllerTestBase() {
 
     private val pathUsers = "/users"
     private val pathSignup = "/signup"
@@ -126,12 +125,10 @@ class UserControllerTest : TestBase() {
             assertThat(userResponse.email).isEqualTo(testUser.email)
         }
         verify("The user is stored in database") {
-            val optionalUserInRepo = userService.find(testUser.email)
+            val userInRepo = userService.find(testUser.email)
+            assertThat(userInRepo).isNotNull
 
-            assertThat(optionalUserInRepo.isPresent).isTrue()
-            val userInRepo = optionalUserInRepo.get()
-
-            assert(userInRepo.email == testUser.email)
+            assert(userInRepo!!.email == testUser.email)
             assert(passwordEncoder.matches(testUser.password, userInRepo.password))
             assert(userInRepo.firstName == testUser.firstName)
             assert(userInRepo.lastName == testUser.lastName)
@@ -299,8 +296,9 @@ class UserControllerTest : TestBase() {
             assertThat(userResponse.email).isEqualTo(testUser.email)
         }
         verify("User profile is updated in database") {
-            val user = userService.find(testUser.email).get()
-            assertThat(user.firstName).isEqualTo(testUser.firstName)
+            val user = userService.find(testUser.email)
+            assertThat(testUser).isNotNull
+            assertThat(user!!.firstName).isEqualTo(testUser.firstName)
             assertThat(user.phoneNumber).isEqualTo(testUser.phoneNumber)
         }
     }
@@ -371,12 +369,10 @@ class UserControllerTest : TestBase() {
         }
 
         verify("The user is stored in database") {
-            val optionalUserInRepo = userService.find(expectedSocialUser.email)
+            val userInRepo = userService.find(expectedSocialUser.email)
+            assertThat(userInRepo).isNotNull
 
-            assertThat(optionalUserInRepo.isPresent).isTrue()
-            val userInRepo = optionalUserInRepo.get()
-
-            assert(userInRepo.email == expectedSocialUser.email)
+            assert(userInRepo!!.email == expectedSocialUser.email)
             assert(userInRepo.firstName == expectedSocialUser.firstName)
             assert(userInRepo.lastName == expectedSocialUser.lastName)
             if (expectedSocialUser.countryId != null) {

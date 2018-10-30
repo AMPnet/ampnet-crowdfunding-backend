@@ -4,7 +4,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Country
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
 import com.ampnet.crowdfundingbackend.service.CountryService
 import org.springframework.stereotype.Service
-import java.util.Optional
 
 @Service
 class CountryService(private val countryDao: CountryDao) : CountryService {
@@ -15,15 +14,11 @@ class CountryService(private val countryDao: CountryDao) : CountryService {
 
     override fun getCountry(nicename: String): Country? {
         val countryOptional = countryDao.findByNicename(nicename)
-        return wrapOptional(countryOptional)
+        return ServiceUtils.wrapOptional(countryOptional)
     }
 
     override fun getCountry(id: Int): Country? {
         val countryOptional = countryDao.findById(id)
-        return wrapOptional(countryOptional)
-    }
-
-    private fun wrapOptional(optional: Optional<Country>): Country? {
-        return if (optional.isPresent) optional.get() else null
+        return ServiceUtils.wrapOptional(countryOptional)
     }
 }

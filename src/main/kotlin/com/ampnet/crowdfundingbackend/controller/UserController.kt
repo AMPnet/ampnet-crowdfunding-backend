@@ -45,13 +45,12 @@ class UserController(
     fun me(): ResponseEntity<UserResponse> {
         logger.debug { "Received request for my profile" }
         val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        val userOptional = userService.find(userPrincipal.email)
-        return if (userOptional.isPresent) {
-            ResponseEntity.ok(UserResponse(userOptional.get()))
-        } else {
-            logger.error("Non existing user: ${userPrincipal.email} trying to get his profile")
-            ResponseEntity.notFound().build()
+        userService.find(userPrincipal.email)?.let {
+            return ResponseEntity.ok(UserResponse(it))
         }
+
+        logger.error("Non existing user: ${userPrincipal.email} trying to get his profile")
+        return ResponseEntity.notFound().build()
     }
 
     @PostMapping("/me")
@@ -80,13 +79,8 @@ class UserController(
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     fun getUser(@PathVariable("id") id: Int): ResponseEntity<UserResponse> {
         logger.debug { "Received request for user info with id: $id" }
-        val optionalUser = userService.find(id)
-        return if (optionalUser.isPresent) {
-            val user = UserResponse(optionalUser.get())
-            ResponseEntity.ok(user)
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        return userService.find(id)?.let { ResponseEntity.ok(UserResponse(it)) }
+                ?: ResponseEntity.notFound().build()
     }
 
     @PostMapping("/signup")

@@ -66,10 +66,8 @@ class AuthenticationController(
 
     private fun validateLoginParamsOrThrowException(email: String, loginMethod: AuthMethod) {
         val storedUser = userService.find(email)
-        if (!storedUser.isPresent) {
-            throw ResourceNotFoundException("User with email: $email does not exists")
-        }
-        val userAuthMethod = storedUser.get().authMethod
+                ?: throw ResourceNotFoundException("User with email: $email does not exists")
+        val userAuthMethod = storedUser.authMethod
         if (userAuthMethod != loginMethod) {
             throw InvalidLoginMethodException("Invalid method. Try to login using ${userAuthMethod.name}")
         }

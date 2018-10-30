@@ -16,7 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
-import java.util.Optional
 
 @Service
 class UserServiceImpl(
@@ -63,13 +62,13 @@ class UserServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun find(username: String): Optional<User> {
-        return userDao.findByEmail(username)
+    override fun find(username: String): User? {
+        return ServiceUtils.wrapOptional(userDao.findByEmail(username))
     }
 
     @Transactional(readOnly = true)
-    override fun find(id: Int): Optional<User> {
-        return userDao.findById(id)
+    override fun find(id: Int): User? {
+        return ServiceUtils.wrapOptional(userDao.findById(id))
     }
 
     @Transactional
