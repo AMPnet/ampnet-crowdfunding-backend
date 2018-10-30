@@ -11,7 +11,7 @@ import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
-import javax.persistence.OneToOne
+import javax.persistence.ManyToOne
 import javax.persistence.Table
 
 @Entity
@@ -33,14 +33,14 @@ data class User(
     @Column
     var lastName: String?,
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "country_id")
     var country: Country?,
 
     @Column
     var phoneNumber: String?,
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "role_id")
     var role: Role,
 
