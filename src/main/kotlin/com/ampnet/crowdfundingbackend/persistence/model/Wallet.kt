@@ -8,7 +8,6 @@ import javax.persistence.Enumerated
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
-import javax.persistence.JoinColumn
 import javax.persistence.OneToMany
 import javax.persistence.Table
 
@@ -22,18 +21,11 @@ data class Wallet(
     @Column(nullable = false)
     var ownerId: Int,
 
-//    @Column(nullable = false)
-//    var balance: Long,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
     var currency: Currency,
 
-//    @Column(nullable = false)
-//    var address: String,
-
-    @OneToMany // (mappedBy = "wallet")
-    @JoinColumn(name = "walletId")
+    @OneToMany(mappedBy = "walletId")
     var transactions: List<Transaction>,
 
     @Column(nullable = false)
