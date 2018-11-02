@@ -1,9 +1,7 @@
 CREATE TABLE wallet (
     id SERIAL PRIMARY KEY,
     owner_id INT REFERENCES app_user(id) NOT NULL UNIQUE,
-    --balance NUMERIC(15,2), fetch from blockchain
     currency VARCHAR(3) NOT NULL,
---     address VARCHAR(66) NOT NULL, maybe public key
     created_at TIMESTAMP NOT NULL
 );
 

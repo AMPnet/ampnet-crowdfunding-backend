@@ -37,7 +37,7 @@ import java.time.ZonedDateTime
 @RunWith(SpringRunner::class)
 @DataJpaTest
 @Transactional(propagation = Propagation.SUPPORTS)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase(replace= AutoConfigureTestDatabase.Replace.NONE)
 @Import(DatabaseCleanerService::class, UserServiceImpl::class, WalletServiceImpl::class, PasswordEncoderConfig::class)
 class WalletServiceTest : TestBase() {
 
