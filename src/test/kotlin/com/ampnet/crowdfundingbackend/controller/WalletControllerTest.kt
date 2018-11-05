@@ -20,6 +20,7 @@ import org.junit.Before
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.ZonedDateTime
@@ -27,6 +28,7 @@ import java.time.ZonedDateTime
 class WalletControllerTest : ControllerTestBase() {
 
     private val myWalletPath = "/wallet"
+    private val createWalletPath = "/wallet/create"
 
     @Autowired
     private lateinit var walletService: WalletService
@@ -97,6 +99,49 @@ class WalletControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustBeAbleToCreateWallet() {
+        suppose("User does not have a wallet") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+            user.id
+        }
+
+        verify("User can create a wallet") {
+            val result = mockMvc.perform(post(createWalletPath))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(walletResponse.id).isNotNull()
+            assertThat(walletResponse.currency).isEqualTo(Currency.EUR.name) // default currency is eur
+            assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+            assertThat(walletResponse.transactions).hasSize(0)
+
+            testData.walletId = walletResponse.id
+        }
+        verify("Wallet is created") {
+            val wallet = walletDao.findByOwnerId(user.id)
+            assertThat(wallet).isPresent
+            assertThat(wallet.get().id).isEqualTo(testData.walletId)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustNotBeAbleToCreateAdditionalWallet() {
+        suppose("User wallet exists") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+            testData.wallet = createWalletForUser(user.id)
+        }
+
+        suppose("User cannot create a wallet") {
+            mockMvc.perform(post(createWalletPath))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+        }
+    }
+
     private fun createUser(email: String): User {
         val user = User::class.java.newInstance()
         user.authMethod = AuthMethod.EMAIL
@@ -130,5 +175,6 @@ class WalletControllerTest : ControllerTestBase() {
     private class TestData {
         lateinit var wallet: Wallet
         lateinit var transaction: Transaction
+        var walletId = -1
     }
 }
