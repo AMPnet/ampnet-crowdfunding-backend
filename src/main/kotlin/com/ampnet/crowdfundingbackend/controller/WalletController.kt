@@ -21,7 +21,7 @@ class WalletController(val walletService: WalletService, val userService: UserSe
         logger.debug("Received request for Wallet from user: ${userPrincipal.email}")
         // TODO: maybe include userId in user principal
         val user = userService.find(userPrincipal.email)
-        val wallet = walletService.getWalletForUser(user!!.id)
+        val wallet = walletService.getWalletWithTransactionsForUser(user!!.id)
                 ?: return ResponseEntity.notFound().build() // or throw exception ResourceNotFound
 
         val balance = walletService.getWalletBalance(wallet)
