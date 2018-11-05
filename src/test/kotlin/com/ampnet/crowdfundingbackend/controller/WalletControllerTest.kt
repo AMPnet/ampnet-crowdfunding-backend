@@ -1,11 +1,14 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
+import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletDepositRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Transaction
+import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
@@ -19,6 +22,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -29,6 +33,7 @@ class WalletControllerTest : ControllerTestBase() {
 
     private val myWalletPath = "/wallet"
     private val createWalletPath = "/wallet/create"
+    private val depositWalletPath = "/wallet/deposit"
 
     @Autowired
     private lateinit var walletService: WalletService
@@ -120,6 +125,7 @@ class WalletControllerTest : ControllerTestBase() {
 
             testData.walletId = walletResponse.id
         }
+
         verify("Wallet is created") {
             val wallet = walletDao.findByOwnerId(user.id)
             assertThat(wallet).isPresent
@@ -135,10 +141,45 @@ class WalletControllerTest : ControllerTestBase() {
             testData.wallet = createWalletForUser(user.id)
         }
 
-        suppose("User cannot create a wallet") {
+        verify("User cannot create a wallet") {
             mockMvc.perform(post(createWalletPath))
                     .andExpect(status().isBadRequest)
                     .andReturn()
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser("test@test.com")
+    fun mustBeAbleToDepositToOwnWallet() {
+        suppose("User wallet exists") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+            testData.wallet = createWalletForUser(user.id)
+        }
+
+        verify("User can deposit to own wallet") {
+            val request = WalletDepositRequest(BigDecimal("6.66"), "electro")
+            val result = mockMvc.perform(post(depositWalletPath)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(transactionResponse.type).isEqualTo(TransactionType.DEPOSIT.name)
+            assertThat(transactionResponse.id).isNotNull()
+            assertThat(transactionResponse.sender).isEqualTo(request.sender)
+            assertThat(transactionResponse.amount).isEqualTo(request.amount)
+            assertThat(transactionResponse.currency).isEqualTo(Currency.EUR.name)
+            assertThat(transactionResponse.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
+            assertThat(transactionResponse.txHash).isNotBlank()
+
+            testData.transactionId = transactionResponse.id
+        }
+        verify("Transaction is stored in database") {
+            val wallet = walletService.getWalletWithTransactionsForUser(user.id)
+            assertThat(wallet).isNotNull
+            assertThat(wallet!!.transactions).hasSize(1)
+            assertThat(wallet.transactions[0].id).isEqualTo(testData.transactionId)
         }
     }
 
@@ -176,5 +217,6 @@ class WalletControllerTest : ControllerTestBase() {
         lateinit var wallet: Wallet
         lateinit var transaction: Transaction
         var walletId = -1
+        var transactionId = -1
     }
 }

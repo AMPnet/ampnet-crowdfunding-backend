@@ -169,3 +169,9 @@ include::{snippets}/WalletControllerTest/mustBeAbleToCreateWallet/http-response.
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-response.adoc[]
+
+=== Active user can deposit to wallet
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-response.adoc[]
