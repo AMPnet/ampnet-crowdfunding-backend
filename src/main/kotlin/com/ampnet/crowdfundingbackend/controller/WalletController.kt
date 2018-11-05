@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
-import java.math.BigDecimal
 
 @RestController
 class WalletController(val walletService: WalletService, val userService: UserService) {
@@ -25,9 +24,8 @@ class WalletController(val walletService: WalletService, val userService: UserSe
         val wallet = walletService.getWalletForUser(user!!.id)
                 ?: return ResponseEntity.notFound().build() // or throw exception ResourceNotFound
 
-        val balance = BigDecimal.ZERO
-        val dateTime = ControllerUtils.zonedDateTimeToString(wallet.createdAt)
-        val response = WalletResponse(wallet, balance, dateTime)
+        val balance = walletService.getWalletBalance(wallet)
+        val response = WalletResponse(wallet, balance)
         return ResponseEntity.ok(response)
     }
 }

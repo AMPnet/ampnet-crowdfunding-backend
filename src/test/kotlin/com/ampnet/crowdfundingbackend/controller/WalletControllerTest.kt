@@ -11,7 +11,6 @@ import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletDao
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.service.WalletService
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
@@ -25,8 +24,6 @@ class WalletControllerTest : ControllerTestBase() {
 
     private val myWalletPath = "/wallet"
 
-    @Autowired
-    private lateinit var walletService: WalletService
     @Autowired
     private lateinit var userDao: UserDao
     @Autowired
@@ -63,7 +60,7 @@ class WalletControllerTest : ControllerTestBase() {
             val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(walletResponse.id).isEqualTo(testData.wallet.id)
             assertThat(walletResponse.currency).isEqualTo(testData.wallet.currency.name)
-            assertThat(walletResponse.createdAt).isNotBlank()
+            assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
             // TODO: change balance
             assertThat(walletResponse.balance).isZero()
         }
