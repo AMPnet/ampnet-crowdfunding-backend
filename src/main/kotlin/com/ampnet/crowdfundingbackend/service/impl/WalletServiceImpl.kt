@@ -30,11 +30,13 @@ class WalletServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getWalletForUser(userId: Int): Wallet? {
+        // TODO: get balance from blockchain
         return ServiceUtils.wrapOptional(walletDao.findByOwnerId(userId))
     }
 
     @Transactional(readOnly = true)
     override fun getWalletWithTransactionsForUser(userId: Int): Wallet? {
+        // TODO: get balance from blockchain
         return ServiceUtils.wrapOptional(walletDao.findByOwnerIdWithTransactions(userId))
     }
 
