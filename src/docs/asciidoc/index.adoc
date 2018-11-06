@@ -142,3 +142,36 @@ include::{snippets}/CountryControllerTest/mustBeAbleToGetAListOfAllCountries/htt
 include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-request.adoc[]
 .Response
 include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-response.adoc[]
+
+== Wallet API
+Collection of endpoints for managing user wallet
+
+=== Get wallet for active user
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToGetOwnWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToGetOwnWallet/http-response.adoc[]
+
+=== Active user does not have a wallet
+.Request
+include::{snippets}/WalletControllerTest/mustReturnNotFoundForMissingWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustReturnNotFoundForMissingWallet/http-response.adoc[]
+
+=== Create wallet for active user
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToCreateWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToCreateWallet/http-response.adoc[]
+
+=== Active user cannot create additional wallet
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-response.adoc[]
+
+=== Active user can deposit to wallet
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-response.adoc[]

@@ -53,7 +53,7 @@ class AuthenticationControllerTest : ControllerTestBase() {
 
     @Before
     fun clearDatabase() {
-        databaseCleanerService.deleteAll()
+        databaseCleanerService.deleteAllUsers()
     }
 
     @Test

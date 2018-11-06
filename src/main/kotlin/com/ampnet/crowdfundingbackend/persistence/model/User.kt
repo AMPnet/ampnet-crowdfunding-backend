@@ -61,4 +61,6 @@ data class User(
                 ?.map { SimpleGrantedAuthority(it.name) }.orEmpty()
         return (privileges + roleAuthority).toSet()
     }
+
+    fun getFullName(): String = "$firstName $lastName"
 }
