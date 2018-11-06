@@ -86,7 +86,7 @@ class WalletControllerTest : ControllerTestBase() {
             assertThat(transactionResponse.txHash).isEqualTo(testData.transaction.txHash)
             assertThat(transactionResponse.timestamp).isEqualTo(testData.transaction.timestamp)
 
-            // TODO: change balance
+            // TODO: change balance, mock fetching from blockchain
             assertThat(walletResponse.balance).isZero()
         }
     }

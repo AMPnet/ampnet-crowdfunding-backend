@@ -43,7 +43,7 @@ class WalletController(val walletService: WalletService, val userService: UserSe
         val userId = getUserIdFromEmail(userPrincipal.email)
         val wallet = walletService.createWallet(userId)
 
-        val balance = BigDecimal.ZERO // balance should be zero after creating account
+        val balance = BigDecimal.ZERO // balance should be zero after creating account, or define other flow
         val response = WalletResponse(wallet, balance)
         return ResponseEntity.ok(response)
     }
@@ -56,7 +56,7 @@ class WalletController(val walletService: WalletService, val userService: UserSe
         val wallet = walletService.getWalletWithTransactionsForUser(userId)
                 ?: throw ResourceNotFoundException("Missing wallet for user: ${userPrincipal.email}")
 
-        // TODO: rethink about the process with blockchain, getting hash, async actions
+        // TODO: define the process with blockchain, getting hash, async actions
         val hash = "hash"
         val depositRequest = DepositRequest(wallet, request.amount, Currency.EUR, request.sender, hash)
         logger.debug("Creating deposit: $depositRequest")
@@ -66,7 +66,7 @@ class WalletController(val walletService: WalletService, val userService: UserSe
     }
 
     private fun getUserIdFromEmail(email: String): Int {
-        // TODO: maybe add user id to userPrincipal
+        // think about adding UserId to UserPrincipal
         return userService.find(email)?.id
                 ?: throw ResourceNotFoundException("Missing user with email: $email")
     }

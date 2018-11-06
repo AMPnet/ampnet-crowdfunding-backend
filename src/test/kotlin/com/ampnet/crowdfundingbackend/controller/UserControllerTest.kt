@@ -137,7 +137,7 @@ class UserControllerTest : ControllerTestBase() {
             assert(userInRepo.authMethod == testUser.authMethod)
             assert(userInRepo.role.id == UserRoleType.USER.id)
             assert(userInRepo.createdAt.isBefore(ZonedDateTime.now()))
-            // TODO: decide how to test enabled properties
+            assert(userInRepo.enabled)
         }
     }
 
