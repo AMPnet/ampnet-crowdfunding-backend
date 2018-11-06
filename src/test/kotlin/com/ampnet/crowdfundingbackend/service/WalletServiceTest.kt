@@ -25,7 +25,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit4.SpringRunner
@@ -37,7 +36,6 @@ import java.time.ZonedDateTime
 @RunWith(SpringRunner::class)
 @DataJpaTest
 @Transactional(propagation = Propagation.SUPPORTS)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(DatabaseCleanerService::class, UserServiceImpl::class, WalletServiceImpl::class, PasswordEncoderConfig::class)
 class WalletServiceTest : TestBase() {
 
@@ -155,13 +153,10 @@ class WalletServiceTest : TestBase() {
             assertThat(testData.transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
         }
         verify("Verify transaction is stored in database") {
-            val optionalStoredTransaction = transactionDao.findById(testData.transaction.id)
-            assertThat(optionalStoredTransaction).isPresent
-            assertThat(optionalStoredTransaction.get()).isEqualTo(testData.transaction)
-
-            val optionalTest = walletService.getWalletWithTransactionsForUser(user.id)
-            assertThat(optionalTest).isNotNull
-            assertThat(optionalTest!!.transactions).hasSize(1)
+            val optionalWallet = walletService.getWalletWithTransactionsForUser(user.id)
+            assertThat(optionalWallet).isNotNull
+            assertThat(optionalWallet!!.transactions).hasSize(1)
+            assertThat(optionalWallet.transactions[0]).isEqualTo(testData.transaction)
         }
     }
 

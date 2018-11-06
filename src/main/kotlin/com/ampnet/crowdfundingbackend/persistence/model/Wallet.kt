@@ -5,6 +5,7 @@ import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
+import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
@@ -25,7 +26,7 @@ data class Wallet(
     @Column(nullable = false, length = 3)
     var currency: Currency,
 
-    @OneToMany(mappedBy = "walletId")
+    @OneToMany(mappedBy = "walletId", fetch = FetchType.LAZY)
     var transactions: List<Transaction>,
 
     @Column(nullable = false)
