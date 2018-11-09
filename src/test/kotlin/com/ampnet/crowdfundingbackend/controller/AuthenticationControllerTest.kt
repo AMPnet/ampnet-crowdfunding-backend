@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.config.auth.TokenProvider
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
@@ -39,9 +38,6 @@ class AuthenticationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var socialService: SocialService
-
-    @Autowired
-    private lateinit var databaseCleanerService: DatabaseCleanerService
 
     private lateinit var result: MvcResult
     private lateinit var user: User

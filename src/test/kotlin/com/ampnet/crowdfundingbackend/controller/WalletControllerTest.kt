@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletDepositRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
@@ -43,8 +42,6 @@ class WalletControllerTest : ControllerTestBase() {
     private lateinit var roleDao: RoleDao
     @Autowired
     private lateinit var walletDao: WalletDao
-    @Autowired
-    private lateinit var databaseCleanerService: DatabaseCleanerService
 
     private lateinit var testData: TestData
     private val user: User by lazy {
