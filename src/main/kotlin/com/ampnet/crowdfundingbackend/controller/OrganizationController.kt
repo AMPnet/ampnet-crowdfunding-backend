@@ -11,6 +11,7 @@ import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -53,6 +54,17 @@ class OrganizationController(
 
         val serviceRequest = OrganizationServiceRequest(request, user, documentHashes)
         val organization = organizationService.createOrganization(serviceRequest)
+        return ResponseEntity.ok(OrganizationResponse(organization))
+    }
+
+    @PostMapping("/organization/{id}/approve")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_ORG)")
+    fun approveOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationResponse> {
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to approve organization with id: $id by user: ${userPrincipal.email}")
+
+        val user = getUserFromEmail(userPrincipal.email)
+        val organization = organizationService.approveOrganization(id, true, user)
         return ResponseEntity.ok(OrganizationResponse(organization))
     }
 

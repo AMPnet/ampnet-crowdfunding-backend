@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
+import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
@@ -102,7 +103,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.organization = createOrganization("test organization")
         }
 
-        verify("Controller returns organization with id") {
+        verify("User can get organization with id") {
             val result = mockMvc.perform(get("$organizationPath/${testContext.organization.id}"))
                     .andExpect(status().isOk)
                     .andReturn()
@@ -129,7 +130,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             createOrganization("test 3")
         }
 
-        verify("Controller returns all organizations") {
+        verify("User can get all organizations") {
             val result = mockMvc.perform(get(organizationPath))
                     .andExpect(status().isOk)
                     .andReturn()
@@ -137,6 +138,48 @@ class OrganizationControllerTest : ControllerTestBase() {
             val organizationResponse: OrganizationListResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(organizationResponse.organizations).hasSize(3)
             assertThat(organizationResponse.organizations.map { it.name }).contains(testContext.organization.name)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_ORG])
+    fun mustBeAbleToApproveOrganization() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("Approve organization")
+        }
+
+        verify("Admin can approve organization") {
+            val result = mockMvc.perform(
+                    post("$organizationPath/${testContext.organization.id}/approve")
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val organizationResponse: OrganizationResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(organizationResponse.approved).isTrue()
+        }
+        verify("Organization is approved") {
+            val organization = organizationService.findOrganizationById(testContext.organization.id)
+            assertThat(organization!!.approved).isTrue()
+            assertThat(organization.updatedAt).isBeforeOrEqualTo(ZonedDateTime.now())
+            assertThat(organization.approvedBy).isEqualTo(user)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustNotBeAbleApproveOrganizationWithoutPrivilege() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("Approve organization")
+        }
+
+        verify("User without privilege cannot approve organization") {
+            mockMvc.perform(
+                    post("$organizationPath/${testContext.organization.id}/approve")
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isForbidden)
         }
     }
 

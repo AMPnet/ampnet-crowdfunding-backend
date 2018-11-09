@@ -1,6 +1,8 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationDao
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
@@ -33,5 +35,16 @@ class OrganizationServiceImpl(private val organizationDao: OrganizationDao) : Or
     @Transactional(readOnly = true)
     override fun findOrganizationById(id: Int): Organization? {
         return ServiceUtils.wrapOptional(organizationDao.findById(id))
+    }
+
+    @Transactional
+    override fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: User): Organization {
+        findOrganizationById(organizationId)?.let {
+            it.approved = approve
+            it.updatedAt = ZonedDateTime.now()
+            it.approvedBy = approvedBy
+            return it
+        }
+        throw ResourceNotFoundException("Missing organization with id: $organizationId")
     }
 }

@@ -19,6 +19,12 @@ data class Organization(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
 
+    @Column(nullable = false)
+    var name: String,
+
+    @Column                         // set nullable false
+    var legalInfo: String,          // TODO: change legal info, try to use @Embeddable and @Embedded
+
     @ManyToOne
     @JoinColumn(name = "created_by")
     var createdByUser: User,
@@ -26,14 +32,15 @@ data class Organization(
     @Column(nullable = false)
     var createdAt: ZonedDateTime,
 
+    @Column
+    var updatedAt: ZonedDateTime,
+
     @Column(nullable = false)
     var approved: Boolean,
 
-    @Column(nullable = false)
-    var name: String,
-
-    @Column                         // set nullable false
-    var legalInfo: String,          // TODO: change legal info, try to use @Embeddable and @Embedded
+    @ManyToOne
+    @JoinColumn(name = "approved_by")
+    var approvedBy: User,
 
     @Column(nullable = true)
     @Convert(converter = HashArrayToStringConverter::class)
