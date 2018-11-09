@@ -187,7 +187,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustReturnNotFoundForNonExistingOrganization() {
         verify("Response not found for non existing organization") {
-            mockMvc.perform(get("$organizationPath/99"))
+            mockMvc.perform(get("$organizationPath/1299"))
                     .andExpect(status().isNotFound)
         }
     }
