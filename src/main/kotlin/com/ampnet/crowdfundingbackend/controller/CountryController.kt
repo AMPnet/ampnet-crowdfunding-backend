@@ -24,8 +24,9 @@ class CountryController(private val countryService: CountryService) {
     @GetMapping("/countries/{id}")
     fun getCountry(@PathVariable("id") id: Int): ResponseEntity<CountryResponse> {
         logger.debug { "Received request to get country with id: $id" }
-        val country = countryService.getCountry(id)
-        return country?.let { ResponseEntity.ok(CountryResponse(it)) }
-                ?: ResponseEntity.notFound().build()
+        countryService.getCountry(id)?.let {
+            return ResponseEntity.ok(CountryResponse(it))
+        }
+        return ResponseEntity.notFound().build()
     }
 }

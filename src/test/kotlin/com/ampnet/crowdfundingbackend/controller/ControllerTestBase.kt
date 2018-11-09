@@ -22,6 +22,8 @@ import org.springframework.web.context.WebApplicationContext
 @SpringBootTest
 abstract class ControllerTestBase : TestBase() {
 
+    protected val defaultEmail = "user@email.com"
+
     @Autowired
     private lateinit var wac: WebApplicationContext
 
