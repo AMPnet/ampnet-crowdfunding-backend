@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.Before
 import org.junit.Rule
@@ -21,11 +22,16 @@ import org.springframework.web.context.WebApplicationContext
 @SpringBootTest
 abstract class ControllerTestBase : TestBase() {
 
+    protected val defaultEmail = "user@email.com"
+
     @Autowired
     private lateinit var wac: WebApplicationContext
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
+
+    @Autowired
+    protected lateinit var databaseCleanerService: DatabaseCleanerService
 
     protected lateinit var mockMvc: MockMvc
 

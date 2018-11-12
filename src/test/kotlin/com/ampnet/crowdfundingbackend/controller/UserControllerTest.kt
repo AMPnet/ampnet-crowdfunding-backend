@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
@@ -49,9 +48,6 @@ class UserControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var socialService: SocialService
-
-    @Autowired
-    private lateinit var databaseCleanerService: DatabaseCleanerService
 
     @Before
     fun initTestData() {

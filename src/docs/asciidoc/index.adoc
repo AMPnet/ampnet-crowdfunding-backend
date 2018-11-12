@@ -175,3 +175,39 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/h
 include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-response.adoc[]
+
+== Organization API
+Collection of endpoints for managing organization
+
+=== Create organization
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToCreateOrganization/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToCreateOrganization/http-response.adoc[]
+
+=== Get organization by id
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganization/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganization/http-response.adoc[]
+
+=== Get all organizations
+.Request
+include::{snippets}/OrganizationControllerTest/mustReturnListOfOrganizations/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustReturnListOfOrganizations/http-response.adoc[]
+
+=== Approve organization
+To approve organization user must have privilege: PWA_ORG
+
+==== Approve organization with Admin role
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToApproveOrganization/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToApproveOrganization/http-response.adoc[]
+
+==== Cannot approve organization without privilege
+.Request
+include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationWithoutPrivilege/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationWithoutPrivilege/http-response.adoc[]
