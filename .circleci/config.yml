@@ -15,9 +15,9 @@ jobs:
 
       - image: trufflesuite/ganache-cli:latest
         command: [
-          -p 8545:8545,
-          --debug,
-          --verbose
+          "-p 8545:8545",
+          "--debug",
+          "--verbose"
         ]
 
     working_directory: ~/repo
