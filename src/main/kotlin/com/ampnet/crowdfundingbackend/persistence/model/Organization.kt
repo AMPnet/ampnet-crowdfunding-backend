@@ -32,17 +32,17 @@ data class Organization(
     @Column(nullable = false)
     var createdAt: ZonedDateTime,
 
-    @Column
-    var updatedAt: ZonedDateTime,
+    @Column(nullable = true)
+    var updatedAt: ZonedDateTime?,
 
     @Column(nullable = false)
     var approved: Boolean,
 
     @ManyToOne
     @JoinColumn(name = "approved_by")
-    var approvedBy: User,
+    var approvedBy: User?,
 
     @Column(nullable = true)
     @Convert(converter = HashArrayToStringConverter::class)
-    var documents: List<String>
+    var documents: List<String>?
 )

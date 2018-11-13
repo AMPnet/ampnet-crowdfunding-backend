@@ -19,7 +19,7 @@ data class OrganizationResponse(
             organization.createdAt,
             organization.approved,
             organization.legalInfo,
-            organization.documents
+            organization.documents ?: emptyList()
     )
 }
 
