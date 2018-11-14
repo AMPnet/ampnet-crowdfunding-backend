@@ -85,7 +85,10 @@ class OrganizationServiceImpl(
     }
 
     private fun addUserToOrganization(
-            organizationId: Int, userId: Int, role: OrganizationRoleType): OrganizationMembership {
+        organizationId: Int,
+        userId: Int,
+        role: OrganizationRoleType
+    ): OrganizationMembership {
         val membership = OrganizationMembership::class.java.newInstance()
         membership.organizationId = organizationId
         membership.userId = userId
@@ -95,7 +98,7 @@ class OrganizationServiceImpl(
     }
 
     private fun getRole(role: OrganizationRoleType): Role {
-        return when(role) {
+        return when (role) {
             OrganizationRoleType.ADMIN -> adminRole
             OrganizationRoleType.MEMBER -> memberRole
         }
