@@ -2,14 +2,19 @@ package com.ampnet.crowdfundingbackend.persistence.model
 
 import com.ampnet.crowdfundingbackend.persistence.HashArrayToStringConverter
 import java.time.ZonedDateTime
+import javax.persistence.CascadeType
 import javax.persistence.Column
 import javax.persistence.Convert
 import javax.persistence.Entity
+import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
+import javax.persistence.JoinTable
+import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
+import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Entity
@@ -44,5 +49,9 @@ data class Organization(
 
     @Column(nullable = true)
     @Convert(converter = HashArrayToStringConverter::class)
-    var documents: List<String>?
+    var documents: List<String>?,
+
+    @OneToMany
+    @JoinColumn(name = "organizationId")
+    var memberships: List<OrganizationMembership>?
 )

@@ -87,11 +87,17 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(organization).isNotNull
             assertThat(organization!!.name).isEqualTo(testContext.organizationRequest.name)
             assertThat(organization.legalInfo).isEqualTo(testContext.organizationRequest.legalInfo)
-            assertThat(organization.createdByUser).isEqualTo(user)
+            assertThat(organization.createdByUser.id).isEqualTo(user.id)
             assertThat(organization.id).isNotNull()
             assertThat(organization.approved).isFalse()
             assertThat(organization.documents).isEmpty()
             assertThat(organization.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+        verify("Organization has only admin user") {
+            val users = organizationService.findAllUsersFromOrganization(testContext.organizationId)
+            assertThat(users).hasSize(1)
+            val admin = users.first()
+            assertThat(admin.id).isEqualTo(user.id)
         }
     }
 
@@ -161,9 +167,11 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
         verify("Organization is approved") {
             val organization = organizationService.findOrganizationById(testContext.organization.id)
+            assertThat(organization).isNotNull
             assertThat(organization!!.approved).isTrue()
             assertThat(organization.updatedAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(organization.approvedBy).isEqualTo(user)
+            assertThat(organization.approvedBy).isNotNull
+            assertThat(organization.approvedBy!!.id).isEqualTo(user.id)
         }
     }
 

@@ -25,3 +25,9 @@ enum class PrivilegeType {
     // Organization
     PWA_ORG
 }
+
+enum class OrganizationPrivilegeType {
+    // Administration
+    PR_USERS,
+    PW_USERS
+}
