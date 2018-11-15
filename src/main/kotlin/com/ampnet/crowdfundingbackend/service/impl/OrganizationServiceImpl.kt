@@ -74,6 +74,11 @@ class OrganizationServiceImpl(
         return organizationDao.findAllOrganizationsForUser(userId)
     }
 
+    @Transactional(readOnly = true)
+    override fun getOrganizationMemberships(organizationId: Int): List<OrganizationMembership> {
+        return membershipDao.findByOrganizationId(organizationId)
+    }
+
     private fun addUserToOrganization(
         organizationId: Int,
         userId: Int,

@@ -211,3 +211,9 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToApproveOrganization/h
 include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationWithoutPrivilege/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationWithoutPrivilege/http-response.adoc[]
+
+=== Get organization members
+.Request
+include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]

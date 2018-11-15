@@ -1,5 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
+import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -29,4 +31,8 @@ data class OrganizationMembership(
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime
-)
+) {
+    fun getPrivileges(): List<OrganizationPrivilegeType> {
+        return OrganizationRoleType.fromInt(role.id)?.getPrivileges().orEmpty()
+    }
+}

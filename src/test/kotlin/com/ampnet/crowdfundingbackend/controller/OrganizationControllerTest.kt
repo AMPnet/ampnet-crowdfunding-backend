@@ -3,13 +3,17 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationDao
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipDao
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
@@ -37,6 +41,8 @@ class OrganizationControllerTest : ControllerTestBase() {
     private lateinit var roleDao: RoleDao
     @Autowired
     private lateinit var organizationDao: OrganizationDao
+    @Autowired
+    private lateinit var membershipDao: OrganizationMembershipDao
 
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()
@@ -210,6 +216,53 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustReturnUsersListForOrganization() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization")
+        }
+        suppose("Organization admin is member of another organization") {
+            val organization = createOrganization("org 2")
+            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+        suppose("Organization has 2 users") {
+            testContext.user2 = createUser("user2@test.com")
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+            addUserToOrganization(testContext.user2.id, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can fetch all users for organization") {
+            val result = mockMvc.perform(
+                    get("$organizationPath/${testContext.organization.id}/users"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val response: OrganizationUsersListResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(response.users).hasSize(2)
+            assertThat(response.users).contains(
+                    OrganizationUserResponse(user.getFullName(), user.email, OrganizationRoleType.ORG_ADMIN.name))
+            assertThat(response.users).contains(
+                    OrganizationUserResponse(testContext.user2.getFullName(), testContext.user2.email, OrganizationRoleType.ORG_MEMBER.name))
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun userOutsideOrganizationMustNotBeAbleToFetchOrganizationUsers() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization")
+        }
+
+        verify("User is not able fetch organization users from other organization") {
+            mockMvc.perform(
+                    get("$organizationPath/${testContext.organization.id}/users"))
+                    .andExpect(status().isUnauthorized)
+        }
+    }
+
     private fun createUser(email: String): User {
         val user = User::class.java.newInstance()
         user.authMethod = AuthMethod.EMAIL
@@ -233,9 +286,19 @@ class OrganizationControllerTest : ControllerTestBase() {
         return organizationDao.save(organization)
     }
 
+    private fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
+        val membership = OrganizationMembership::class.java.newInstance()
+        membership.userId = userId
+        membership.organizationId = organizationId
+        membership.role = roleDao.getOne(role.id)
+        membership.createdAt = ZonedDateTime.now()
+        membershipDao.save(membership)
+    }
+
     private class TestContext {
         lateinit var organizationRequest: OrganizationRequest
         var organizationId: Int = -1
         lateinit var organization: Organization
+        lateinit var user2: User
     }
 }
