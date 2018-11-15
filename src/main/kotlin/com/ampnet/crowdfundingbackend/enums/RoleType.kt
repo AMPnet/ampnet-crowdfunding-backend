@@ -31,7 +31,7 @@ enum class UserRoleType(val id: Int) {
 
 enum class OrganizationRoleType(val id: Int) {
 
-    ADMIN(3) {
+    ORG_ADMIN(3) {
         override fun getPrivileges(): List<OrganizationPrivilegeType> {
             return listOf(
                     OrganizationPrivilegeType.PR_USERS,
@@ -39,7 +39,7 @@ enum class OrganizationRoleType(val id: Int) {
         }
     },
 
-    MEMBER(4) {
+    ORG_MEMBER(4) {
         override fun getPrivileges(): List<OrganizationPrivilegeType> {
             return listOf(
                     OrganizationPrivilegeType.PR_USERS

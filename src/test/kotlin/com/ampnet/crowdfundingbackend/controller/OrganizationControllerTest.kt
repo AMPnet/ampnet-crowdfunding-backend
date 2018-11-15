@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
+import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
@@ -98,6 +99,15 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(users).hasSize(1)
             val admin = users.first()
             assertThat(admin.id).isEqualTo(user.id)
+
+            val memberships = admin.organizations
+            assertThat(memberships).isNotNull
+            assertThat(memberships!!).hasSize(1)
+            val membership = memberships[0]
+            assertThat(membership.userId).isEqualTo(user.id)
+            assertThat(membership.organizationId).isEqualTo(testContext.organizationId)
+            assertThat(membership.role.name).isEqualTo(OrganizationRoleType.ORG_ADMIN.name)
+            assertThat(membership.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
         }
     }
 

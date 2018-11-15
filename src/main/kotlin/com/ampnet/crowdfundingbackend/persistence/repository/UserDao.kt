@@ -11,6 +11,6 @@ interface UserDao : JpaRepository<User, Int> {
 
     fun findByEmail(email: String): Optional<User>
 
-    @Query("SELECT u FROM User u INNER JOIN u.organizations mem WHERE mem.organizationId = ?1")
+    @Query("SELECT u FROM User u INNER JOIN FETCH u.organizations mem WHERE mem.organizationId = ?1")
     fun findAllUserForOrganization(organizationId: Int): List<User>
 }

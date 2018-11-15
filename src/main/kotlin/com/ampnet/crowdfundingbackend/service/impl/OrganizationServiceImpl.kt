@@ -24,8 +24,8 @@ class OrganizationServiceImpl(
     private val userDao: UserDao
 ) : OrganizationService {
 
-    private val adminRole: Role by lazy { roleDao.getOne(OrganizationRoleType.ADMIN.id) }
-    private val memberRole: Role by lazy { roleDao.getOne(OrganizationRoleType.MEMBER.id) }
+    private val adminRole: Role by lazy { roleDao.getOne(OrganizationRoleType.ORG_ADMIN.id) }
+    private val memberRole: Role by lazy { roleDao.getOne(OrganizationRoleType.ORG_MEMBER.id) }
 
     @Transactional
     override fun createOrganization(serviceRequest: OrganizationServiceRequest): Organization {
@@ -38,7 +38,7 @@ class OrganizationServiceImpl(
         organization.createdAt = ZonedDateTime.now()
 
         val savedOrganization = organizationDao.save(organization)
-        addUserToOrganization(organization.id, serviceRequest.owner.id, OrganizationRoleType.MEMBER)
+        addUserToOrganization(organization.id, serviceRequest.owner.id, OrganizationRoleType.ORG_ADMIN)
 
         return savedOrganization
     }
@@ -64,22 +64,12 @@ class OrganizationServiceImpl(
         throw ResourceNotFoundException("Missing organization with id: $organizationId")
     }
 
-    @Transactional
-    override fun addMemberToOrganization(user: User, organization: Organization): OrganizationMembership {
-        return addUserToOrganization(user.id, organization.id, OrganizationRoleType.MEMBER)
-    }
-
-    @Transactional
-    override fun addAdminToOrganization(user: User, organization: Organization): OrganizationMembership {
-        return addUserToOrganization(user.id, organization.id, OrganizationRoleType.ADMIN)
-    }
-
     @Transactional(readOnly = true)
     override fun findAllUsersFromOrganization(organizationId: Int): List<User> {
         return userDao.findAllUserForOrganization(organizationId)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     override fun findAllOrganizationsForUser(userId: Int): List<Organization> {
         return organizationDao.findAllOrganizationsForUser(userId)
     }
@@ -99,8 +89,8 @@ class OrganizationServiceImpl(
 
     private fun getRole(role: OrganizationRoleType): Role {
         return when (role) {
-            OrganizationRoleType.ADMIN -> adminRole
-            OrganizationRoleType.MEMBER -> memberRole
+            OrganizationRoleType.ORG_ADMIN -> adminRole
+            OrganizationRoleType.ORG_MEMBER -> memberRole
         }
     }
 }
