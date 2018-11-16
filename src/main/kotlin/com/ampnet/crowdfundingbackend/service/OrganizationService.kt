@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.service
 
+import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -13,4 +14,5 @@ interface OrganizationService {
     fun findAllUsersFromOrganization(organizationId: Int): List<User>
     fun findAllOrganizationsForUser(userId: Int): List<Organization>
     fun getOrganizationMemberships(organizationId: Int): List<OrganizationMembership>
+    fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType): OrganizationMembership
 }

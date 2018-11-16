@@ -38,7 +38,7 @@ class OrganizationServiceImpl(
         organization.createdAt = ZonedDateTime.now()
 
         val savedOrganization = organizationDao.save(organization)
-        addUserToOrganization(organization.id, serviceRequest.owner.id, OrganizationRoleType.ORG_ADMIN)
+        addUserToOrganization(serviceRequest.owner.id, organization.id, OrganizationRoleType.ORG_ADMIN)
 
         return savedOrganization
     }
@@ -79,12 +79,16 @@ class OrganizationServiceImpl(
         return membershipDao.findByOrganizationId(organizationId)
     }
 
-    private fun addUserToOrganization(
-        organizationId: Int,
+    @Transactional
+    override fun addUserToOrganization(
         userId: Int,
+        organizationId: Int,
         role: OrganizationRoleType
     ): OrganizationMembership {
-        val membership = OrganizationMembership::class.java.newInstance()
+        // user can have only one membership(role) per one organization
+        val membership = ServiceUtils.wrapOptional(membershipDao.findByOrganizationIdAndUserId(organizationId, userId))
+                ?: OrganizationMembership::class.java.newInstance()
+
         membership.organizationId = organizationId
         membership.userId = userId
         membership.role = getRole(role)
