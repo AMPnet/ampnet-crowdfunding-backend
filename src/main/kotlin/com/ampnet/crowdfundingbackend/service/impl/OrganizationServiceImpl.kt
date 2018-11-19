@@ -112,7 +112,7 @@ class OrganizationServiceImpl(
     }
 
     @Transactional
-    override fun unFollowOrganization(userId: Int, organizationId: Int) {
+    override fun unfollowOrganization(userId: Int, organizationId: Int) {
         ServiceUtils.wrapOptional(followerDao.findByUserIdAndOrganizationId(userId, organizationId))?.let {
             followerDao.delete(it)
         }

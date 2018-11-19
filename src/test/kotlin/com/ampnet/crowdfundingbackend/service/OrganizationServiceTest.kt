@@ -132,7 +132,7 @@ class OrganizationServiceTest : TestBase() {
             assertThat(followers).hasSize(1)
         }
         suppose("User un followed the organization") {
-            organizationService.unFollowOrganization(user.id, organization.id)
+            organizationService.unfollowOrganization(user.id, organization.id)
         }
 
         verify("User is not following the organization") {

@@ -17,5 +17,5 @@ interface OrganizationService {
     fun getOrganizationMemberships(organizationId: Int): List<OrganizationMembership>
     fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType): OrganizationMembership
     fun followOrganization(userId: Int, organizationId: Int): OrganizationFollower
-    fun unFollowOrganization(userId: Int, organizationId: Int)
+    fun unfollowOrganization(userId: Int, organizationId: Int)
 }
