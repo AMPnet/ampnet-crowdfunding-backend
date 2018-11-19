@@ -11,7 +11,7 @@ interface OrganizationDao : JpaRepository<Organization, Int> {
 
     fun findByName(name: String): Optional<Organization>
 
-    // Organization will have only one membership because of inner join
+    // Each Organization in the list will have only one membership because of inner join
     @Query("SELECT org FROM Organization org INNER JOIN FETCH OrganizationMembership mem WHERE mem.userId = ?1")
     fun findAllOrganizationsForUser(userId: Int): List<Organization>
 }

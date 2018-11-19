@@ -242,9 +242,9 @@ class OrganizationControllerTest : ControllerTestBase() {
             val response: OrganizationUsersListResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(response.users).hasSize(2)
             assertThat(response.users).contains(
-                    OrganizationUserResponse(user.getFullName(), user.email, OrganizationRoleType.ORG_ADMIN.name))
+                    OrganizationUserResponse(user.getFullName(), user.email, OrganizationRoleType.ORG_ADMIN))
             assertThat(response.users).contains(
-                    OrganizationUserResponse(testContext.user2.getFullName(), testContext.user2.email, OrganizationRoleType.ORG_MEMBER.name))
+                    OrganizationUserResponse(testContext.user2.getFullName(), testContext.user2.email, OrganizationRoleType.ORG_MEMBER))
         }
     }
 
