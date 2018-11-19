@@ -6,7 +6,7 @@ import com.ampnet.crowdfundingbackend.service.CountryService
 import org.springframework.stereotype.Service
 
 @Service
-class CountryService(private val countryDao: CountryDao) : CountryService {
+class CountryServiceImpl(private val countryDao: CountryDao) : CountryService {
 
     override fun getCountries(): List<Country> {
         return countryDao.findAll()
