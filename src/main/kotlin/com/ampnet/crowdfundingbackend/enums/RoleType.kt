@@ -28,3 +28,29 @@ enum class UserRoleType(val id: Int) {
 
     abstract fun getPrivileges(): List<PrivilegeType>
 }
+
+enum class OrganizationRoleType(val id: Int) {
+
+    ORG_ADMIN(3) {
+        override fun getPrivileges(): List<OrganizationPrivilegeType> {
+            return listOf(
+                    OrganizationPrivilegeType.PR_USERS,
+                    OrganizationPrivilegeType.PW_USERS)
+        }
+    },
+
+    ORG_MEMBER(4) {
+        override fun getPrivileges(): List<OrganizationPrivilegeType> {
+            return listOf(
+                    OrganizationPrivilegeType.PR_USERS
+            )
+        }
+    };
+
+    companion object {
+        private val map = OrganizationRoleType.values().associateBy(OrganizationRoleType::id)
+        fun fromInt(type: Int) = map[type]
+    }
+
+    abstract fun getPrivileges(): List<OrganizationPrivilegeType>
+}

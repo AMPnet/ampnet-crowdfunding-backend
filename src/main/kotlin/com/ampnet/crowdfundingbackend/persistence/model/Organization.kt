@@ -10,6 +10,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Entity
@@ -32,17 +33,21 @@ data class Organization(
     @Column(nullable = false)
     var createdAt: ZonedDateTime,
 
-    @Column
-    var updatedAt: ZonedDateTime,
+    @Column(nullable = true)
+    var updatedAt: ZonedDateTime?,
 
     @Column(nullable = false)
     var approved: Boolean,
 
     @ManyToOne
     @JoinColumn(name = "approved_by")
-    var approvedBy: User,
+    var approvedBy: User?,
 
     @Column(nullable = true)
     @Convert(converter = HashArrayToStringConverter::class)
-    var documents: List<String>
+    var documents: List<String>?,
+
+    @OneToMany
+    @JoinColumn(name = "organizationId")
+    var memberships: List<OrganizationMembership>?
 )

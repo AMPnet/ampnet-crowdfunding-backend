@@ -12,6 +12,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Entity
@@ -52,7 +53,12 @@ data class User(
     var authMethod: AuthMethod,
 
     @Column(nullable = false)
-    var enabled: Boolean
+    var enabled: Boolean,
+
+    @OneToMany
+    @JoinColumn(name = "userId")
+    var organizations: List<OrganizationMembership>?
+
 ) {
     fun getAuthorities(): Set<SimpleGrantedAuthority> {
         val roleAuthority = SimpleGrantedAuthority("ROLE_" + role.name)
