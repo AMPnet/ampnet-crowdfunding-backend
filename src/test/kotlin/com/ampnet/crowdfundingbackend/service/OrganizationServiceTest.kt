@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationDao
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerDao
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipDao
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
@@ -39,9 +40,11 @@ class OrganizationServiceTest : TestBase() {
     private lateinit var organizationDao: OrganizationDao
     @Autowired
     private lateinit var membershipDao: OrganizationMembershipDao
+    @Autowired
+    private lateinit var followerDao: OrganizationFollowerDao
 
     private val organizationService: OrganizationService by lazy {
-        OrganizationServiceImpl(organizationDao, membershipDao, roleDao, userDao)
+        OrganizationServiceImpl(organizationDao, membershipDao, followerDao, roleDao, userDao)
     }
 
     private val user: User by lazy {
@@ -57,10 +60,7 @@ class OrganizationServiceTest : TestBase() {
     fun mustBeAbleToAddUserAsAdminToOrganization() {
         suppose("User exists without any memberships") {
             user.id
-            databaseCleanerService.deleteAllOrganizationMembership()
-        }
-        suppose("Organization exists") {
-            organization.id
+            databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added as admin") {
             organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
@@ -75,10 +75,7 @@ class OrganizationServiceTest : TestBase() {
     fun mustBeAbleToAddUserAsMemberToOrganization() {
         suppose("User exists without any memberships") {
             user.id
-            databaseCleanerService.deleteAllOrganizationMembership()
-        }
-        suppose("Organization exists") {
-            organization.id
+            databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added to organization as member") {
             organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
@@ -93,10 +90,7 @@ class OrganizationServiceTest : TestBase() {
     fun userCanHaveOnlyOneRoleInOrganization() {
         suppose("User exists without any memberships") {
             user.id
-            databaseCleanerService.deleteAllOrganizationMembership()
-        }
-        suppose("Organization exists") {
-            organization.id
+            databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added to organization as admin and member") {
             organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
@@ -105,6 +99,45 @@ class OrganizationServiceTest : TestBase() {
 
         verify("User has only member role") {
             verifyUserMembership(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+    }
+
+    @Test
+    fun userCanFollowOrganization() {
+        suppose("User exists without following organizations") {
+            user.id
+            databaseCleanerService.deleteAllOrganizationFollowers()
+        }
+        suppose("User started to follow the organization") {
+            organizationService.followOrganization(user.id, organization.id)
+        }
+
+        verify("User is following the organization") {
+            val followers = followerDao.findByOrganizationId(organization.id)
+            assertThat(followers).hasSize(1)
+
+            val follower = followers[0]
+            assertThat(follower.userId).isEqualTo(user.id)
+            assertThat(follower.organizationId).isEqualTo(organization.id)
+            assertThat(follower.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+    }
+
+    @Test
+    fun userCanUnFollowOrganization() {
+        suppose("User is following the organization") {
+            databaseCleanerService.deleteAllOrganizationFollowers()
+            organizationService.followOrganization(user.id, organization.id)
+            val followers = followerDao.findByOrganizationId(organization.id)
+            assertThat(followers).hasSize(1)
+        }
+        suppose("User un followed the organization") {
+            organizationService.unFollowOrganization(user.id, organization.id)
+        }
+
+        verify("User is not following the organization") {
+            val followers = followerDao.findByOrganizationId(organization.id)
+            assertThat(followers).hasSize(0)
         }
     }
 

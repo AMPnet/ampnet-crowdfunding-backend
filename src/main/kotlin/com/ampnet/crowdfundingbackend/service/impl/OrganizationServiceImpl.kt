@@ -3,10 +3,12 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationFollower
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationDao
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerDao
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipDao
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
@@ -20,6 +22,7 @@ import java.time.ZonedDateTime
 class OrganizationServiceImpl(
     private val organizationDao: OrganizationDao,
     private val membershipDao: OrganizationMembershipDao,
+    private val followerDao: OrganizationFollowerDao,
     private val roleDao: RoleDao,
     private val userDao: UserDao
 ) : OrganizationService {
@@ -94,6 +97,25 @@ class OrganizationServiceImpl(
         membership.role = getRole(role)
         membership.createdAt = ZonedDateTime.now()
         return membershipDao.save(membership)
+    }
+
+    @Transactional
+    override fun followOrganization(userId: Int, organizationId: Int): OrganizationFollower {
+        ServiceUtils.wrapOptional(followerDao.findByUserIdAndOrganizationId(userId, organizationId))?.let {
+            return it
+        }
+        val follower = OrganizationFollower::class.java.newInstance()
+        follower.userId = userId
+        follower.organizationId = organizationId
+        follower.createdAt = ZonedDateTime.now()
+        return followerDao.save(follower)
+    }
+
+    @Transactional
+    override fun unFollowOrganization(userId: Int, organizationId: Int) {
+        ServiceUtils.wrapOptional(followerDao.findByUserIdAndOrganizationId(userId, organizationId))?.let {
+            followerDao.delete(it)
+        }
     }
 
     private fun getRole(role: OrganizationRoleType): Role {
