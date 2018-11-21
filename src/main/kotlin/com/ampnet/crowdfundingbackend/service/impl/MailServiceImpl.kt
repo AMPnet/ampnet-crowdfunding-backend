@@ -3,7 +3,6 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.service.MailService
 import mu.KLogging
-import org.springframework.core.env.get
 import org.springframework.mail.MailException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -50,5 +49,5 @@ class MailServiceImpl(
     private fun getSenderMail(): String = applicationProperties.mail.sender
 
     private fun getConfirmationLink(token: String): String =
-            "${applicationProperties.mail.confirmationLink}?token=$token"
+            "${applicationProperties.mail.confirmationBaseLink}?token=$token"
 }

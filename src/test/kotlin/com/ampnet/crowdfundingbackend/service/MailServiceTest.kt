@@ -63,7 +63,7 @@ class MailServiceTest : TestBase() {
             assertThat(mail.envelopeReceiver).isEqualTo(receiverMail)
             assertThat(mail.mimeMessage.subject).isEqualTo("Confirmation mail")
 
-            val confirmationLink = "${applicationProperties.mail.confirmationLink}?token=$token"
+            val confirmationLink = "${applicationProperties.mail.confirmationBaseLink}?token=$token"
             assertThat(mail.mimeMessage.content.toString()).contains(confirmationLink)
         }
     }

@@ -17,5 +17,5 @@ class JwtProperties {
 
 class MailProperties {
     lateinit var sender: String
-    lateinit var confirmationLink: String
+    lateinit var confirmationBaseLink: String
 }
