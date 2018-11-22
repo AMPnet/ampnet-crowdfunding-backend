@@ -11,6 +11,8 @@ import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
+import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenDao
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
@@ -24,9 +26,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -36,7 +40,7 @@ import java.time.ZonedDateTime
 @RunWith(SpringRunner::class)
 @DataJpaTest
 @Transactional(propagation = Propagation.SUPPORTS)
-@Import(DatabaseCleanerService::class, UserServiceImpl::class, WalletServiceImpl::class, PasswordEncoderConfig::class)
+@Import(DatabaseCleanerService::class, PasswordEncoderConfig::class)
 class WalletServiceTest : TestBase() {
 
     @Autowired
@@ -50,7 +54,17 @@ class WalletServiceTest : TestBase() {
     @Autowired
     private lateinit var userDao: UserDao
     @Autowired
-    private lateinit var walletService: WalletService
+    private lateinit var countryDao: CountryDao
+    @Autowired
+    private lateinit var mailDao: MailTokenDao
+    @Autowired
+    private lateinit var passwordEncoder: PasswordEncoder
+
+    private val walletService: WalletService by lazy {
+        val mailService = Mockito.mock(MailService::class.java)
+        val userService = UserServiceImpl(userDao, roleDao, countryDao, mailDao, mailService, passwordEncoder)
+        WalletServiceImpl(walletDao, transactionDao, userService)
+    }
 
     private lateinit var testData: TestData
     private val user: User by lazy {

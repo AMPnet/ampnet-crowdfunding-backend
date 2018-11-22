@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
+import java.util.UUID
 
 interface UserService {
     fun create(request: CreateUserServiceRequest): User
@@ -11,4 +12,5 @@ interface UserService {
     fun delete(id: Int)
     fun find(username: String): User?
     fun find(id: Int): User?
+    fun confirmEmail(token: UUID): User?
 }

@@ -5,44 +5,77 @@
 :source-highlighter: prettify
 :docinfo: shared
 
+== Registration API
+Collection of endpoints for registering users
+
+=== Social method - Facebook and Google
+
+==== Successful user signup (FACEBOOK method)
+.Request
+include::{snippets}/RegistrationControllerTest/signupUsingFacebookMethod/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/signupUsingFacebookMethod/http-response.adoc[]
+
+==== Successful user signup (GOOGLE method)
+.Request
+include::{snippets}/RegistrationControllerTest/signupUsingGoogleMethod/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/signupUsingGoogleMethod/http-response.adoc[]
+
+=== Email method
+
+==== Successful user signup
+.Request
+include::{snippets}/RegistrationControllerTest/mustBeAbleToSignUpUser/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustBeAbleToSignUpUser/http-response.adoc[]
+
+==== Incomplete signup information
+.Request
+include::{snippets}/RegistrationControllerTest/incompleteSignupRequestShouldFail/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/incompleteSignupRequestShouldFail/http-response.adoc[]
+
+==== Signup information complete but invalid
+.Request
+include::{snippets}/RegistrationControllerTest/invalidDataSignupRequestShouldFail/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/invalidDataSignupRequestShouldFail/http-response.adoc[]
+
+==== Signup failed because user exists
+.Request
+include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExists/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExists/http-response.adoc[]
+
+==== Email confirmation
+
+===== Successful Email confirmation
+.Request
+include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-response.adoc[]
+
+===== Failed Email confirmation, invalid token format
+.Request
+include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-response.adoc[]
+
+===== Failed Email confirmation, non existing token
+.Request
+include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-response.adoc[]
+
+===== Failed Email confirmation, token expired
+.Request
+include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-response.adoc[]
+
 == Users API
-Collection of endpoints for managing users: new user registration or existing user details.
-
-=== Successful user signup (EMAIL method)
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToSignUpUser/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToSignUpUser/http-response.adoc[]
-
-=== Successful user signup (FACEBOOK method)
-.Request
-include::{snippets}/UserControllerTest/signupUsingFacebookMethod/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/signupUsingFacebookMethod/http-response.adoc[]
-
-=== Successful user signup (GOOGLE method)
-.Request
-include::{snippets}/UserControllerTest/signupUsingGoogleMethod/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/signupUsingGoogleMethod/http-response.adoc[]
-
-=== Incomplete signup information (EMAIL method)
-.Request
-include::{snippets}/UserControllerTest/incompleteSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/incompleteSignupRequestShouldFail/http-response.adoc[]
-
-=== Signup information complete but invalid (EMAIL method)
-.Request
-include::{snippets}/UserControllerTest/invalidDataSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/invalidDataSignupRequestShouldFail/http-response.adoc[]
-
-=== Signup failed because user exists (EMAIL method)
-.Request
-include::{snippets}/UserControllerTest/signupShouldFailIfUserAlreadyExists/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/signupShouldFailIfUserAlreadyExists/http-response.adoc[]
+Collection of endpoints for managing users
 
 === Successful fetch list of users (admin)
 .Request
