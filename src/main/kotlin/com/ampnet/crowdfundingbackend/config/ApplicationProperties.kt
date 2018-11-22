@@ -18,4 +18,5 @@ class JwtProperties {
 class MailProperties {
     lateinit var sender: String
     lateinit var confirmationBaseLink: String
+    var enabled: Boolean = false
 }

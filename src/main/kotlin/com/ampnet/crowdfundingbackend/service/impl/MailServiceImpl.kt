@@ -8,6 +8,7 @@ import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
+import java.util.Date
 
 @Service
 class MailServiceImpl(
@@ -24,7 +25,11 @@ class MailServiceImpl(
         val link = getConfirmationLink(token)
         val message = "Follow the link the confirm your email: $link"
         val mail = createMailMessage(to, confirmationMail, message)
-        sendEmail(mail)
+        if (applicationProperties.mail.enabled) {
+            sendEmail(mail)
+        } else {
+            logger.info { "Sending email is disabled. \nEmail: $mail" }
+        }
     }
 
     private fun createMailMessage(to: String, subject: String, text: String): SimpleMailMessage {
@@ -33,6 +38,7 @@ class MailServiceImpl(
         mail.setSubject(subject)
         mail.setTo(to)
         mail.setText(text)
+        mail.setSentDate(Date())
         return mail
     }
 
