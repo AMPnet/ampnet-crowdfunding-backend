@@ -53,7 +53,7 @@ class RegistrationController(
             return ResponseEntity.notFound().build()
         } catch (ex: IllegalArgumentException) {
             logger.warn { "User is send token which is not UUID: $token" }
-            throw IllegalArgumentException("Token: $token is not in a valid format.")
+            throw InvalidRequestException("Token: $token is not in a valid format.")
         }
     }
 
