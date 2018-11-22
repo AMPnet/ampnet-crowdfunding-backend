@@ -24,29 +24,47 @@ include::{snippets}/RegistrationControllerTest/signupUsingGoogleMethod/http-resp
 
 === Email method
 
-==== Successful user signup (EMAIL method)
+==== Successful user signup
 .Request
 include::{snippets}/RegistrationControllerTest/mustBeAbleToSignUpUser/http-request.adoc[]
 .Response
 include::{snippets}/RegistrationControllerTest/mustBeAbleToSignUpUser/http-response.adoc[]
 
-==== Incomplete signup information (EMAIL method)
+==== Incomplete signup information
 .Request
 include::{snippets}/RegistrationControllerTest/incompleteSignupRequestShouldFail/http-request.adoc[]
 .Response
 include::{snippets}/RegistrationControllerTest/incompleteSignupRequestShouldFail/http-response.adoc[]
 
-==== Signup information complete but invalid (EMAIL method)
+==== Signup information complete but invalid
 .Request
 include::{snippets}/RegistrationControllerTest/invalidDataSignupRequestShouldFail/http-request.adoc[]
 .Response
 include::{snippets}/RegistrationControllerTest/invalidDataSignupRequestShouldFail/http-response.adoc[]
 
-==== Signup failed because user exists (EMAIL method)
+==== Signup failed because user exists
 .Request
 include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExists/http-request.adoc[]
 .Response
 include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExists/http-response.adoc[]
+
+==== Successful Email confirmation
+.Request
+include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-response.adoc[]
+
+==== Failed Email confirmation, invalid token format
+.Request
+include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-response.adoc[]
+
+==== Failed Email confirmation, non existing token
+.Request
+include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-response.adoc[]
 
 == Users API
 Collection of endpoints for managing users

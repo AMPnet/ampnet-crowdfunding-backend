@@ -90,6 +90,17 @@ class UserServiceImpl(
         userDao.deleteById(id)
     }
 
+    @Transactional
+    override fun emailConfirmation(token: UUID): User? {
+        val optionalMailToken = mailTokenDao.findByToken(token)
+        if (!optionalMailToken.isPresent) {
+            return null
+        }
+        val user = optionalMailToken.get().user
+        user.enabled = true
+        return userDao.save(user)
+    }
+
     private fun createUserFromRequest(request: CreateUserServiceRequest): User {
         val user = User::class.java.newInstance()
         user.email = request.email
@@ -100,7 +111,14 @@ class UserServiceImpl(
         user.role = userRole
         user.createdAt = ZonedDateTime.now()
         user.authMethod = request.authMethod
-        user.enabled = true
+
+        if (user.authMethod == AuthMethod.EMAIL) {
+            // user must confirm email
+            user.enabled = false
+        } else {
+            // social user is confirmed from social service
+            user.enabled = true
+        }
 
         request.countryId?.let { id ->
             user.country = countryDao.findById(id).orElse(null)

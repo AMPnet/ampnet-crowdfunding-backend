@@ -23,14 +23,18 @@ import org.springframework.http.MediaType
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MvcResult
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @ActiveProfiles("SocialMockConfig")
 class RegistrationControllerTest : ControllerTestBase() {
 
     private val pathSignup = "/signup"
+    private val confirmationPath = "/mail-confirmation"
 
     @Autowired
     private lateinit var userService: UserService
@@ -83,7 +87,7 @@ class RegistrationControllerTest : ControllerTestBase() {
             assert(userInRepo.authMethod == testUser.authMethod)
             assert(userInRepo.role.id == UserRoleType.USER.id)
             assert(userInRepo.createdAt.isBefore(ZonedDateTime.now()))
-            assert(userInRepo.enabled)
+            assertThat(userInRepo.enabled).isFalse()
         }
         verify("The user confirmation token is created") {
             val userInRepo = userService.find(testUser.email)
@@ -199,6 +203,50 @@ class RegistrationControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    fun mustBeAbleToConfirmEmail() {
+        suppose("The user is created with unconfirmed email") {
+            databaseCleanerService.deleteAllUsers()
+            saveTestUser()
+            val user = userService.find(testUser.id)
+            assertThat(user).isNotNull
+            assertThat(user!!.enabled).isFalse()
+        }
+
+        verify("The user can confirm email with mail token") {
+            val mailToken = mailTokenDao.findByUserId(testUser.id)
+            assertThat(mailToken).isPresent
+
+            mockMvc.perform(get("$confirmationPath?token=${mailToken.get().token}"))
+                    .andExpect(status().isOk)
+            val confirmedUser = userService.emailConfirmation(mailToken.get().token)
+            assertThat(confirmedUser).isNotNull
+            assertThat(confirmedUser!!.email).isEqualTo(testUser.email)
+        }
+        verify("The user is confirmed in database") {
+            val user = userService.find(testUser.id)
+            assertThat(user).isNotNull
+            assertThat(user!!.enabled).isTrue()
+        }
+    }
+
+    @Test
+    fun mustGetBadRequestForInvalidTokenFormat() {
+        verify("Invalid token format will get bad response") {
+            mockMvc.perform(get("$confirmationPath?token=bezvezni-token-tak"))
+                    .andExpect(status().isBadRequest)
+        }
+    }
+
+    @Test
+    fun mustGetNotFoundRandomToken() {
+        verify("Random token will get not found response") {
+            val randomToken = UUID.randomUUID().toString()
+            mockMvc.perform(get("$confirmationPath?token=$randomToken"))
+                    .andExpect(status().isNotFound)
+        }
+    }
+
     private fun generateSignupJson(): String {
         return """
             |{
@@ -249,6 +297,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                 assert(expectedSocialUser.countryId == userInRepo.country?.id)
             }
             assert(userInRepo.role.id == UserRoleType.USER.id)
+            assertThat(userInRepo.enabled).isTrue()
         }
     }
 
@@ -262,10 +311,13 @@ class RegistrationControllerTest : ControllerTestBase() {
                 phoneNumber = testUser.phoneNumber,
                 authMethod = testUser.authMethod
         )
-        return userService.create(request)
+        val savedUser = userService.create(request)
+        testUser.id = savedUser.id
+        return savedUser
     }
 
     private class TestUser {
+        var id = -1
         var email = "john@smith.com"
         var password = "Password157!"
         var firstName = "John"

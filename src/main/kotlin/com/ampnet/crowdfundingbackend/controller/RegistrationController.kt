@@ -12,10 +12,14 @@ import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
+import mu.KLogging
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 import javax.validation.Validator
 
 @RestController
@@ -25,14 +29,32 @@ class RegistrationController(
     private val objectMapper: ObjectMapper,
     private val validator: Validator
 ) {
+    companion object : KLogging()
 
     @PostMapping("/signup")
-    fun createUser(@RequestBody request: SignupRequest): ResponseEntity<Any> {
-        UserController.logger.debug { "Received request to sign up: $request" }
+    fun createUser(@RequestBody request: SignupRequest): ResponseEntity<UserResponse> {
+        logger.debug { "Received request to sign up: $request" }
         val createUserRequest = createUserRequest(request)
         validateRequestOrThrow(createUserRequest)
         val user = userService.create(createUserRequest)
         return ResponseEntity.ok(UserResponse(user))
+    }
+
+    @GetMapping("/mail-confirmation")
+    fun mailConfirmation(@RequestParam("token") token: String): ResponseEntity<Any> {
+        logger.debug { "Received to confirm mail with token: $token" }
+        try {
+            val tokenUuid = UUID.fromString(token)
+            userService.emailConfirmation(tokenUuid)?.let {
+                logger.info { "Confirmed email for user: ${it.email}" }
+                return ResponseEntity.ok().build()
+            }
+            logger.info { "User trying to confirm mail with non existing token: $tokenUuid" }
+            return ResponseEntity.notFound().build()
+        } catch (ex: IllegalArgumentException) {
+            logger.warn { "User is send token which is not UUID: $token" }
+            return ResponseEntity.badRequest().build()
+        }
     }
 
     private fun createUserRequest(request: SignupRequest): CreateUserServiceRequest {
