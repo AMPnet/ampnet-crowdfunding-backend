@@ -71,6 +71,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile('org.springframework.boot:spring-boot-starter-security')
     compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile('org.springframework.boot:spring-boot-starter-mail')
     kapt "org.springframework.boot:spring-boot-configuration-processor"
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
 
@@ -92,6 +93,7 @@ dependencies {
     testCompile('org.springframework.security:spring-security-test')
     testCompile('org.springframework.restdocs:spring-restdocs-mockmvc')
     testCompile('org.mockito:mockito-core:2.23.0')
+    testCompile('org.subethamail:subethasmtp:3.1.7')
 
     ktlint "com.github.shyiko:ktlint:0.29.0"
 }
