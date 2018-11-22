@@ -9,7 +9,9 @@ import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenDao
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
+import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -42,12 +44,14 @@ class UserControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var userService: UserService
-
     @Autowired
     private lateinit var passwordEncoder: PasswordEncoder
-
     @Autowired
     private lateinit var socialService: SocialService
+    @Autowired
+    private lateinit var mailTokenDao: MailTokenDao
+    @Autowired
+    private lateinit var mailService: MailService
 
     @Before
     fun initTestData() {
@@ -134,6 +138,20 @@ class UserControllerTest : ControllerTestBase() {
             assert(userInRepo.role.id == UserRoleType.USER.id)
             assert(userInRepo.createdAt.isBefore(ZonedDateTime.now()))
             assert(userInRepo.enabled)
+        }
+        verify("The user confirmation token is created") {
+            val userInRepo = userService.find(testUser.email)
+            assertThat(userInRepo).isNotNull
+            val mailToken = mailTokenDao.findByUserId(userInRepo!!.id)
+            assertThat(mailToken).isPresent
+            assertThat(mailToken.get().token).isNotNull()
+            assertThat(mailToken.get().createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+
+            testContext.mailConfirmationToken = mailToken.get().token.toString()
+        }
+        verify("Sending mail was initiated") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendConfirmationMail(testUser.email, testContext.mailConfirmationToken)
         }
     }
 
@@ -402,5 +420,6 @@ class UserControllerTest : ControllerTestBase() {
         lateinit var mvcResult: MvcResult
         lateinit var socialUser: SocialUser
         val token = "token"
+        lateinit var mailConfirmationToken: String
     }
 }

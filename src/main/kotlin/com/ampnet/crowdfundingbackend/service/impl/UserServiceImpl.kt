@@ -4,11 +4,15 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.persistence.model.MailToken
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
+import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenDao
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
 import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
+import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import mu.KLogging
@@ -16,22 +20,25 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @Service
 class UserServiceImpl(
-    val userDao: UserDao,
-    val roleDao: RoleDao,
-    val countryDao: CountryDao,
-    val passwordEncoder: PasswordEncoder
+    private val userDao: UserDao,
+    private val roleDao: RoleDao,
+    private val countryDao: CountryDao,
+    private val mailTokenDao: MailTokenDao,
+    private val mailService: MailService,
+    private val passwordEncoder: PasswordEncoder
 ) : UserService {
 
     companion object : KLogging()
 
-    val userRole: Role by lazy {
+    private val userRole: Role by lazy {
         roleDao.getOne(UserRoleType.USER.id)
     }
 
-    val adminRole: Role by lazy {
+    private val adminRole: Role by lazy {
         roleDao.getOne(UserRoleType.ADMIN.id)
     }
 
@@ -42,8 +49,15 @@ class UserServiceImpl(
             throw ResourceAlreadyExistsException("User with email: ${request.email} already exists!")
         }
 
-        val user = createUserFromRequest(request)
-        return userDao.save(user)
+        val userRequest = createUserFromRequest(request)
+        val user = userDao.save(userRequest)
+
+        if (user.authMethod == AuthMethod.EMAIL) {
+            val mailToken = createMailToken(user)
+            mailService.sendConfirmationMail(user.email, mailToken.token.toString())
+        }
+
+        return user
     }
 
     @Transactional
@@ -95,7 +109,6 @@ class UserServiceImpl(
     }
 
     private fun updateUserFromRequest(user: User, request: UserUpdateRequest): User {
-        user.email = request.email
         user.firstName = request.firstName
         user.lastName = request.lastName
         user.phoneNumber = request.phoneNumber
@@ -104,4 +117,14 @@ class UserServiceImpl(
         }
         return user
     }
+
+    private fun createMailToken(user: User): MailToken {
+        val mailToken = MailToken::class.java.newInstance()
+        mailToken.user = user
+        mailToken.token = generateToken()
+        mailToken.createdAt = ZonedDateTime.now()
+        return mailTokenDao.save(mailToken)
+    }
+
+    private fun generateToken(): UUID = UUID.randomUUID()
 }
