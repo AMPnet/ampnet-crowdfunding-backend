@@ -45,7 +45,7 @@ class RegistrationController(
         logger.debug { "Received to confirm mail with token: $token" }
         try {
             val tokenUuid = UUID.fromString(token)
-            userService.emailConfirmation(tokenUuid)?.let {
+            userService.confirmEmail(tokenUuid)?.let {
                 logger.info { "Confirmed email for user: ${it.email}" }
                 return ResponseEntity.ok().build()
             }
@@ -53,7 +53,7 @@ class RegistrationController(
             return ResponseEntity.notFound().build()
         } catch (ex: IllegalArgumentException) {
             logger.warn { "User is send token which is not UUID: $token" }
-            return ResponseEntity.badRequest().build()
+            throw IllegalArgumentException("Token: $token is not in a valid format.")
         }
     }
 

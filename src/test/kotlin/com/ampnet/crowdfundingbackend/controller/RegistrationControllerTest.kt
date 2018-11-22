@@ -219,9 +219,6 @@ class RegistrationControllerTest : ControllerTestBase() {
 
             mockMvc.perform(get("$confirmationPath?token=${mailToken.get().token}"))
                     .andExpect(status().isOk)
-            val confirmedUser = userService.emailConfirmation(mailToken.get().token)
-            assertThat(confirmedUser).isNotNull
-            assertThat(confirmedUser!!.email).isEqualTo(testUser.email)
         }
         verify("The user is confirmed in database") {
             val user = userService.find(testUser.id)
@@ -244,6 +241,31 @@ class RegistrationControllerTest : ControllerTestBase() {
             val randomToken = UUID.randomUUID().toString()
             mockMvc.perform(get("$confirmationPath?token=$randomToken"))
                     .andExpect(status().isNotFound)
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToConfirmEmailWithExpiredToken() {
+        suppose("The user is created with unconfirmed email") {
+            databaseCleanerService.deleteAllUsers()
+            saveTestUser()
+            val user = userService.find(testUser.id)
+            assertThat(user).isNotNull
+            assertThat(user!!.enabled).isFalse()
+        }
+        suppose("The token has expired") {
+            val optionalMailToken = mailTokenDao.findByUserId(testUser.id)
+            assertThat(optionalMailToken).isPresent
+            val mailToken = optionalMailToken.get()
+            mailToken.createdAt = ZonedDateTime.now().minusDays(2)
+            mailTokenDao.save(mailToken)
+        }
+
+        verify("The user cannot confirm email with expired token") {
+            val optionalMailToken = mailTokenDao.findByUserId(testUser.id)
+            assertThat(optionalMailToken).isPresent
+            mockMvc.perform(get("$confirmationPath?token=${optionalMailToken.get().token}"))
+                    .andExpect(status().isBadRequest)
         }
     }
 

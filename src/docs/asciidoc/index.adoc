@@ -48,23 +48,31 @@ include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExis
 .Response
 include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExists/http-response.adoc[]
 
-==== Successful Email confirmation
+==== Email confirmation
+
+===== Successful Email confirmation
 .Request
 include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-request.adoc[]
 .Response
 include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-response.adoc[]
 
-==== Failed Email confirmation, invalid token format
+===== Failed Email confirmation, invalid token format
 .Request
 include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-request.adoc[]
 .Response
 include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-response.adoc[]
 
-==== Failed Email confirmation, non existing token
+===== Failed Email confirmation, non existing token
 .Request
 include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-request.adoc[]
 .Response
 include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-response.adoc[]
+
+===== Failed Email confirmation, token expired
+.Request
+include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-response.adoc[]
 
 == Users API
 Collection of endpoints for managing users

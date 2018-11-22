@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
+import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
@@ -91,12 +92,17 @@ class UserServiceImpl(
     }
 
     @Transactional
-    override fun emailConfirmation(token: UUID): User? {
+    override fun confirmEmail(token: UUID): User? {
         val optionalMailToken = mailTokenDao.findByToken(token)
         if (!optionalMailToken.isPresent) {
             return null
         }
-        val user = optionalMailToken.get().user
+        val mailToken = optionalMailToken.get()
+        if (mailToken.isExpired()) {
+            logger.info { "User is trying to confirm mail with expired token: $token" }
+            throw InvalidRequestException("The token: $token has expired")
+        }
+        val user = mailToken.user
         user.enabled = true
         return userDao.save(user)
     }

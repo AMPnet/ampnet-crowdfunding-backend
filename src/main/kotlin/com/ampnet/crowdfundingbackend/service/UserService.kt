@@ -12,5 +12,5 @@ interface UserService {
     fun delete(id: Int)
     fun find(username: String): User?
     fun find(id: Int): User?
-    fun emailConfirmation(token: UUID): User?
+    fun confirmEmail(token: UUID): User?
 }

@@ -27,4 +27,8 @@ data class MailToken(
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime
-)
+) {
+    fun isExpired(): Boolean {
+        return createdAt.plusDays(1).isBefore(ZonedDateTime.now())
+    }
+}
