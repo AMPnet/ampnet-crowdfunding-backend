@@ -1,19 +1,21 @@
 package com.ampnet.crowdfundingbackend.blockchain.impl
 
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
-import org.springframework.beans.factory.annotation.Autowired
+import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import org.springframework.stereotype.Service
 import org.web3j.crypto.RawTransaction
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.response.TransactionReceipt
+import org.web3j.protocol.http.HttpService
 import java.math.BigInteger
 
 @Service
-class BlockchainServiceImpl : BlockchainService {
+class BlockchainServiceImpl(applicationProperties: ApplicationProperties) : BlockchainService {
 
-    @Autowired
-    private lateinit var web3j: Web3j
+    private val web3j: Web3j by lazy {
+        Web3j.build(HttpService(applicationProperties.web3j.clientAddress))
+    }
 
     override fun getProtocolVersion(): String {
         return web3j.ethProtocolVersion().send().protocolVersion
