@@ -18,8 +18,8 @@ import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -49,7 +49,7 @@ class WalletControllerTest : ControllerTestBase() {
         createUser("test@test.com")
     }
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         testData = TestData()
     }

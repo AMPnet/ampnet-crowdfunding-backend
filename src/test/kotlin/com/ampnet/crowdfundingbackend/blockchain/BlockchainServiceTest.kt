@@ -1,11 +1,11 @@
 package com.ampnet.crowdfundingbackend.blockchain
 
 import com.ampnet.crowdfundingbackend.TestBase
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.FunctionReturnDecoder
 import org.web3j.abi.TypeReference
@@ -16,7 +16,7 @@ import org.web3j.crypto.WalletUtils
 import org.web3j.utils.Numeric
 
 @SpringBootTest
-@RunWith(SpringRunner::class)
+@ExtendWith(SpringExtension::class)
 class BlockchainServiceTest : TestBase() {
 
     @Autowired

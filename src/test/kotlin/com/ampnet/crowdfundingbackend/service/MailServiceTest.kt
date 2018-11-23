@@ -4,19 +4,19 @@ import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.mail.javamail.JavaMailSenderImpl
-import org.springframework.test.context.junit4.SpringRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.subethamail.wiser.Wiser
 
-@RunWith(SpringRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [ApplicationProperties::class])
 @EnableConfigurationProperties
 @Import(JavaMailSenderImpl::class)
@@ -34,7 +34,7 @@ class MailServiceTest : TestBase() {
     private val receiverMail = "test@test.com"
     private val token = "test-token"
 
-    @Before
+    @BeforeEach
     fun init() {
         defaultMailPort = mailSender.port
         wiser = Wiser(0)
@@ -43,7 +43,7 @@ class MailServiceTest : TestBase() {
         service = MailServiceImpl(mailSender, applicationProperties)
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         wiser.stop()
         mailSender.port = defaultMailPort

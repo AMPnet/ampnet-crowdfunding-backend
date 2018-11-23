@@ -4,7 +4,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.CountriesListResp
 import com.ampnet.crowdfundingbackend.controller.pojo.response.CountryResponse
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers

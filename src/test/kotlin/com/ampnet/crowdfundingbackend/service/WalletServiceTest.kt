@@ -23,21 +23,22 @@ import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
 import com.ampnet.crowdfundingbackend.service.pojo.TransferRequest
 import com.ampnet.crowdfundingbackend.service.pojo.WithdrawRequest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.test.context.junit4.SpringRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
-@RunWith(SpringRunner::class)
+@ExtendWith(SpringExtension::class)
 @DataJpaTest
 @Transactional(propagation = Propagation.SUPPORTS)
 @Import(DatabaseCleanerService::class, PasswordEncoderConfig::class)
@@ -72,7 +73,7 @@ class WalletServiceTest : TestBase() {
         createUser("test@email.com", "First", "Last")
     }
 
-    @Before
+    @BeforeEach
     fun init() {
         testData = TestData()
     }
@@ -103,7 +104,7 @@ class WalletServiceTest : TestBase() {
         }
     }
 
-    @Test(expected = ResourceAlreadyExistsException::class)
+    @Test
     fun mustNotBeAbleToCreateMultipleWalletsForOneUser() {
         suppose("User has a wallet") {
             databaseCleanerService.deleteAllWalletsAndTransactions()
@@ -111,7 +112,7 @@ class WalletServiceTest : TestBase() {
         }
 
         verify("Service cannot create additional account") {
-            walletService.createWallet(user.id)
+            assertThrows<ResourceAlreadyExistsException> { walletService.createWallet(user.id) }
         }
     }
 
