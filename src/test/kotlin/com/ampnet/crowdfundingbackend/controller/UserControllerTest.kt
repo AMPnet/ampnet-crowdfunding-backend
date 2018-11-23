@@ -12,8 +12,8 @@ import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -31,7 +31,7 @@ class UserControllerTest : ControllerTestBase() {
     @Autowired
     private lateinit var userService: UserService
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         testUser = TestUser()
     }

@@ -15,8 +15,8 @@ import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -50,7 +50,7 @@ class RegistrationControllerTest : ControllerTestBase() {
     private lateinit var testUser: TestUser
     private lateinit var testContext: TestContext
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         testUser = TestUser()
         testContext = TestContext()

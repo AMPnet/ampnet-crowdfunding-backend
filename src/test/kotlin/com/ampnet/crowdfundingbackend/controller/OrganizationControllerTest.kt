@@ -20,8 +20,8 @@ import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
@@ -51,7 +51,7 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     private lateinit var testContext: TestContext
 
-    @Before
+    @BeforeEach
     fun initializeTestContext() {
         testContext = TestContext()
     }

@@ -15,8 +15,8 @@ import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasKey
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -47,7 +47,7 @@ class AuthenticationControllerTest : ControllerTestBase() {
     private val facebookTestUser = FacebookTestUser()
     private val googleTestUser = GoogleTestUser()
 
-    @Before
+    @BeforeEach
     fun clearDatabase() {
         databaseCleanerService.deleteAllUsers()
     }
