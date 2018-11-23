@@ -56,6 +56,12 @@ include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-req
 .Response
 include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-response.adoc[]
 
+===== Resend Email confirmation
+.Request
+include::{snippets}/RegistrationControllerTest/mustBeAbleToResendConfirmationEmail/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustBeAbleToResendConfirmationEmail/http-response.adoc[]
+
 ===== Failed Email confirmation, invalid token format
 .Request
 include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-request.adoc[]
