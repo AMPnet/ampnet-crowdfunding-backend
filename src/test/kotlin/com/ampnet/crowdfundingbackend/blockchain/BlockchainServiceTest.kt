@@ -1,9 +1,13 @@
 package com.ampnet.crowdfundingbackend.blockchain
 
 import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.blockchain.impl.BlockchainServiceImpl
+import com.ampnet.crowdfundingbackend.config.ApplicationProperties
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.web3j.abi.FunctionEncoder
@@ -15,12 +19,18 @@ import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
 import org.web3j.utils.Numeric
 
-@SpringBootTest
+@Disabled // remove for testing
 @ExtendWith(SpringExtension::class)
+@SpringBootTest(classes = [ApplicationProperties::class])
+@EnableConfigurationProperties
 class BlockchainServiceTest : TestBase() {
 
     @Autowired
-    private lateinit var blockchainService: BlockchainService
+    private lateinit var applicationProperties: ApplicationProperties
+
+    private val blockchainService: BlockchainService by lazy {
+        BlockchainServiceImpl(applicationProperties)
+    }
 
     private val keystorePath = "src/test/resources/ethereum/keystore"
 
