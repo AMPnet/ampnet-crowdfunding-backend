@@ -24,5 +24,4 @@ class MailProperties {
 
 class Web3jProperties {
     lateinit var clientAddress: String
-    var networkId: Int = -1
 }
