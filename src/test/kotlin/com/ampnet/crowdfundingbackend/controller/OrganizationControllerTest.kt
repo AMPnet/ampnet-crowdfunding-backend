@@ -12,10 +12,10 @@ import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationDao
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipDao
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
-import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -36,13 +36,13 @@ class OrganizationControllerTest : ControllerTestBase() {
     @Autowired
     private lateinit var organizationService: OrganizationService
     @Autowired
-    private lateinit var userDao: UserDao
+    private lateinit var userRepository: UserRepository
     @Autowired
-    private lateinit var roleDao: RoleDao
+    private lateinit var roleRepository: RoleRepository
     @Autowired
-    private lateinit var organizationDao: OrganizationDao
+    private lateinit var organizationRepository: OrganizationRepository
     @Autowired
-    private lateinit var membershipDao: OrganizationMembershipDao
+    private lateinit var membershipRepository: OrganizationMembershipRepository
 
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()
@@ -271,8 +271,8 @@ class OrganizationControllerTest : ControllerTestBase() {
         user.enabled = true
         user.firstName = "First"
         user.lastName = "Last"
-        user.role = roleDao.getOne(UserRoleType.USER.id)
-        return userDao.save(user)
+        user.role = roleRepository.getOne(UserRoleType.USER.id)
+        return userRepository.save(user)
     }
 
     private fun createOrganization(name: String): Organization {
@@ -283,16 +283,16 @@ class OrganizationControllerTest : ControllerTestBase() {
         organization.approved = true
         organization.createdByUser = user
         organization.documents = listOf("hash1", "hash2", "hash3")
-        return organizationDao.save(organization)
+        return organizationRepository.save(organization)
     }
 
     private fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
         val membership = OrganizationMembership::class.java.newInstance()
         membership.userId = userId
         membership.organizationId = organizationId
-        membership.role = roleDao.getOne(role.id)
+        membership.role = roleRepository.getOne(role.id)
         membership.createdAt = ZonedDateTime.now()
-        membershipDao.save(membership)
+        membershipRepository.save(membership)
     }
 
     private class TestContext {

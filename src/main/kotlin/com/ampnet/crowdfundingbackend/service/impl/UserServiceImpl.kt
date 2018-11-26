@@ -9,10 +9,10 @@ import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.MailToken
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
-import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenDao
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
-import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
+import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -25,10 +25,10 @@ import java.util.UUID
 
 @Service
 class UserServiceImpl(
-    private val userDao: UserDao,
-    private val roleDao: RoleDao,
-    private val countryDao: CountryDao,
-    private val mailTokenDao: MailTokenDao,
+    private val userRepository: UserRepository,
+    private val roleRepository: RoleRepository,
+    private val countryRepository: CountryRepository,
+    private val mailTokenRepository: MailTokenRepository,
     private val mailService: MailService,
     private val passwordEncoder: PasswordEncoder
 ) : UserService {
@@ -36,22 +36,22 @@ class UserServiceImpl(
     companion object : KLogging()
 
     private val userRole: Role by lazy {
-        roleDao.getOne(UserRoleType.USER.id)
+        roleRepository.getOne(UserRoleType.USER.id)
     }
 
     private val adminRole: Role by lazy {
-        roleDao.getOne(UserRoleType.ADMIN.id)
+        roleRepository.getOne(UserRoleType.ADMIN.id)
     }
 
     @Transactional
     override fun create(request: CreateUserServiceRequest): User {
-        if (userDao.findByEmail(request.email).isPresent) {
+        if (userRepository.findByEmail(request.email).isPresent) {
             logger.info { "Trying to create user with email that already exists: ${request.email}" }
             throw ResourceAlreadyExistsException("User with email: ${request.email} already exists!")
         }
 
         val userRequest = createUserFromRequest(request)
-        val user = userDao.save(userRequest)
+        val user = userRepository.save(userRequest)
 
         if (user.authMethod == AuthMethod.EMAIL) {
             val mailToken = createMailToken(user)
@@ -63,37 +63,37 @@ class UserServiceImpl(
 
     @Transactional
     override fun update(request: UserUpdateRequest): User {
-        val savedUser = userDao.findByEmail(request.email).orElseThrow {
+        val savedUser = userRepository.findByEmail(request.email).orElseThrow {
             logger.info { "Trying to update user with email ${request.email} which does not exists in db." }
             throw ResourceNotFoundException("User with email: ${request.email} does not exists")
         }
         val user = updateUserFromRequest(savedUser, request)
-        return userDao.save(user)
+        return userRepository.save(user)
     }
 
     @Transactional(readOnly = true)
     override fun findAll(): List<User> {
-        return userDao.findAll()
+        return userRepository.findAll()
     }
 
     @Transactional(readOnly = true)
     override fun find(username: String): User? {
-        return ServiceUtils.wrapOptional(userDao.findByEmail(username))
+        return ServiceUtils.wrapOptional(userRepository.findByEmail(username))
     }
 
     @Transactional(readOnly = true)
     override fun find(id: Int): User? {
-        return ServiceUtils.wrapOptional(userDao.findById(id))
+        return ServiceUtils.wrapOptional(userRepository.findById(id))
     }
 
     @Transactional
     override fun delete(id: Int) {
-        userDao.deleteById(id)
+        userRepository.deleteById(id)
     }
 
     @Transactional
     override fun confirmEmail(token: UUID): User? {
-        val optionalMailToken = mailTokenDao.findByToken(token)
+        val optionalMailToken = mailTokenRepository.findByToken(token)
         if (!optionalMailToken.isPresent) {
             return null
         }
@@ -105,8 +105,8 @@ class UserServiceImpl(
         val user = mailToken.user
         user.enabled = true
 
-        mailTokenDao.delete(mailToken)
-        return userDao.save(user)
+        mailTokenRepository.delete(mailToken)
+        return userRepository.save(user)
     }
 
     @Transactional
@@ -115,8 +115,8 @@ class UserServiceImpl(
             return
         }
 
-        mailTokenDao.findByUserId(user.id).ifPresent {
-            mailTokenDao.delete(it)
+        mailTokenRepository.findByUserId(user.id).ifPresent {
+            mailTokenRepository.delete(it)
         }
         val mailToken = createMailToken(user)
         mailService.sendConfirmationMail(user.email, mailToken.token.toString())
@@ -142,7 +142,7 @@ class UserServiceImpl(
         }
 
         request.countryId?.let { id ->
-            user.country = countryDao.findById(id).orElse(null)
+            user.country = countryRepository.findById(id).orElse(null)
         }
         return user
     }
@@ -151,7 +151,7 @@ class UserServiceImpl(
         user.firstName = request.firstName
         user.lastName = request.lastName
         user.phoneNumber = request.phoneNumber
-        user.country = countryDao.findById(request.countryId).orElseThrow {
+        user.country = countryRepository.findById(request.countryId).orElseThrow {
             throw ResourceNotFoundException("Country with id: ${request.countryId} does not exists")
         }
         return user
@@ -162,7 +162,7 @@ class UserServiceImpl(
         mailToken.user = user
         mailToken.token = generateToken()
         mailToken.createdAt = ZonedDateTime.now()
-        return mailTokenDao.save(mailToken)
+        return mailTokenRepository.save(mailToken)
     }
 
     private fun generateToken(): UUID = UUID.randomUUID()

@@ -11,12 +11,12 @@ import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
-import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenDao
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
-import com.ampnet.crowdfundingbackend.persistence.repository.TransactionDao
-import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
-import com.ampnet.crowdfundingbackend.persistence.repository.WalletDao
+import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.TransactionRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
@@ -47,24 +47,24 @@ class WalletServiceTest : TestBase() {
     @Autowired
     private lateinit var databaseCleanerService: DatabaseCleanerService
     @Autowired
-    private lateinit var walletDao: WalletDao
+    private lateinit var walletRepository: WalletRepository
     @Autowired
-    private lateinit var transactionDao: TransactionDao
+    private lateinit var transactionRepository: TransactionRepository
     @Autowired
-    private lateinit var roleDao: RoleDao
+    private lateinit var roleRepository: RoleRepository
     @Autowired
-    private lateinit var userDao: UserDao
+    private lateinit var userRepository: UserRepository
     @Autowired
-    private lateinit var countryDao: CountryDao
+    private lateinit var countryRepository: CountryRepository
     @Autowired
-    private lateinit var mailDao: MailTokenDao
+    private lateinit var mailRepository: MailTokenRepository
     @Autowired
     private lateinit var passwordEncoder: PasswordEncoder
 
     private val walletService: WalletService by lazy {
         val mailService = Mockito.mock(MailService::class.java)
-        val userService = UserServiceImpl(userDao, roleDao, countryDao, mailDao, mailService, passwordEncoder)
-        WalletServiceImpl(walletDao, transactionDao, userService)
+        val userService = UserServiceImpl(userRepository, roleRepository, countryRepository, mailRepository, mailService, passwordEncoder)
+        WalletServiceImpl(walletRepository, transactionRepository, userService)
     }
 
     private lateinit var testData: TestData
@@ -139,7 +139,7 @@ class WalletServiceTest : TestBase() {
             assertThat(testData.transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
         }
         verify("Verify transaction is stored in database") {
-            val optionalStoredTransaction = transactionDao.findById(testData.transaction.id)
+            val optionalStoredTransaction = transactionRepository.findById(testData.transaction.id)
             assertThat(optionalStoredTransaction).isPresent
             assertThat(optionalStoredTransaction.get()).isEqualTo(testData.transaction)
         }
@@ -201,7 +201,7 @@ class WalletServiceTest : TestBase() {
             assertThat(testData.transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
         }
         verify("Transaction is stored for sender") {
-            val optionalStoredTransaction = transactionDao.findById(testData.transaction.id)
+            val optionalStoredTransaction = transactionRepository.findById(testData.transaction.id)
             assertThat(optionalStoredTransaction).isPresent
             assertThat(optionalStoredTransaction.get()).isEqualTo(testData.transaction)
         }
@@ -230,8 +230,8 @@ class WalletServiceTest : TestBase() {
         user.enabled = true
         user.firstName = firstName
         user.lastName = lastName
-        user.role = roleDao.getOne(UserRoleType.USER.id)
-        return userDao.save(user)
+        user.role = roleRepository.getOne(UserRoleType.USER.id)
+        return userRepository.save(user)
     }
 
     private fun createWalletForUser(userId: Int): Wallet {
@@ -240,7 +240,7 @@ class WalletServiceTest : TestBase() {
         wallet.currency = Currency.EUR
         wallet.transactions = emptyList()
         wallet.createdAt = ZonedDateTime.now()
-        return walletDao.save(wallet)
+        return walletRepository.save(wallet)
     }
 
     private class TestData {
