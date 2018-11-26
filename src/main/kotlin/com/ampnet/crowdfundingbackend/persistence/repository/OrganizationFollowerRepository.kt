@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface OrganizationFollowerDao : JpaRepository<OrganizationFollower, Int> {
+interface OrganizationFollowerRepository : JpaRepository<OrganizationFollower, Int> {
     fun findByOrganizationId(organizationId: Int): List<OrganizationFollower>
     fun findByUserIdAndOrganizationId(userId: Int, organizationId: Int): Optional<OrganizationFollower>
 }

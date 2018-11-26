@@ -7,11 +7,11 @@ import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationDao
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerDao
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipDao
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
-import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -33,18 +33,18 @@ class OrganizationServiceTest : TestBase() {
     @Autowired
     private lateinit var databaseCleanerService: DatabaseCleanerService
     @Autowired
-    private lateinit var roleDao: RoleDao
+    private lateinit var roleRepository: RoleRepository
     @Autowired
-    private lateinit var userDao: UserDao
+    private lateinit var userRepository: UserRepository
     @Autowired
-    private lateinit var organizationDao: OrganizationDao
+    private lateinit var organizationRepository: OrganizationRepository
     @Autowired
-    private lateinit var membershipDao: OrganizationMembershipDao
+    private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
-    private lateinit var followerDao: OrganizationFollowerDao
+    private lateinit var followerRepository: OrganizationFollowerRepository
 
     private val organizationService: OrganizationService by lazy {
-        OrganizationServiceImpl(organizationDao, membershipDao, followerDao, roleDao, userDao)
+        OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, roleRepository, userRepository)
     }
 
     private val user: User by lazy {
@@ -113,7 +113,7 @@ class OrganizationServiceTest : TestBase() {
         }
 
         verify("User is following the organization") {
-            val followers = followerDao.findByOrganizationId(organization.id)
+            val followers = followerRepository.findByOrganizationId(organization.id)
             assertThat(followers).hasSize(1)
 
             val follower = followers[0]
@@ -128,7 +128,7 @@ class OrganizationServiceTest : TestBase() {
         suppose("User is following the organization") {
             databaseCleanerService.deleteAllOrganizationFollowers()
             organizationService.followOrganization(user.id, organization.id)
-            val followers = followerDao.findByOrganizationId(organization.id)
+            val followers = followerRepository.findByOrganizationId(organization.id)
             assertThat(followers).hasSize(1)
         }
         suppose("User un followed the organization") {
@@ -136,13 +136,13 @@ class OrganizationServiceTest : TestBase() {
         }
 
         verify("User is not following the organization") {
-            val followers = followerDao.findByOrganizationId(organization.id)
+            val followers = followerRepository.findByOrganizationId(organization.id)
             assertThat(followers).hasSize(0)
         }
     }
 
     private fun verifyUserMembership(userId: Int, organizationId: Int, role: OrganizationRoleType) {
-        val memberships = membershipDao.findByUserId(userId)
+        val memberships = membershipRepository.findByUserId(userId)
         assertThat(memberships).hasSize(1)
         val membership = memberships[0]
         assertThat(membership.userId).isEqualTo(userId)
@@ -159,8 +159,8 @@ class OrganizationServiceTest : TestBase() {
         user.enabled = true
         user.firstName = firstName
         user.lastName = lastName
-        user.role = roleDao.getOne(UserRoleType.USER.id)
-        return userDao.save(user)
+        user.role = roleRepository.getOne(UserRoleType.USER.id)
+        return userRepository.save(user)
     }
 
     private fun createOrganization(name: String): Organization {
@@ -171,6 +171,6 @@ class OrganizationServiceTest : TestBase() {
         organization.approved = true
         organization.createdByUser = user
         organization.documents = listOf("hash1", "hash2", "hash3")
-        return organizationDao.save(organization)
+        return organizationRepository.save(organization)
     }
 }

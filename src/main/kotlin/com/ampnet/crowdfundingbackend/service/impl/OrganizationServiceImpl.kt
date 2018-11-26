@@ -7,11 +7,11 @@ import com.ampnet.crowdfundingbackend.persistence.model.OrganizationFollower
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationDao
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerDao
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipDao
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
-import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import org.springframework.stereotype.Service
@@ -20,15 +20,15 @@ import java.time.ZonedDateTime
 
 @Service
 class OrganizationServiceImpl(
-    private val organizationDao: OrganizationDao,
-    private val membershipDao: OrganizationMembershipDao,
-    private val followerDao: OrganizationFollowerDao,
-    private val roleDao: RoleDao,
-    private val userDao: UserDao
+    private val organizationRepository: OrganizationRepository,
+    private val membershipRepository: OrganizationMembershipRepository,
+    private val followerRepository: OrganizationFollowerRepository,
+    private val roleRepository: RoleRepository,
+    private val userRepository: UserRepository
 ) : OrganizationService {
 
-    private val adminRole: Role by lazy { roleDao.getOne(OrganizationRoleType.ORG_ADMIN.id) }
-    private val memberRole: Role by lazy { roleDao.getOne(OrganizationRoleType.ORG_MEMBER.id) }
+    private val adminRole: Role by lazy { roleRepository.getOne(OrganizationRoleType.ORG_ADMIN.id) }
+    private val memberRole: Role by lazy { roleRepository.getOne(OrganizationRoleType.ORG_MEMBER.id) }
 
     @Transactional
     override fun createOrganization(serviceRequest: OrganizationServiceRequest): Organization {
@@ -40,7 +40,7 @@ class OrganizationServiceImpl(
         organization.approved = false
         organization.createdAt = ZonedDateTime.now()
 
-        val savedOrganization = organizationDao.save(organization)
+        val savedOrganization = organizationRepository.save(organization)
         addUserToOrganization(serviceRequest.owner.id, organization.id, OrganizationRoleType.ORG_ADMIN)
 
         return savedOrganization
@@ -48,12 +48,12 @@ class OrganizationServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getAllOrganizations(): List<Organization> {
-        return organizationDao.findAll()
+        return organizationRepository.findAll()
     }
 
     @Transactional(readOnly = true)
     override fun findOrganizationById(id: Int): Organization? {
-        return ServiceUtils.wrapOptional(organizationDao.findById(id))
+        return ServiceUtils.wrapOptional(organizationRepository.findById(id))
     }
 
     @Transactional
@@ -69,17 +69,17 @@ class OrganizationServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAllUsersFromOrganization(organizationId: Int): List<User> {
-        return userDao.findAllUserForOrganization(organizationId)
+        return userRepository.findAllUserForOrganization(organizationId)
     }
 
     @Transactional(readOnly = true)
     override fun findAllOrganizationsForUser(userId: Int): List<Organization> {
-        return organizationDao.findAllOrganizationsForUser(userId)
+        return organizationRepository.findAllOrganizationsForUser(userId)
     }
 
     @Transactional(readOnly = true)
     override fun getOrganizationMemberships(organizationId: Int): List<OrganizationMembership> {
-        return membershipDao.findByOrganizationId(organizationId)
+        return membershipRepository.findByOrganizationId(organizationId)
     }
 
     @Transactional
@@ -89,32 +89,32 @@ class OrganizationServiceImpl(
         role: OrganizationRoleType
     ): OrganizationMembership {
         // user can have only one membership(role) per one organization
-        val membership = ServiceUtils.wrapOptional(membershipDao.findByOrganizationIdAndUserId(organizationId, userId))
+        val membership = ServiceUtils.wrapOptional(membershipRepository.findByOrganizationIdAndUserId(organizationId, userId))
                 ?: OrganizationMembership::class.java.newInstance()
 
         membership.organizationId = organizationId
         membership.userId = userId
         membership.role = getRole(role)
         membership.createdAt = ZonedDateTime.now()
-        return membershipDao.save(membership)
+        return membershipRepository.save(membership)
     }
 
     @Transactional
     override fun followOrganization(userId: Int, organizationId: Int): OrganizationFollower {
-        ServiceUtils.wrapOptional(followerDao.findByUserIdAndOrganizationId(userId, organizationId))?.let {
+        ServiceUtils.wrapOptional(followerRepository.findByUserIdAndOrganizationId(userId, organizationId))?.let {
             return it
         }
         val follower = OrganizationFollower::class.java.newInstance()
         follower.userId = userId
         follower.organizationId = organizationId
         follower.createdAt = ZonedDateTime.now()
-        return followerDao.save(follower)
+        return followerRepository.save(follower)
     }
 
     @Transactional
     override fun unfollowOrganization(userId: Int, organizationId: Int) {
-        ServiceUtils.wrapOptional(followerDao.findByUserIdAndOrganizationId(userId, organizationId))?.let {
-            followerDao.delete(it)
+        ServiceUtils.wrapOptional(followerRepository.findByUserIdAndOrganizationId(userId, organizationId))?.let {
+            followerRepository.delete(it)
         }
     }
 

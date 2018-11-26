@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface OrganizationDao : JpaRepository<Organization, Int> {
+interface OrganizationRepository : JpaRepository<Organization, Int> {
 
     fun findByName(name: String): Optional<Organization>
 

@@ -6,7 +6,7 @@ import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenDao
+import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.SocialService
@@ -45,7 +45,7 @@ class RegistrationControllerTest : ControllerTestBase() {
     @Autowired
     private lateinit var socialService: SocialService
     @Autowired
-    private lateinit var mailTokenDao: MailTokenDao
+    private lateinit var mailTokenRepository: MailTokenRepository
     @Autowired
     private lateinit var mailService: MailService
 
@@ -94,7 +94,7 @@ class RegistrationControllerTest : ControllerTestBase() {
         verify("The user confirmation token is created") {
             val userInRepo = userService.find(testUser.email)
             Assertions.assertThat(userInRepo).isNotNull
-            val mailToken = mailTokenDao.findByUserId(userInRepo!!.id)
+            val mailToken = mailTokenRepository.findByUserId(userInRepo!!.id)
             assertThat(mailToken).isPresent
             assertThat(mailToken.get().token).isNotNull()
             assertThat(mailToken.get().createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
@@ -212,7 +212,7 @@ class RegistrationControllerTest : ControllerTestBase() {
         }
 
         verify("The user can confirm email with mail token") {
-            val mailToken = mailTokenDao.findByUserId(testUser.id)
+            val mailToken = mailTokenRepository.findByUserId(testUser.id)
             assertThat(mailToken).isPresent
 
             mockMvc.perform(get("$confirmationPath?token=${mailToken.get().token}"))
@@ -248,15 +248,15 @@ class RegistrationControllerTest : ControllerTestBase() {
             createUnconfirmedUser()
         }
         suppose("The token has expired") {
-            val optionalMailToken = mailTokenDao.findByUserId(testUser.id)
+            val optionalMailToken = mailTokenRepository.findByUserId(testUser.id)
             assertThat(optionalMailToken).isPresent
             val mailToken = optionalMailToken.get()
             mailToken.createdAt = ZonedDateTime.now().minusDays(2)
-            mailTokenDao.save(mailToken)
+            mailTokenRepository.save(mailToken)
         }
 
         verify("The user cannot confirm email with expired token") {
-            val optionalMailToken = mailTokenDao.findByUserId(testUser.id)
+            val optionalMailToken = mailTokenRepository.findByUserId(testUser.id)
             assertThat(optionalMailToken).isPresent
             mockMvc.perform(get("$confirmationPath?token=${optionalMailToken.get().token}"))
                     .andExpect(status().isBadRequest)
@@ -269,7 +269,7 @@ class RegistrationControllerTest : ControllerTestBase() {
         suppose("The user has confirmation mail token") {
             testUser.email = defaultEmail
             createUnconfirmedUser()
-            val optionalMailToken = mailTokenDao.findByUserId(testUser.id)
+            val optionalMailToken = mailTokenRepository.findByUserId(testUser.id)
             assertThat(optionalMailToken).isPresent
         }
 
@@ -280,7 +280,7 @@ class RegistrationControllerTest : ControllerTestBase() {
         verify("The user confirmation token is created") {
             val userInRepo = userService.find(testUser.email)
             assertThat(userInRepo).isNotNull
-            val mailToken = mailTokenDao.findByUserId(userInRepo!!.id)
+            val mailToken = mailTokenRepository.findByUserId(userInRepo!!.id)
             assertThat(mailToken).isPresent
             assertThat(mailToken.get().token).isNotNull()
             assertThat(mailToken.get().createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
@@ -292,7 +292,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .sendConfirmationMail(testUser.email, testContext.mailConfirmationToken)
         }
         verify("The user can confirm mail with new token") {
-            val mailToken = mailTokenDao.findByUserId(testUser.id)
+            val mailToken = mailTokenRepository.findByUserId(testUser.id)
             assertThat(mailToken).isPresent
 
             mockMvc.perform(get("$confirmationPath?token=${mailToken.get().token}"))

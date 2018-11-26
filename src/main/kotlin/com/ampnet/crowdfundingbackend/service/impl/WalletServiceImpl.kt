@@ -6,8 +6,8 @@ import com.ampnet.crowdfundingbackend.persistence.model.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.persistence.repository.TransactionDao
-import com.ampnet.crowdfundingbackend.persistence.repository.WalletDao
+import com.ampnet.crowdfundingbackend.persistence.repository.TransactionRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
@@ -22,21 +22,21 @@ import java.time.ZonedDateTime
 
 @Service
 class WalletServiceImpl(
-    val walletDao: WalletDao,
-    val transactionDao: TransactionDao,
-    val userService: UserService
+    private val walletRepository: WalletRepository,
+    private val transactionRepository: TransactionRepository,
+    private val userService: UserService
 ) : WalletService {
 
     companion object : KLogging()
 
     @Transactional(readOnly = true)
     override fun getWalletForUser(userId: Int): Wallet? {
-        return ServiceUtils.wrapOptional(walletDao.findByOwnerId(userId))
+        return ServiceUtils.wrapOptional(walletRepository.findByOwnerId(userId))
     }
 
     @Transactional(readOnly = true)
     override fun getWalletWithTransactionsForUser(userId: Int): Wallet? {
-        return ServiceUtils.wrapOptional(walletDao.findByOwnerIdWithTransactions(userId))
+        return ServiceUtils.wrapOptional(walletRepository.findByOwnerIdWithTransactions(userId))
     }
 
     @Transactional(readOnly = true)
@@ -48,7 +48,7 @@ class WalletServiceImpl(
     @Transactional
     @Throws(ResourceAlreadyExistsException::class)
     override fun createWallet(ownerId: Int): Wallet {
-        if (walletDao.findByOwnerId(ownerId).isPresent) {
+        if (walletRepository.findByOwnerId(ownerId).isPresent) {
             logger.info("Trying to save wallet with ownerId: $ownerId which already exists in db.")
             throw ResourceAlreadyExistsException("Wallet with ownerId: $ownerId already exits")
         }
@@ -58,7 +58,7 @@ class WalletServiceImpl(
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()
         wallet.transactions = emptyList()
-        return walletDao.save(wallet)
+        return walletRepository.save(wallet)
     }
 
     @Transactional
@@ -146,7 +146,7 @@ class WalletServiceImpl(
         transaction.txHash = request.txHash
         transaction.type = request.type
 
-        return transactionDao.save(transaction)
+        return transactionRepository.save(transaction)
     }
 
     private fun getUsernameForWalletId(wallet: Wallet): String {

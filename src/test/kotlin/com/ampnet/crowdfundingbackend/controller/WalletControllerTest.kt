@@ -10,9 +10,9 @@ import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleDao
-import com.ampnet.crowdfundingbackend.persistence.repository.UserDao
-import com.ampnet.crowdfundingbackend.persistence.repository.WalletDao
+import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
@@ -37,11 +37,11 @@ class WalletControllerTest : ControllerTestBase() {
     @Autowired
     private lateinit var walletService: WalletService
     @Autowired
-    private lateinit var userDao: UserDao
+    private lateinit var userRepository: UserRepository
     @Autowired
-    private lateinit var roleDao: RoleDao
+    private lateinit var roleRepository: RoleRepository
     @Autowired
-    private lateinit var walletDao: WalletDao
+    private lateinit var walletRepository: WalletRepository
 
     private lateinit var testData: TestData
     private val user: User by lazy {
@@ -124,7 +124,7 @@ class WalletControllerTest : ControllerTestBase() {
         }
 
         verify("Wallet is created") {
-            val wallet = walletDao.findByOwnerId(user.id)
+            val wallet = walletRepository.findByOwnerId(user.id)
             assertThat(wallet).isPresent
             assertThat(wallet.get().id).isEqualTo(testData.walletId)
         }
@@ -188,8 +188,8 @@ class WalletControllerTest : ControllerTestBase() {
         user.enabled = true
         user.firstName = "First"
         user.lastName = "Last"
-        user.role = roleDao.getOne(UserRoleType.USER.id)
-        return userDao.save(user)
+        user.role = roleRepository.getOne(UserRoleType.USER.id)
+        return userRepository.save(user)
     }
 
     private fun createWalletForUser(userId: Int): Wallet {
@@ -198,7 +198,7 @@ class WalletControllerTest : ControllerTestBase() {
         wallet.currency = Currency.EUR
         wallet.transactions = emptyList()
         wallet.createdAt = ZonedDateTime.now()
-        return walletDao.save(wallet)
+        return walletRepository.save(wallet)
     }
 
     private fun depositToWallet(wallet: Wallet): Transaction {

@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.exception.SocialException
-import com.ampnet.crowdfundingbackend.persistence.repository.CountryDao
+import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import mu.KLogging
@@ -13,7 +13,7 @@ import org.springframework.social.google.api.impl.GoogleTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class SocialServiceImpl(val countryDao: CountryDao) : SocialService {
+class SocialServiceImpl(private val countryRepository: CountryRepository) : SocialService {
 
     companion object : KLogging()
 
@@ -79,7 +79,7 @@ class SocialServiceImpl(val countryDao: CountryDao) : SocialService {
             val page = facebook.fetchObject(userProfile.location.id, Page::class.java, "location")
             logger.debug { "Found Facebook user location: ${page.location.country}" }
 
-            val country = countryDao.findByNicename(page.location.country)
+            val country = countryRepository.findByNicename(page.location.country)
             if (country.isPresent) {
                 countryId = country.get().id
             } else {
