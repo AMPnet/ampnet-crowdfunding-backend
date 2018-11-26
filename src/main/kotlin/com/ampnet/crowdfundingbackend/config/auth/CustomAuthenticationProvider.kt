@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.service.UserService
 import mu.KLogging
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -12,8 +13,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class CustomAuthenticationProvider(
-    val userService: UserService,
-    val passwordEncoder: PasswordEncoder
+    private val userService: UserService,
+    private val passwordEncoder: PasswordEncoder
 ) : AuthenticationProvider {
 
     companion object : KLogging()
@@ -40,9 +41,14 @@ class CustomAuthenticationProvider(
                     logger.info { "User passwords do not match" }
                     throw BadCredentialsException("Wrong password!")
                 }
+                if (!user.enabled) {
+                    throw DisabledException("User Email not confirmed.")
+                }
             }
             AuthMethod.FACEBOOK, AuthMethod.GOOGLE -> {
-                // additional checking not needed
+                if (!user.enabled) {
+                    throw DisabledException("This account has been disabled!")
+                }
             }
         }
         val userPrincipal = UserPrincipal(user)

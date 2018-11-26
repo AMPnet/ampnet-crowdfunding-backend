@@ -13,4 +13,5 @@ interface UserService {
     fun find(username: String): User?
     fun find(id: Int): User?
     fun confirmEmail(token: UUID): User?
+    fun resendConfirmationMail(user: User)
 }

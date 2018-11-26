@@ -104,7 +104,22 @@ class UserServiceImpl(
         }
         val user = mailToken.user
         user.enabled = true
+
+        mailTokenDao.delete(mailToken)
         return userDao.save(user)
+    }
+
+    @Transactional
+    override fun resendConfirmationMail(user: User) {
+        if (user.authMethod != AuthMethod.EMAIL) {
+            return
+        }
+
+        mailTokenDao.findByUserId(user.id).ifPresent {
+            mailTokenDao.delete(it)
+        }
+        val mailToken = createMailToken(user)
+        mailService.sendConfirmationMail(user.email, mailToken.token.toString())
     }
 
     private fun createUserFromRequest(request: CreateUserServiceRequest): User {

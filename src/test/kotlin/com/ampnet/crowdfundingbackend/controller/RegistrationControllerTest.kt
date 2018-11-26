@@ -7,6 +7,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenDao
+import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
@@ -35,6 +36,7 @@ class RegistrationControllerTest : ControllerTestBase() {
 
     private val pathSignup = "/signup"
     private val confirmationPath = "/mail-confirmation"
+    private val resendConfirmationPath = "/mail-confirmation/resend"
 
     @Autowired
     private lateinit var userService: UserService
@@ -206,11 +208,7 @@ class RegistrationControllerTest : ControllerTestBase() {
     @Test
     fun mustBeAbleToConfirmEmail() {
         suppose("The user is created with unconfirmed email") {
-            databaseCleanerService.deleteAllUsers()
-            saveTestUser()
-            val user = userService.find(testUser.id)
-            assertThat(user).isNotNull
-            assertThat(user!!.enabled).isFalse()
+            createUnconfirmedUser()
         }
 
         verify("The user can confirm email with mail token") {
@@ -247,11 +245,7 @@ class RegistrationControllerTest : ControllerTestBase() {
     @Test
     fun mustNotBeAbleToConfirmEmailWithExpiredToken() {
         suppose("The user is created with unconfirmed email") {
-            databaseCleanerService.deleteAllUsers()
-            saveTestUser()
-            val user = userService.find(testUser.id)
-            assertThat(user).isNotNull
-            assertThat(user!!.enabled).isFalse()
+            createUnconfirmedUser()
         }
         suppose("The token has expired") {
             val optionalMailToken = mailTokenDao.findByUserId(testUser.id)
@@ -267,6 +261,63 @@ class RegistrationControllerTest : ControllerTestBase() {
             mockMvc.perform(get("$confirmationPath?token=${optionalMailToken.get().token}"))
                     .andExpect(status().isBadRequest)
         }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToResendConfirmationEmail() {
+        suppose("The user has confirmation mail token") {
+            testUser.email = defaultEmail
+            createUnconfirmedUser()
+            val optionalMailToken = mailTokenDao.findByUserId(testUser.id)
+            assertThat(optionalMailToken).isPresent
+        }
+
+        verify("User can request resend mail confirmation") {
+            mockMvc.perform(get(resendConfirmationPath))
+                    .andExpect(status().isOk)
+        }
+        verify("The user confirmation token is created") {
+            val userInRepo = userService.find(testUser.email)
+            assertThat(userInRepo).isNotNull
+            val mailToken = mailTokenDao.findByUserId(userInRepo!!.id)
+            assertThat(mailToken).isPresent
+            assertThat(mailToken.get().token).isNotNull()
+            assertThat(mailToken.get().createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+
+            testContext.mailConfirmationToken = mailToken.get().token.toString()
+        }
+        verify("Sending mail was initiated") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendConfirmationMail(testUser.email, testContext.mailConfirmationToken)
+        }
+        verify("The user can confirm mail with new token") {
+            val mailToken = mailTokenDao.findByUserId(testUser.id)
+            assertThat(mailToken).isPresent
+
+            mockMvc.perform(get("$confirmationPath?token=${mailToken.get().token}"))
+                    .andExpect(status().isOk)
+        }
+        verify("The user is confirmed in database") {
+            val userInRepo = userService.find(testUser.email)
+            assertThat(userInRepo).isNotNull
+            assertThat(userInRepo!!.enabled).isTrue()
+        }
+    }
+
+    @Test
+    fun unauthorizedUserCannotResendConfirmationEmail() {
+        verify("User will get error unauthorized") {
+            mockMvc.perform(get(resendConfirmationPath)).andExpect(status().isUnauthorized)
+        }
+    }
+
+    private fun createUnconfirmedUser() {
+        databaseCleanerService.deleteAllUsers()
+        saveTestUser()
+        val user = userService.find(testUser.id)
+        assertThat(user).isNotNull
+        assertThat(user!!.enabled).isFalse()
     }
 
     private fun generateSignupJson(): String {
