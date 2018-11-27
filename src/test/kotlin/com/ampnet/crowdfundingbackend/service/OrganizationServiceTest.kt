@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
@@ -10,6 +11,7 @@ import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -45,13 +47,14 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
     @BeforeEach
     fun initTestContext() {
+        user.id
+        organization.id
         testContext = TestContext()
     }
 
     @Test
     fun mustBeAbleToAddUserAsAdminToOrganization() {
         suppose("User exists without any memberships") {
-            user.id
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added as admin") {
@@ -66,7 +69,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustBeAbleToAddUserAsMemberToOrganization() {
         suppose("User exists without any memberships") {
-            user.id
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added to organization as member") {
@@ -81,7 +83,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun userCanHaveOnlyOneRoleInOrganization() {
         suppose("User exists without any memberships") {
-            user.id
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added to organization as admin and member") {
@@ -97,7 +98,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun userCanFollowOrganization() {
         suppose("User exists without following organizations") {
-            user.id
             databaseCleanerService.deleteAllOrganizationFollowers()
         }
         suppose("User started to follow the organization") {
@@ -159,6 +159,23 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         verify("Sending mail invitation is called") {
             Mockito.verify(mailService, Mockito.times(1))
                     .sendOrganizationInvitationMail(testContext.invitedUser.email, user.getFullName(), organization.name)
+        }
+    }
+
+    @Test
+    fun mustThrowErrorForDuplicateOrganizationInvite() {
+        suppose("User has organization invite") {
+            databaseCleanerService.deleteAllOrganizationInvites()
+            testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
+            val request = OrganizationInviteRequest(testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER)
+            organizationService.inviteUserToOrganization(request, organization.id, user)
+        }
+
+        verify("Service will throw an error for duplicate user invite to organization") {
+            val request = OrganizationInviteRequest(testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER)
+            assertThrows<ResourceAlreadyExistsException> {
+                organizationService.inviteUserToOrganization(request, organization.id, user)
+            }
         }
     }
 

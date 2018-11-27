@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationFollower
@@ -120,7 +121,7 @@ class OrganizationServiceImpl(
         }
 
         inviteRepository.findByOrganizationIdAndUserId(organizationId, user.id).ifPresent {
-            inviteRepository.delete(it)
+            throw ResourceAlreadyExistsException("User is already invited to join organization")
         }
 
         val organizationInvite = OrganizationInvite::class.java.newInstance()
