@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
+import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
@@ -9,13 +10,17 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
@@ -42,9 +47,14 @@ class OrganizationServiceTest : TestBase() {
     private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     private lateinit var followerRepository: OrganizationFollowerRepository
+    @Autowired
+    private lateinit var inviteRepository: OrganizationInviteRepository
+
+    private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
-        OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, roleRepository, userRepository)
+        OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, inviteRepository,
+                roleRepository, userRepository, mailService)
     }
 
     private val user: User by lazy {
@@ -54,6 +64,13 @@ class OrganizationServiceTest : TestBase() {
     private val organization: Organization by lazy {
         databaseCleanerService.deleteAllOrganizations()
         createOrganization("test org")
+    }
+
+    private lateinit var testContext: TestContext
+
+    @BeforeEach
+    fun initTestContext() {
+        testContext = TestContext()
     }
 
     @Test
@@ -141,6 +158,35 @@ class OrganizationServiceTest : TestBase() {
         }
     }
 
+    @Test
+    fun adminUserCanInviteOtherUserToOrganization() {
+        suppose("User is admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+
+        verify("The admin can invite user to organization") {
+            testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
+            val request = OrganizationInviteRequest(testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER)
+            organizationService.inviteUserToOrganization(request, organization.id, user)
+        }
+        verify("Invitation is stored in database") {
+            val optionalInvitation =
+                    inviteRepository.findByOrganizationIdAndUserId(organization.id, testContext.invitedUser.id)
+            assertThat(optionalInvitation).isPresent
+            val invitation = optionalInvitation.get()
+            assertThat(invitation.userId).isEqualTo(testContext.invitedUser.id)
+            assertThat(invitation.organizationId).isEqualTo(organization.id)
+            assertThat(invitation.invitedBy).isEqualTo(user.id)
+            assertThat(OrganizationRoleType.fromInt(invitation.role.id)).isEqualTo(OrganizationRoleType.ORG_MEMBER)
+            assertThat(invitation.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+        verify("Sending mail invitation is called") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendOrganizationInvitationMail(testContext.invitedUser.email, user.getFullName(), organization.name)
+        }
+    }
+
     private fun verifyUserMembership(userId: Int, organizationId: Int, role: OrganizationRoleType) {
         val memberships = membershipRepository.findByUserId(userId)
         assertThat(memberships).hasSize(1)
@@ -172,5 +218,9 @@ class OrganizationServiceTest : TestBase() {
         organization.createdByUser = user
         organization.documents = listOf("hash1", "hash2", "hash3")
         return organizationRepository.save(organization)
+    }
+
+    private class TestContext {
+        lateinit var invitedUser: User
     }
 }

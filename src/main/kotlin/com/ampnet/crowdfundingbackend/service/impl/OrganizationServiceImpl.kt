@@ -1,19 +1,24 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationFollower
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
+import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
@@ -23,9 +28,13 @@ class OrganizationServiceImpl(
     private val organizationRepository: OrganizationRepository,
     private val membershipRepository: OrganizationMembershipRepository,
     private val followerRepository: OrganizationFollowerRepository,
+    private val inviteRepository: OrganizationInviteRepository,
     private val roleRepository: RoleRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val mailService: MailService
 ) : OrganizationService {
+
+    companion object : KLogging()
 
     private val adminRole: Role by lazy { roleRepository.getOne(OrganizationRoleType.ORG_ADMIN.id) }
     private val memberRole: Role by lazy { roleRepository.getOne(OrganizationRoleType.ORG_MEMBER.id) }
@@ -89,7 +98,8 @@ class OrganizationServiceImpl(
         role: OrganizationRoleType
     ): OrganizationMembership {
         // user can have only one membership(role) per one organization
-        val membership = ServiceUtils.wrapOptional(membershipRepository.findByOrganizationIdAndUserId(organizationId, userId))
+        val membership =
+                ServiceUtils.wrapOptional(membershipRepository.findByOrganizationIdAndUserId(organizationId, userId))
                 ?: OrganizationMembership::class.java.newInstance()
 
         membership.organizationId = organizationId
@@ -97,6 +107,32 @@ class OrganizationServiceImpl(
         membership.role = getRole(role)
         membership.createdAt = ZonedDateTime.now()
         return membershipRepository.save(membership)
+    }
+
+    @Transactional
+    override fun inviteUserToOrganization(
+        request: OrganizationInviteRequest,
+        organizationId: Int,
+        invitedBy: User
+    ): OrganizationInvite {
+        val user = userRepository.findByEmail(request.email).orElseThrow {
+            ResourceNotFoundException("User with email: ${request.email} does not exists")
+        }
+
+        inviteRepository.findByOrganizationIdAndUserId(organizationId, user.id).ifPresent {
+            inviteRepository.delete(it)
+        }
+
+        val organizationInvite = OrganizationInvite::class.java.newInstance()
+        organizationInvite.organizationId = organizationId
+        organizationInvite.userId = user.id
+        organizationInvite.role = getRole(request.roleType)
+        organizationInvite.invitedBy = invitedBy.id
+        organizationInvite.createdAt = ZonedDateTime.now()
+
+        val savedInvite = inviteRepository.save(organizationInvite)
+        sendMailInvitationToJoinOrganization(request.email, invitedBy, organizationId)
+        return savedInvite
     }
 
     @Transactional
@@ -116,6 +152,15 @@ class OrganizationServiceImpl(
         ServiceUtils.wrapOptional(followerRepository.findByUserIdAndOrganizationId(userId, organizationId))?.let {
             followerRepository.delete(it)
         }
+    }
+
+    private fun sendMailInvitationToJoinOrganization(to: String, invitedBy: User, invitedTo: Int) {
+        organizationRepository.findById(invitedTo).ifPresent {
+            logger.debug { "Sending invitation mail to user: $to for organization: ${it.name}" }
+            mailService.sendOrganizationInvitationMail(to, invitedBy.getFullName(), it.name)
+            return@ifPresent
+        }
+        logger.warn { "Trying to send invitation for non-existing organization: $invitedTo by user: $invitedBy" }
     }
 
     private fun getRole(role: OrganizationRoleType): Role {
