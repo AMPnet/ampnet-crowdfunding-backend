@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import java.util.UUID
@@ -14,4 +15,5 @@ interface UserService {
     fun find(id: Int): User?
     fun confirmEmail(token: UUID): User?
     fun resendConfirmationMail(user: User)
+    fun getAllOrganizationInvitesForUser(userId: Int): List<OrganizationInvite>
 }

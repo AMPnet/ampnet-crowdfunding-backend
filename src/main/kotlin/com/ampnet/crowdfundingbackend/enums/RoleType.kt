@@ -9,7 +9,8 @@ enum class UserRoleType(val id: Int) {
                     PrivilegeType.PRA_PROFILE,
                     PrivilegeType.PRO_PROFILE,
                     PrivilegeType.PWO_PROFILE,
-                    PrivilegeType.PWA_ORG)
+                    PrivilegeType.PWA_ORG,
+                    PrivilegeType.PRO_ORG_INVITE)
         }
     },
 
@@ -17,7 +18,8 @@ enum class UserRoleType(val id: Int) {
         override fun getPrivileges(): List<PrivilegeType> {
             return listOf(
                     PrivilegeType.PRO_PROFILE,
-                    PrivilegeType.PWO_PROFILE)
+                    PrivilegeType.PWO_PROFILE,
+                    PrivilegeType.PRO_ORG_INVITE)
         }
     };
 

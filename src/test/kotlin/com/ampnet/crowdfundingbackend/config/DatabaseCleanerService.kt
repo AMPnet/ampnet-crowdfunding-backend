@@ -32,4 +32,9 @@ class DatabaseCleanerService(val em: EntityManager) {
     fun deleteAllOrganizationFollowers() {
         em.createNativeQuery("TRUNCATE organization_follower CASCADE").executeUpdate()
     }
+
+    @Transactional
+    fun deleteAllOrganizationInvites() {
+        em.createNativeQuery("TRUNCATE organization_invite CASCADE").executeUpdate()
+    }
 }

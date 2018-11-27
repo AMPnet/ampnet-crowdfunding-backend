@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.persistence.model
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
+import javax.persistence.FetchType
 import javax.persistence.Id
 import javax.persistence.IdClass
 import javax.persistence.JoinColumn
@@ -28,5 +29,13 @@ data class OrganizationInvite(
     var role: Role,
 
     @Column(nullable = false)
-    var createdAt: ZonedDateTime
+    var createdAt: ZonedDateTime,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invitedBy", insertable = false, updatable = false)
+    var invitedByUser: User?,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organizationId", insertable = false, updatable = false)
+    var organization: Organization?
 )

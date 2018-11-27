@@ -98,7 +98,7 @@ class OrganizationController(
     fun inviteToOrganization(
         @PathVariable("id") id: Int,
         @RequestBody @Valid request: OrganizationInviteRequest
-    ): ResponseEntity<Any> {
+    ): ResponseEntity<Unit> {
         val user = getUserFromSecurityContext()
         logger.debug { "Received request to invited user to organization $id by user: ${user.email}" }
 
@@ -114,14 +114,6 @@ class OrganizationController(
 
         logger.info { "User ${user.id} is not a member of organization $id" }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-    }
-
-    @PostMapping("/organization/{organizationId}/invite/{inviteId}")
-    fun answerOrganizationInvite(@PathVariable("id") id: Int): ResponseEntity<Any> {
-        val user = getUserFromSecurityContext()
-        logger.debug { "Received request to invited user to organization $id by user: ${user.email}" }
-
-        return ResponseEntity.ok().build()
     }
 
     private fun getUserFromSecurityContext(): User {

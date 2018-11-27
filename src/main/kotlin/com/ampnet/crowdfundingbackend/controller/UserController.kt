@@ -2,8 +2,12 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInviteResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
 import mu.KLogging
 import org.springframework.http.HttpStatus
@@ -20,7 +24,7 @@ import javax.validation.Valid
 
 @CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
-class UserController(private val userService: UserService) {
+class UserController(private val userService: UserService, private val organizationService: OrganizationService) {
 
     companion object : KLogging()
 
@@ -51,6 +55,17 @@ class UserController(private val userService: UserService) {
         }
     }
 
+    @GetMapping("/me/invites")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRO_ORG_INVITE)")
+    fun getMyInvitations(): ResponseEntity<OrganizationInvitesListResponse> {
+        logger.debug { "Received request to list my invites" }
+        val userId = getUserId()
+        val invites = userService.getAllOrganizationInvitesForUser(userId).map { OrganizationInviteResponse(it) }
+        return ResponseEntity.ok(OrganizationInvitesListResponse(invites))
+    }
+
+//    @PostMapping("/me/invites/{id}")
+
     @GetMapping("/users")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     fun getUsers(): ResponseEntity<UsersListResponse> {
@@ -65,5 +80,11 @@ class UserController(private val userService: UserService) {
         logger.debug { "Received request for user info with id: $id" }
         return userService.find(id)?.let { ResponseEntity.ok(UserResponse(it)) }
                 ?: ResponseEntity.notFound().build()
+    }
+
+    private fun getUserId(): Int {
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        return userService.find(userPrincipal.email)?.id
+                ?: throw ResourceNotFoundException("Missing user with email: ${userPrincipal.email}")
     }
 }

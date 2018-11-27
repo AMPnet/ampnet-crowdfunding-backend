@@ -1,19 +1,10 @@
 package com.ampnet.crowdfundingbackend.service
 
-import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import org.assertj.core.api.Assertions.assertThat
@@ -21,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -33,22 +23,7 @@ import java.time.ZonedDateTime
 @DataJpaTest
 @Transactional(propagation = Propagation.SUPPORTS)
 @Import(DatabaseCleanerService::class)
-class OrganizationServiceTest : TestBase() {
-
-    @Autowired
-    private lateinit var databaseCleanerService: DatabaseCleanerService
-    @Autowired
-    private lateinit var roleRepository: RoleRepository
-    @Autowired
-    private lateinit var userRepository: UserRepository
-    @Autowired
-    private lateinit var organizationRepository: OrganizationRepository
-    @Autowired
-    private lateinit var membershipRepository: OrganizationMembershipRepository
-    @Autowired
-    private lateinit var followerRepository: OrganizationFollowerRepository
-    @Autowired
-    private lateinit var inviteRepository: OrganizationInviteRepository
+class OrganizationServiceTest : JpaServiceTestBase() {
 
     private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
 
@@ -63,7 +38,7 @@ class OrganizationServiceTest : TestBase() {
     }
     private val organization: Organization by lazy {
         databaseCleanerService.deleteAllOrganizations()
-        createOrganization("test org")
+        createOrganization("test org", user)
     }
 
     private lateinit var testContext: TestContext
@@ -195,29 +170,6 @@ class OrganizationServiceTest : TestBase() {
         assertThat(membership.organizationId).isEqualTo(organizationId)
         assertThat(OrganizationRoleType.fromInt(membership.role.id)).isEqualTo(role)
         assertThat(membership.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-    }
-
-    private fun createUser(email: String, firstName: String, lastName: String): User {
-        val user = User::class.java.newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = firstName
-        user.lastName = lastName
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
-    }
-
-    private fun createOrganization(name: String): Organization {
-        val organization = Organization::class.java.newInstance()
-        organization.name = name
-        organization.legalInfo = "some legal info"
-        organization.createdAt = ZonedDateTime.now()
-        organization.approved = true
-        organization.createdByUser = user
-        organization.documents = listOf("hash1", "hash2", "hash3")
-        return organizationRepository.save(organization)
     }
 
     private class TestContext {
