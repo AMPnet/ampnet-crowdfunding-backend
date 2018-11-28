@@ -1,12 +1,19 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
+import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -20,20 +27,29 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.ZonedDateTime
 
 class UserControllerTest : ControllerTestBase() {
 
     private val pathUsers = "/users"
     private val pathMe = "/me"
 
-    private lateinit var testUser: TestUser
-
     @Autowired
     private lateinit var userService: UserService
+    @Autowired
+    private lateinit var organizationRepository: OrganizationRepository
+    @Autowired
+    private lateinit var organizationInviteRepository: OrganizationInviteRepository
+    @Autowired
+    private lateinit var roleRepository: RoleRepository
+
+    private lateinit var testUser: TestUser
+    private lateinit var testContext: TestContext
 
     @BeforeEach
     fun initTestData() {
         testUser = TestUser()
+        testContext = TestContext()
     }
 
     @Test
@@ -160,9 +176,43 @@ class UserControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser(email = "john@smith.com", privileges = [PrivilegeType.PRO_ORG_INVITE])
+    fun mustBeAbleToGetOrganizationInvites() {
+        suppose("User exists in database") {
+            databaseCleanerService.deleteAllUsers()
+            testContext.user = saveTestUser()
+        }
+        suppose("User has organization invites") {
+            testContext.organization = createOrganization("Test org", testContext.user)
+            testContext.invitedByUser = createUser("invited@by.com")
+            createOrganizationInvite(testContext.user.id, testContext.organization.id, testContext.invitedByUser.id,
+                    OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can get a list of his invites") {
+            val result = mockMvc.perform(get("$pathMe/invites"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val invitesResponse: OrganizationInvitesListResponse =
+                    objectMapper.readValue(result.response.contentAsString)
+            assertThat(invitesResponse.organizationInvites).hasSize(1)
+            val invite = invitesResponse.organizationInvites.first()
+            assertThat(invite.role).isEqualTo(OrganizationRoleType.ORG_MEMBER)
+            assertThat(invite.organizationId).isEqualTo(testContext.organization.id)
+            assertThat(invite.organizationName).isEqualTo(testContext.organization.name)
+            assertThat(invite.invitedByUser).isEqualTo(testContext.invitedByUser.getFullName())
+        }
+    }
+
     private fun saveTestUser(): User {
+        return createUser(testUser.email)
+    }
+
+    private fun createUser(email: String): User {
         val request = CreateUserServiceRequest(
-                email = testUser.email,
+                email = email,
                 password = testUser.password,
                 firstName = testUser.firstName,
                 lastName = testUser.lastName,
@@ -171,6 +221,27 @@ class UserControllerTest : ControllerTestBase() {
                 authMethod = testUser.authMethod
         )
         return userService.create(request)
+    }
+
+    private fun createOrganization(name: String, createdBy: User): Organization {
+        val organization = Organization::class.java.newInstance()
+        organization.name = name
+        organization.legalInfo = "Some info"
+        organization.createdAt = ZonedDateTime.now()
+        organization.approved = true
+        organization.createdByUser = createdBy
+        organization.documents = emptyList()
+        return organizationRepository.save(organization)
+    }
+
+    private fun createOrganizationInvite(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType): OrganizationInvite {
+        val organizationInvite = OrganizationInvite::class.java.newInstance()
+        organizationInvite.userId = userId
+        organizationInvite.organizationId = organizationId
+        organizationInvite.invitedBy = invitedBy
+        organizationInvite.role = roleRepository.getOne(role.id)
+        organizationInvite.createdAt = ZonedDateTime.now()
+        return organizationInviteRepository.save(organizationInvite)
     }
 
     private fun getUpdateUserRequestFromTestUser(): UserUpdateRequest {
@@ -191,5 +262,11 @@ class UserControllerTest : ControllerTestBase() {
         var countryId = 1
         var phoneNumber = "0951234567"
         var authMethod = AuthMethod.EMAIL
+    }
+
+    private class TestContext {
+        lateinit var user: User
+        lateinit var organization: Organization
+        lateinit var invitedByUser: User
     }
 }

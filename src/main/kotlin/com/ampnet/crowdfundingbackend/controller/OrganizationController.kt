@@ -86,12 +86,12 @@ class OrganizationController(
                 ResponseEntity.ok(OrganizationUsersListResponse(users))
             } else {
                 logger.info { "User does not have organization privilege to read users: PR_USERS" }
-                ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
             }
         }
 
         logger.info { "User ${user.id} is not a member of organization $id" }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
     @PostMapping("/organization/{id}/invite")
@@ -107,13 +107,13 @@ class OrganizationController(
                 organizationService.inviteUserToOrganization(request, id, user)
                 return ResponseEntity.ok().build()
             } else {
-                logger.info { "User does not have organization privilege to read users: PR_USERS" }
-                ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+                logger.info { "User does not have organization privilege to read users: PW_USERS" }
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
             }
         }
 
         logger.info { "User ${user.id} is not a member of organization $id" }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
     private fun getUserFromSecurityContext(): User {

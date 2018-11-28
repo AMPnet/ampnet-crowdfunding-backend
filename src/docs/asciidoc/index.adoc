@@ -119,6 +119,12 @@ include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/ht
 .Response
 include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-response.adoc[]
 
+=== Get a list of Organization invites
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-response.adoc[]
+
 == Authentication API
 
 === Successful user signin (EMAIL method)
@@ -161,7 +167,7 @@ include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodSho
 .Response
 include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodShouldFail/http-response.adoc[]
 
-=== Nonexisting user login
+=== Non-existing user login
 .Request
 include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-request.adoc[]
 .Response
@@ -256,3 +262,17 @@ include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationW
 include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
+
+=== Invite user to organization
+
+==== Successfully invite user to organization with organization admin role, privilege PW_USERS
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-response.adoc[]
+
+==== Failed invite user to organization without organization user role, privilege PW_USERS
+.Request
+include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-response.adoc[]
