@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -32,12 +33,12 @@ class AuthenticationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var userService: UserService
-
     @Autowired
     private lateinit var tokenProvider: TokenProvider
-
     @Autowired
     private lateinit var socialService: SocialService
+    @Autowired
+    private lateinit var userRepository: UserRepository
 
     private lateinit var result: MvcResult
     private lateinit var user: User
@@ -64,6 +65,11 @@ class AuthenticationControllerTest : ControllerTestBase() {
                     phoneNumber = regularTestUser.phoneNumber,
                     authMethod = regularTestUser.authMethod
             ))
+        }
+        suppose("User mail is confirmed.") {
+            val optionalUser = userRepository.findById(user.id)
+            optionalUser.get().enabled = true
+            user = userRepository.save(optionalUser.get())
         }
         verify("User can fetch token with valid credentials.") {
             val requestBody = """
