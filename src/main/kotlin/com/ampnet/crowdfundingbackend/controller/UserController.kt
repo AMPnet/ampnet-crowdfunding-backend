@@ -60,11 +60,27 @@ class UserController(private val userService: UserService, private val organizat
     fun getMyInvitations(): ResponseEntity<OrganizationInvitesListResponse> {
         logger.debug { "Received request to list my invites" }
         val userId = getUserId()
-        val invites = userService.getAllOrganizationInvitesForUser(userId).map { OrganizationInviteResponse(it) }
+        val invites = organizationService.getAllOrganizationInvitesForUser(userId).map { OrganizationInviteResponse(it) }
         return ResponseEntity.ok(OrganizationInvitesListResponse(invites))
     }
 
-//    @PostMapping("/me/invites/{id}")
+    @PostMapping("/me/invites/{organizationId}/accept")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWO_ORG_INVITE)")
+    fun acceptOrganizationInvitation(@PathVariable("organizationId") organizationId: Int): ResponseEntity<Unit> {
+        logger.debug { "Received request accept organization invite for organization: $organizationId" }
+        val userId = getUserId()
+        organizationService.answerToOrganizationInvitation(userId, true, organizationId)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/me/invites/{organizationId}/reject")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWO_ORG_INVITE)")
+    fun rejectOrganizationInvitation(@PathVariable("organizationId") organizationId: Int): ResponseEntity<Unit> {
+        logger.debug { "Received request reject organization invite for organization: $organizationId" }
+        val userId = getUserId()
+        organizationService.answerToOrganizationInvitation(userId, false, organizationId)
+        return ResponseEntity.ok().build()
+    }
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")

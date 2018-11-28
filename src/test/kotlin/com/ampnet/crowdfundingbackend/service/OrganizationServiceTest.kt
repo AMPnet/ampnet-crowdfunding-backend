@@ -1,13 +1,13 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
-import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
+import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -142,8 +142,9 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
         verify("The admin can invite user to organization") {
             testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
-            val request = OrganizationInviteRequest(testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER)
-            organizationService.inviteUserToOrganization(request, organization.id, user)
+            val request = OrganizationInviteServiceRequest(
+                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
+            organizationService.inviteUserToOrganization(request)
         }
         verify("Invitation is stored in database") {
             val optionalInvitation =
@@ -167,14 +168,16 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         suppose("User has organization invite") {
             databaseCleanerService.deleteAllOrganizationInvites()
             testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
-            val request = OrganizationInviteRequest(testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER)
-            organizationService.inviteUserToOrganization(request, organization.id, user)
+            val request = OrganizationInviteServiceRequest(
+                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
+            organizationService.inviteUserToOrganization(request)
         }
 
         verify("Service will throw an error for duplicate user invite to organization") {
-            val request = OrganizationInviteRequest(testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER)
+            val request = OrganizationInviteServiceRequest(
+                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
             assertThrows<ResourceAlreadyExistsException> {
-                organizationService.inviteUserToOrganization(request, organization.id, user)
+                organizationService.inviteUserToOrganization(request)
             }
         }
     }

@@ -9,8 +9,9 @@ enum class UserRoleType(val id: Int) {
                     PrivilegeType.PRA_PROFILE,
                     PrivilegeType.PRO_PROFILE,
                     PrivilegeType.PWO_PROFILE,
-                    PrivilegeType.PWA_ORG,
-                    PrivilegeType.PRO_ORG_INVITE)
+                    PrivilegeType.PWA_ORG_APPROVE,
+                    PrivilegeType.PRO_ORG_INVITE,
+                    PrivilegeType.PWO_ORG_INVITE)
         }
     },
 
@@ -19,7 +20,8 @@ enum class UserRoleType(val id: Int) {
             return listOf(
                     PrivilegeType.PRO_PROFILE,
                     PrivilegeType.PWO_PROFILE,
-                    PrivilegeType.PRO_ORG_INVITE)
+                    PrivilegeType.PRO_ORG_INVITE,
+                    PrivilegeType.PWO_ORG_INVITE)
         }
     };
 

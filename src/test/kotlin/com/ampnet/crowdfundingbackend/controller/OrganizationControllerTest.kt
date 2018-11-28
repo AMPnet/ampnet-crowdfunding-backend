@@ -11,6 +11,7 @@ import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
@@ -168,7 +169,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_ORG])
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_ORG_APPROVE])
     fun mustBeAbleToApproveOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
@@ -322,6 +323,28 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToRevokeUserInvitation() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization")
+        }
+        suppose("User has admin role in the organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Other user has organization invites") {
+            testContext.user2 = createUser("user2@test.com")
+            inviteUserToOrganization(testContext.user2.id, testContext.organization.id, user.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can revoke invitaiton") {
+            mockMvc.perform(
+                    post("$organizationPath/${testContext.organization.id}/invite/${testContext.user2.id}/revoke"))
+                    .andExpect(status().isOk)
+        }
+    }
+
     private fun createUser(email: String): User {
         val user = User::class.java.newInstance()
         user.authMethod = AuthMethod.EMAIL
@@ -352,6 +375,16 @@ class OrganizationControllerTest : ControllerTestBase() {
         membership.role = roleRepository.getOne(role.id)
         membership.createdAt = ZonedDateTime.now()
         membershipRepository.save(membership)
+    }
+
+    private fun inviteUserToOrganization(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType) {
+        val invitation = OrganizationInvite::class.java.newInstance()
+        invitation.userId = userId
+        invitation.organizationId = organizationId
+        invitation.invitedBy = invitedBy
+        invitation.createdAt = ZonedDateTime.now()
+        invitation.role = roleRepository.getOne(role.id)
+        inviteRepository.save(invitation)
     }
 
     private class TestContext {

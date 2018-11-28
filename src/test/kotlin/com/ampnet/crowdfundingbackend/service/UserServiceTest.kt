@@ -16,7 +16,7 @@ class UserServiceTest : JpaServiceTestBase() {
     private val userService: UserService by lazy {
         val mailService = Mockito.mock(MailService::class.java)
         UserServiceImpl(userRepository, roleRepository, countryRepository, mailRepository,
-                organizationInviteRepository, mailService, passwordEncoder)
+                mailService, passwordEncoder)
     }
 
     private val admin: User by lazy {
@@ -40,7 +40,7 @@ class UserServiceTest : JpaServiceTestBase() {
         }
 
         verify("User service can return list of invites with the organization and user data") {
-            val invites = userService.getAllOrganizationInvitesForUser(user.id)
+            val invites = inviteRepository.findByUserIdWithUserAndOrganizationData(user.id)
             assertThat(invites).hasSize(1)
             val invite = invites.first()
             assertThat(invite.userId).isEqualTo(user.id)
@@ -68,7 +68,7 @@ class UserServiceTest : JpaServiceTestBase() {
         }
 
         verify("The service returns only user specific invites") {
-            val invites = userService.getAllOrganizationInvitesForUser(user.id)
+            val invites = inviteRepository.findByUserIdWithUserAndOrganizationData(user.id)
             assertThat(invites).hasSize(2)
             assertThat(invites.map { it.organizationId }).doesNotContain(organization.id)
             assertThat(invites[0].organization).isNotNull

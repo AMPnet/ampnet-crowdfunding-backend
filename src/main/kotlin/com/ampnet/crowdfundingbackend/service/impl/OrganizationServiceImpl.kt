@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -18,6 +17,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.OrganizationService
+import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -111,29 +111,47 @@ class OrganizationServiceImpl(
     }
 
     @Transactional
-    override fun inviteUserToOrganization(
-        request: OrganizationInviteRequest,
-        organizationId: Int,
-        invitedBy: User
-    ): OrganizationInvite {
+    override fun inviteUserToOrganization(request: OrganizationInviteServiceRequest): OrganizationInvite {
         val user = userRepository.findByEmail(request.email).orElseThrow {
             ResourceNotFoundException("User with email: ${request.email} does not exists")
         }
 
-        inviteRepository.findByOrganizationIdAndUserId(organizationId, user.id).ifPresent {
+        inviteRepository.findByOrganizationIdAndUserId(request.organizationId, user.id).ifPresent {
             throw ResourceAlreadyExistsException("User is already invited to join organization")
         }
 
         val organizationInvite = OrganizationInvite::class.java.newInstance()
-        organizationInvite.organizationId = organizationId
+        organizationInvite.organizationId = request.organizationId
         organizationInvite.userId = user.id
         organizationInvite.role = getRole(request.roleType)
-        organizationInvite.invitedBy = invitedBy.id
+        organizationInvite.invitedBy = request.invitedByUser.id
         organizationInvite.createdAt = ZonedDateTime.now()
 
         val savedInvite = inviteRepository.save(organizationInvite)
-        sendMailInvitationToJoinOrganization(request.email, invitedBy, organizationId)
+        sendMailInvitationToJoinOrganization(request.email, request.invitedByUser, request.organizationId)
         return savedInvite
+    }
+
+    @Transactional
+    override fun revokeInvitationToJoinOrganization(organizationId: Int, userId: Int) {
+        inviteRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
+            inviteRepository.delete(it)
+        }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAllOrganizationInvitesForUser(userId: Int): List<OrganizationInvite> {
+        return inviteRepository.findByUserIdWithUserAndOrganizationData(userId)
+    }
+
+    @Transactional
+    override fun answerToOrganizationInvitation(userId: Int, join: Boolean, organizationId: Int) {
+        inviteRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
+            if (join) {
+                addUserToOrganization(it.userId, it.organizationId, OrganizationRoleType.fromInt(it.role.id)!!)
+            }
+            inviteRepository.delete(it)
+        }
     }
 
     @Transactional

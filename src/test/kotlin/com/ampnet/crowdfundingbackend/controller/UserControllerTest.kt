@@ -184,6 +184,7 @@ class UserControllerTest : ControllerTestBase() {
             testContext.user = saveTestUser()
         }
         suppose("User has organization invites") {
+            databaseCleanerService.deleteAllOrganizations()
             testContext.organization = createOrganization("Test org", testContext.user)
             testContext.invitedByUser = createUser("invited@by.com")
             createOrganizationInvite(testContext.user.id, testContext.organization.id, testContext.invitedByUser.id,
@@ -203,6 +204,74 @@ class UserControllerTest : ControllerTestBase() {
             assertThat(invite.organizationId).isEqualTo(testContext.organization.id)
             assertThat(invite.organizationName).isEqualTo(testContext.organization.name)
             assertThat(invite.invitedByUser).isEqualTo(testContext.invitedByUser.getFullName())
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "john@smith.com", privileges = [PrivilegeType.PWO_ORG_INVITE])
+    fun mustBeAbleToAcceptOrganizationInvite() {
+        suppose("User exists in database") {
+            databaseCleanerService.deleteAllUsers()
+            testContext.user = saveTestUser()
+        }
+        suppose("User has organization invites") {
+            databaseCleanerService.deleteAllOrganizations()
+            databaseCleanerService.deleteAllOrganizationInvites()
+            testContext.organization = createOrganization("Test org", testContext.user)
+            testContext.invitedByUser = createUser("invited@by.com")
+            createOrganizationInvite(testContext.user.id, testContext.organization.id, testContext.invitedByUser.id,
+                    OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can get a list of his invites") {
+            mockMvc.perform(post("$pathMe/invites/${testContext.organization.id}/accept"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+        }
+        verify("User is a member of organization") {
+            val organizations = organizationRepository.findAllOrganizationsForUser(testContext.user.id)
+            assertThat(organizations).hasSize(1)
+            val organization = organizations.first()
+            assertThat(organization.id).isEqualTo(testContext.organization.id)
+            assertThat(organization.memberships).hasSize(1)
+            assertThat(organization.memberships!!.first().role.id).isEqualTo(OrganizationRoleType.ORG_MEMBER.id)
+        }
+        verify("User invitation is deleted") {
+            val optionalInvite = organizationInviteRepository
+                    .findByOrganizationIdAndUserId(testContext.organization.id, testContext.user.id)
+            assertThat(optionalInvite).isNotPresent
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "john@smith.com", privileges = [PrivilegeType.PWO_ORG_INVITE])
+    fun mustBeAbleToRejectOrganizationInvite() {
+        suppose("User exists in database") {
+            databaseCleanerService.deleteAllUsers()
+            testContext.user = saveTestUser()
+        }
+        suppose("User has organization invites") {
+            databaseCleanerService.deleteAllOrganizations()
+            databaseCleanerService.deleteAllOrganizationInvites()
+            testContext.organization = createOrganization("Test org", testContext.user)
+            testContext.invitedByUser = createUser("invited@by.com")
+            createOrganizationInvite(testContext.user.id, testContext.organization.id, testContext.invitedByUser.id,
+                    OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can get a list of his invites") {
+            mockMvc.perform(post("$pathMe/invites/${testContext.organization.id}/reject"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+        }
+        verify("User is not a member of organization") {
+            val organizations = organizationRepository.findAllOrganizationsForUser(testContext.user.id)
+            assertThat(organizations).hasSize(0)
+        }
+        verify("User invitation is deleted") {
+            val optionalInvite = organizationInviteRepository
+                    .findByOrganizationIdAndUserId(testContext.organization.id, testContext.user.id)
+            assertThat(optionalInvite).isNotPresent
         }
     }
 

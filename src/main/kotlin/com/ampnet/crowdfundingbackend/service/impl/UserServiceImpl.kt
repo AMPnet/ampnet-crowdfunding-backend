@@ -7,12 +7,10 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.MailToken
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.MailService
@@ -31,7 +29,6 @@ class UserServiceImpl(
     private val roleRepository: RoleRepository,
     private val countryRepository: CountryRepository,
     private val mailTokenRepository: MailTokenRepository,
-    private val organizationInviteRepository: OrganizationInviteRepository,
     private val mailService: MailService,
     private val passwordEncoder: PasswordEncoder
 ) : UserService {
@@ -123,11 +120,6 @@ class UserServiceImpl(
         }
         val mailToken = createMailToken(user)
         mailService.sendConfirmationMail(user.email, mailToken.token.toString())
-    }
-
-    @Transactional(readOnly = true)
-    override fun getAllOrganizationInvitesForUser(userId: Int): List<OrganizationInvite> {
-        return organizationInviteRepository.findByUserIdWithUserAndOrganizationData(userId)
     }
 
     private fun createUserFromRequest(request: CreateUserServiceRequest): User {
