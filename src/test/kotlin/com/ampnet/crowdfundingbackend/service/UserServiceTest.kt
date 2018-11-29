@@ -5,18 +5,16 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.time.ZonedDateTime
 
-@Disabled
 class UserServiceTest : JpaServiceTestBase() {
 
     private val userService: UserService by lazy {
         val mailService = Mockito.mock(MailService::class.java)
         UserServiceImpl(userRepository, roleRepository, countryRepository, mailRepository,
-                mailService, passwordEncoder)
+                mailService, passwordEncoder, applicationProperties)
     }
 
     private val admin: User by lazy {

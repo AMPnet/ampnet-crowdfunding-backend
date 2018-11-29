@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
@@ -30,7 +31,8 @@ class UserServiceImpl(
     private val countryRepository: CountryRepository,
     private val mailTokenRepository: MailTokenRepository,
     private val mailService: MailService,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val applicationProperties: ApplicationProperties
 ) : UserService {
 
     companion object : KLogging()
@@ -134,8 +136,8 @@ class UserServiceImpl(
         user.authMethod = request.authMethod
 
         if (user.authMethod == AuthMethod.EMAIL) {
-            // user must confirm email
-            user.enabled = false
+            // user must confirm email if the send mail is enabled
+            user.enabled = !applicationProperties.mail.enabled
         } else {
             // social user is confirmed from social service
             user.enabled = true
