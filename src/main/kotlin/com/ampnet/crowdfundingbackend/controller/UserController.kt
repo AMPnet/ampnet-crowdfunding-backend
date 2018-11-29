@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
-@CrossOrigin(origins = ["*"], maxAge = 3600)
 @RestController
 class UserController(private val userService: UserService, private val organizationService: OrganizationService) {
 
