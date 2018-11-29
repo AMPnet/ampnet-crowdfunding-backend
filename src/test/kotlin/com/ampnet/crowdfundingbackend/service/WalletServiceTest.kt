@@ -1,22 +1,10 @@
 package com.ampnet.crowdfundingbackend.service
 
-import com.ampnet.crowdfundingbackend.TestBase
-import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
-import com.ampnet.crowdfundingbackend.config.PasswordEncoderConfig
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.TransactionRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
@@ -26,44 +14,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.context.annotation.Import
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
-@ExtendWith(SpringExtension::class)
-@DataJpaTest
-@Transactional(propagation = Propagation.SUPPORTS)
-@Import(DatabaseCleanerService::class, PasswordEncoderConfig::class)
-class WalletServiceTest : TestBase() {
-
-    @Autowired
-    private lateinit var databaseCleanerService: DatabaseCleanerService
-    @Autowired
-    private lateinit var walletRepository: WalletRepository
-    @Autowired
-    private lateinit var transactionRepository: TransactionRepository
-    @Autowired
-    private lateinit var roleRepository: RoleRepository
-    @Autowired
-    private lateinit var userRepository: UserRepository
-    @Autowired
-    private lateinit var countryRepository: CountryRepository
-    @Autowired
-    private lateinit var mailRepository: MailTokenRepository
-    @Autowired
-    private lateinit var passwordEncoder: PasswordEncoder
+class WalletServiceTest : JpaServiceTestBase() {
 
     private val walletService: WalletService by lazy {
         val mailService = Mockito.mock(MailService::class.java)
-        val userService = UserServiceImpl(userRepository, roleRepository, countryRepository, mailRepository, mailService, passwordEncoder)
+        val userService = UserServiceImpl(userRepository, roleRepository, countryRepository, mailRepository,
+                mailService, passwordEncoder)
         WalletServiceImpl(walletRepository, transactionRepository, userService)
     }
 
@@ -220,27 +180,6 @@ class WalletServiceTest : TestBase() {
             assertThat(transaction.walletId).isEqualTo(receiverWallet.id)
             assertThat(transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
         }
-    }
-
-    private fun createUser(email: String, firstName: String, lastName: String): User {
-        val user = User::class.java.newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = firstName
-        user.lastName = lastName
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
-    }
-
-    private fun createWalletForUser(userId: Int): Wallet {
-        val wallet = Wallet::class.java.newInstance()
-        wallet.ownerId = userId
-        wallet.currency = Currency.EUR
-        wallet.transactions = emptyList()
-        wallet.createdAt = ZonedDateTime.now()
-        return walletRepository.save(wallet)
     }
 
     private class TestData {

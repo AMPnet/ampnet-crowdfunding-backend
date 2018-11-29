@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
+import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
@@ -12,6 +13,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
+import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging
 import org.springframework.http.HttpStatus
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import javax.validation.Valid
 
 @RestController
 class OrganizationController(
@@ -49,10 +52,9 @@ class OrganizationController(
     }
 
     @PostMapping("/organization")
-    fun createOrganization(@RequestBody request: OrganizationRequest): ResponseEntity<OrganizationResponse> {
+    fun createOrganization(@RequestBody @Valid request: OrganizationRequest): ResponseEntity<OrganizationResponse> {
         logger.debug { "Received request to create organization: $request" }
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        val user = getUserFromEmail(userPrincipal.email)
+        val user = getUserFromSecurityContext()
 
         // TODO: use ipfs client and get document hashes
         val documentHashes = emptyList<String>()
@@ -63,12 +65,11 @@ class OrganizationController(
     }
 
     @PostMapping("/organization/{id}/approve")
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_ORG)")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_ORG_APPROVE)")
     fun approveOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationResponse> {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug { "Received request to approve organization with id: $id by user: ${userPrincipal.email}" }
+        val user = getUserFromSecurityContext()
+        logger.debug { "Received request to approve organization with id: $id by user: ${user.email}" }
 
-        val user = getUserFromEmail(userPrincipal.email)
         val organization = organizationService.approveOrganization(id, true, user)
         return ResponseEntity.ok(OrganizationResponse(organization))
     }
@@ -76,8 +77,7 @@ class OrganizationController(
     @GetMapping("/organization/{id}/users")
     fun getOrganizationUsers(@PathVariable("id") id: Int): ResponseEntity<OrganizationUsersListResponse> {
         logger.debug { "Received request to get all users for organization: $id" }
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        val user = getUserFromEmail(userPrincipal.email)
+        val user = getUserFromSecurityContext()
 
         organizationService.getOrganizationMemberships(id).find { it.userId == user.id }?.let {
             return if (hasPrivilegeToSeeOrganizationUsers(it)) {
@@ -87,17 +87,64 @@ class OrganizationController(
                 ResponseEntity.ok(OrganizationUsersListResponse(users))
             } else {
                 logger.info { "User does not have organization privilege to read users: PR_USERS" }
-                ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
             }
         }
 
         logger.info { "User ${user.id} is not a member of organization $id" }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
-    private fun getUserFromEmail(email: String): User =
-        userService.find(email) ?: throw ResourceNotFoundException("Missing user with email: $email")
+    @PostMapping("/organization/{id}/invite")
+    fun inviteToOrganization(
+        @PathVariable("id") id: Int,
+        @RequestBody @Valid request: OrganizationInviteRequest
+    ): ResponseEntity<Unit> {
+        val user = getUserFromSecurityContext()
+        logger.debug { "Received request to invited user to organization $id by user: ${user.email}" }
+
+        return ifUserHasPrivilegeWriteUserInOrganizationThenDo(user.id, id) {
+            val serviceRequest = OrganizationInviteServiceRequest(request, id, user)
+            organizationService.inviteUserToOrganization(serviceRequest)
+        }
+    }
+
+    @PostMapping("/organization/{organizationId}/invite/{revokeUserId}/revoke")
+    fun revokeInvitationToOrganization(
+        @PathVariable("organizationId") organizationId: Int,
+        @PathVariable("revokeUserId") revokeUserId: Int
+    ): ResponseEntity<Unit> {
+        val user = getUserFromSecurityContext()
+        logger.debug { "Received request to invited user to organization $organizationId by user: ${user.email}" }
+
+        return ifUserHasPrivilegeWriteUserInOrganizationThenDo(user.id, organizationId) {
+            organizationService.revokeInvitationToJoinOrganization(organizationId, revokeUserId)
+        }
+    }
+
+    private fun ifUserHasPrivilegeWriteUserInOrganizationThenDo(userId: Int, organizationId: Int, action: () -> (Unit)): ResponseEntity<Unit> {
+        organizationService.getOrganizationMemberships(organizationId).find { it.userId == userId }?.let {
+            return if (hasPrivilegeToWriteOrganizationUsers(it)) {
+                action()
+                return ResponseEntity.ok().build()
+            } else {
+                logger.info { "User does not have organization privilege to write users: PW_USERS" }
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+            }
+        }
+        logger.info { "User $userId is not a member of organization $organizationId" }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
+    private fun getUserFromSecurityContext(): User {
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        return userService.find(userPrincipal.email)
+                ?: throw ResourceNotFoundException("Missing user with email: ${userPrincipal.email}")
+    }
 
     private fun hasPrivilegeToSeeOrganizationUsers(membership: OrganizationMembership): Boolean =
         membership.getPrivileges().contains(OrganizationPrivilegeType.PR_USERS)
+
+    private fun hasPrivilegeToWriteOrganizationUsers(membership: OrganizationMembership): Boolean =
+            membership.getPrivileges().contains(OrganizationPrivilegeType.PW_USERS)
 }

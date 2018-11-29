@@ -80,45 +80,6 @@ include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithEx
 .Response
 include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-response.adoc[]
 
-== Users API
-Collection of endpoints for managing users
-
-=== Successful fetch list of users (admin)
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-response.adoc[]
-
-=== Failed fetch list of users (not admin)
-.Request
-include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
-
-=== Failed to fetch list of users because incomplete user profile
-.Request
-include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-response.adoc[]
-
-=== Successful fetch own profile
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-response.adoc[]
-
-=== Successful update own profile
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-response.adoc[]
-
-=== Failed to update others profile
-.Request
-include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-response.adoc[]
-
 == Authentication API
 
 === Successful user signin (EMAIL method)
@@ -161,11 +122,74 @@ include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodSho
 .Response
 include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodShouldFail/http-response.adoc[]
 
-=== Nonexisting user login
+=== Non-existing user login
 .Request
 include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-request.adoc[]
 .Response
 include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-response.adoc[]
+
+== Users API
+Collection of endpoints for managing users
+
+=== Successful fetch list of users (admin)
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-response.adoc[]
+
+=== Failed fetch list of users (not admin)
+.Request
+include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
+
+=== Failed to fetch list of users because incomplete user profile
+.Request
+include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-response.adoc[]
+
+=== Successful fetch own profile
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-response.adoc[]
+
+=== Successful update own profile
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-response.adoc[]
+
+=== Failed to update others profile
+.Request
+include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-response.adoc[]
+
+=== Organization invites
+
+==== Get a list of organization invites
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-response.adoc[]
+
+==== Accept organization invite
+`/me/invites/{organizationId}/accept`
+
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToAcceptOrganizationInvite/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToAcceptOrganizationInvite/http-response.adoc[]
+
+==== Reject organization invite
+`/me/invites/{organizationId}/reject`
+
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-response.adoc[]
 
 == Countries API
 Collection of endpoints for fetching countries
@@ -256,3 +280,25 @@ include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationW
 include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
+
+=== Invite user to organization
+
+==== Successfully invite user to organization with organization admin role, privilege PW_USERS
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-response.adoc[]
+
+==== Failed invite user to organization without organization user role, privilege PW_USERS
+.Request
+include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-response.adoc[]
+
+==== Revoke user invitation
+`/organization/{organizationId}/invite/{revokeUserId}/revoke`
+
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]

@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
@@ -10,8 +11,10 @@ import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
@@ -43,6 +46,8 @@ class OrganizationControllerTest : ControllerTestBase() {
     private lateinit var organizationRepository: OrganizationRepository
     @Autowired
     private lateinit var membershipRepository: OrganizationMembershipRepository
+    @Autowired
+    private lateinit var inviteRepository: OrganizationInviteRepository
 
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()
@@ -164,7 +169,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_ORG])
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_ORG_APPROVE])
     fun mustBeAbleToApproveOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
@@ -259,7 +264,84 @@ class OrganizationControllerTest : ControllerTestBase() {
         verify("User is not able fetch organization users from other organization") {
             mockMvc.perform(
                     get("$organizationPath/${testContext.organization.id}/users"))
-                    .andExpect(status().isUnauthorized)
+                    .andExpect(status().isForbidden)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToInviteUserToOrganizationWithOrgAdminRole() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization")
+        }
+        suppose("User has admin role in the organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Other user has non organization invites") {
+            testContext.user2 = createUser("user2@test.com")
+            databaseCleanerService.deleteAllOrganizationInvites()
+        }
+
+        verify("Admin user can invite user to his organization") {
+            val request = OrganizationInviteRequest(testContext.user2.email, OrganizationRoleType.ORG_MEMBER)
+            mockMvc.perform(
+                    post("$organizationPath/${testContext.organization.id}/invite")
+                            .contentType(MediaType.APPLICATION_JSON_UTF8)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk)
+        }
+        verify("Organization invite is stored in database") {
+            val invites = inviteRepository.findAll()
+            assertThat(invites).hasSize(1)
+            val invite = invites.first()
+            assertThat(invite.userId).isEqualTo(testContext.user2.id)
+            assertThat(invite.organizationId).isEqualTo(testContext.organization.id)
+            assertThat(invite.invitedBy).isEqualTo(user.id)
+            assertThat(invite.role.id).isEqualTo(OrganizationRoleType.ORG_MEMBER.id)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization")
+        }
+        suppose("User has admin role in the organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User cannot invite other user without ORG_ADMIN role") {
+            val request = OrganizationInviteRequest("some@user.ocm", OrganizationRoleType.ORG_MEMBER)
+            mockMvc.perform(
+                    post("$organizationPath/${testContext.organization.id}/invite")
+                            .contentType(MediaType.APPLICATION_JSON_UTF8)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToRevokeUserInvitation() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization")
+        }
+        suppose("User has admin role in the organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Other user has organization invites") {
+            testContext.user2 = createUser("user2@test.com")
+            inviteUserToOrganization(testContext.user2.id, testContext.organization.id, user.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can revoke invitaiton") {
+            mockMvc.perform(
+                    post("$organizationPath/${testContext.organization.id}/invite/${testContext.user2.id}/revoke"))
+                    .andExpect(status().isOk)
         }
     }
 
@@ -293,6 +375,16 @@ class OrganizationControllerTest : ControllerTestBase() {
         membership.role = roleRepository.getOne(role.id)
         membership.createdAt = ZonedDateTime.now()
         membershipRepository.save(membership)
+    }
+
+    private fun inviteUserToOrganization(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType) {
+        val invitation = OrganizationInvite::class.java.newInstance()
+        invitation.userId = userId
+        invitation.organizationId = organizationId
+        invitation.invitedBy = invitedBy
+        invitation.createdAt = ZonedDateTime.now()
+        invitation.role = roleRepository.getOne(role.id)
+        inviteRepository.save(invitation)
     }
 
     private class TestContext {

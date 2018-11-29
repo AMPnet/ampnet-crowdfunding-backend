@@ -1,22 +1,19 @@
 package com.ampnet.crowdfundingbackend.service
 
-import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
+import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
+import org.mockito.Mockito
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -28,23 +25,13 @@ import java.time.ZonedDateTime
 @DataJpaTest
 @Transactional(propagation = Propagation.SUPPORTS)
 @Import(DatabaseCleanerService::class)
-class OrganizationServiceTest : TestBase() {
+class OrganizationServiceTest : JpaServiceTestBase() {
 
-    @Autowired
-    private lateinit var databaseCleanerService: DatabaseCleanerService
-    @Autowired
-    private lateinit var roleRepository: RoleRepository
-    @Autowired
-    private lateinit var userRepository: UserRepository
-    @Autowired
-    private lateinit var organizationRepository: OrganizationRepository
-    @Autowired
-    private lateinit var membershipRepository: OrganizationMembershipRepository
-    @Autowired
-    private lateinit var followerRepository: OrganizationFollowerRepository
+    private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
-        OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, roleRepository, userRepository)
+        OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, inviteRepository,
+                roleRepository, userRepository, mailService)
     }
 
     private val user: User by lazy {
@@ -53,13 +40,21 @@ class OrganizationServiceTest : TestBase() {
     }
     private val organization: Organization by lazy {
         databaseCleanerService.deleteAllOrganizations()
-        createOrganization("test org")
+        createOrganization("test org", user)
+    }
+
+    private lateinit var testContext: TestContext
+
+    @BeforeEach
+    fun initTestContext() {
+        user.id
+        organization.id
+        testContext = TestContext()
     }
 
     @Test
     fun mustBeAbleToAddUserAsAdminToOrganization() {
         suppose("User exists without any memberships") {
-            user.id
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added as admin") {
@@ -74,7 +69,6 @@ class OrganizationServiceTest : TestBase() {
     @Test
     fun mustBeAbleToAddUserAsMemberToOrganization() {
         suppose("User exists without any memberships") {
-            user.id
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added to organization as member") {
@@ -89,23 +83,22 @@ class OrganizationServiceTest : TestBase() {
     @Test
     fun userCanHaveOnlyOneRoleInOrganization() {
         suppose("User exists without any memberships") {
-            user.id
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
-        suppose("User is added to organization as admin and member") {
-            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        suppose("User is added to organization as member") {
             organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
         }
 
-        verify("User has only member role") {
-            verifyUserMembership(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+        verify("Service will throw an exception for adding second role to the user in the same organization") {
+            assertThrows<ResourceAlreadyExistsException> {
+                organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            }
         }
     }
 
     @Test
     fun userCanFollowOrganization() {
         suppose("User exists without following organizations") {
-            user.id
             databaseCleanerService.deleteAllOrganizationFollowers()
         }
         suppose("User started to follow the organization") {
@@ -141,6 +134,55 @@ class OrganizationServiceTest : TestBase() {
         }
     }
 
+    @Test
+    fun adminUserCanInviteOtherUserToOrganization() {
+        suppose("User is admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+
+        verify("The admin can invite user to organization") {
+            testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
+            val request = OrganizationInviteServiceRequest(
+                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
+            organizationService.inviteUserToOrganization(request)
+        }
+        verify("Invitation is stored in database") {
+            val optionalInvitation =
+                    inviteRepository.findByOrganizationIdAndUserId(organization.id, testContext.invitedUser.id)
+            assertThat(optionalInvitation).isPresent
+            val invitation = optionalInvitation.get()
+            assertThat(invitation.userId).isEqualTo(testContext.invitedUser.id)
+            assertThat(invitation.organizationId).isEqualTo(organization.id)
+            assertThat(invitation.invitedBy).isEqualTo(user.id)
+            assertThat(OrganizationRoleType.fromInt(invitation.role.id)).isEqualTo(OrganizationRoleType.ORG_MEMBER)
+            assertThat(invitation.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+        verify("Sending mail invitation is called") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendOrganizationInvitationMail(testContext.invitedUser.email, user.getFullName(), organization.name)
+        }
+    }
+
+    @Test
+    fun mustThrowErrorForDuplicateOrganizationInvite() {
+        suppose("User has organization invite") {
+            databaseCleanerService.deleteAllOrganizationInvites()
+            testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
+            val request = OrganizationInviteServiceRequest(
+                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
+            organizationService.inviteUserToOrganization(request)
+        }
+
+        verify("Service will throw an error for duplicate user invite to organization") {
+            val request = OrganizationInviteServiceRequest(
+                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
+            assertThrows<ResourceAlreadyExistsException> {
+                organizationService.inviteUserToOrganization(request)
+            }
+        }
+    }
+
     private fun verifyUserMembership(userId: Int, organizationId: Int, role: OrganizationRoleType) {
         val memberships = membershipRepository.findByUserId(userId)
         assertThat(memberships).hasSize(1)
@@ -151,26 +193,7 @@ class OrganizationServiceTest : TestBase() {
         assertThat(membership.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
     }
 
-    private fun createUser(email: String, firstName: String, lastName: String): User {
-        val user = User::class.java.newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = firstName
-        user.lastName = lastName
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
-    }
-
-    private fun createOrganization(name: String): Organization {
-        val organization = Organization::class.java.newInstance()
-        organization.name = name
-        organization.legalInfo = "some legal info"
-        organization.createdAt = ZonedDateTime.now()
-        organization.approved = true
-        organization.createdByUser = user
-        organization.documents = listOf("hash1", "hash2", "hash3")
-        return organizationRepository.save(organization)
+    private class TestContext {
+        lateinit var invitedUser: User
     }
 }
