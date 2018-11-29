@@ -85,13 +85,14 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         suppose("User exists without any memberships") {
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
-        suppose("User is added to organization as admin and member") {
-            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        suppose("User is added to organization as member") {
             organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
         }
 
-        verify("User has only member role") {
-            verifyUserMembership(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+        verify("Service will throw an exception for adding second role to the user in the same organization") {
+            assertThrows<ResourceAlreadyExistsException> {
+                organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            }
         }
     }
 

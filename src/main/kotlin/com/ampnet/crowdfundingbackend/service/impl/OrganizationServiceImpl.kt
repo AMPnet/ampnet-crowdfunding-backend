@@ -99,10 +99,12 @@ class OrganizationServiceImpl(
         role: OrganizationRoleType
     ): OrganizationMembership {
         // user can have only one membership(role) per one organization
-        val membership =
-                ServiceUtils.wrapOptional(membershipRepository.findByOrganizationIdAndUserId(organizationId, userId))
-                ?: OrganizationMembership::class.java.newInstance()
+        membershipRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
+            throw ResourceAlreadyExistsException(
+                    "User ${it.userId} is already a member of this organization ${it.organizationId}")
+        }
 
+        val membership = OrganizationMembership::class.java.newInstance()
         membership.organizationId = organizationId
         membership.userId = userId
         membership.role = getRole(role)

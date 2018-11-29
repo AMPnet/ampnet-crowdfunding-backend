@@ -61,8 +61,6 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var countryRepository: CountryRepository
     @Autowired
     protected lateinit var mailRepository: MailTokenRepository
-    @Autowired
-    protected lateinit var organizationInviteRepository: OrganizationInviteRepository
 
     protected fun createUser(email: String, firstName: String, lastName: String): User {
         val user = User::class.java.newInstance()
