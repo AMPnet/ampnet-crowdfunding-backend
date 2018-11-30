@@ -55,7 +55,7 @@ class UserServiceImpl(
         val userRequest = createUserFromRequest(request)
         val user = userRepository.save(userRequest)
 
-        if (user.authMethod == AuthMethod.EMAIL) {
+        if (user.authMethod == AuthMethod.EMAIL && user.enabled.not()) {
             val mailToken = createMailToken(user)
             mailService.sendConfirmationMail(user.email, mailToken.token.toString())
         }
@@ -136,8 +136,8 @@ class UserServiceImpl(
         user.authMethod = request.authMethod
 
         if (user.authMethod == AuthMethod.EMAIL) {
-            // user must confirm email if the send mail is enabled
-            user.enabled = !applicationProperties.mail.enabled
+            // user must confirm email if the mail sending service is enabled
+            user.enabled = applicationProperties.mail.enabled.not()
         } else {
             // social user is confirmed from social service
             user.enabled = true

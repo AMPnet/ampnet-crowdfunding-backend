@@ -61,7 +61,7 @@ abstract class JpaServiceTestBase : TestBase() {
     @Autowired
     protected lateinit var countryRepository: CountryRepository
     @Autowired
-    protected lateinit var mailRepository: MailTokenRepository
+    protected lateinit var mailTokenRepository: MailTokenRepository
 
     protected val applicationProperties: ApplicationProperties by lazy {
         // add additional properties as needed

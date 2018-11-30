@@ -37,4 +37,9 @@ class DatabaseCleanerService(val em: EntityManager) {
     fun deleteAllOrganizationInvites() {
         em.createNativeQuery("TRUNCATE organization_invite CASCADE").executeUpdate()
     }
+
+    @Transactional
+    fun deleteAllMailTokens() {
+        em.createNativeQuery("TRUNCATE mail_token CASCADE").executeUpdate()
+    }
 }
