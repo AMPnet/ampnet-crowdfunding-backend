@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.config.PasswordEncoderConfig
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
@@ -60,7 +61,14 @@ abstract class JpaServiceTestBase : TestBase() {
     @Autowired
     protected lateinit var countryRepository: CountryRepository
     @Autowired
-    protected lateinit var mailRepository: MailTokenRepository
+    protected lateinit var mailTokenRepository: MailTokenRepository
+
+    protected val applicationProperties: ApplicationProperties by lazy {
+        // add additional properties as needed
+        val applicationProperties = ApplicationProperties()
+        applicationProperties.mail.enabled = true
+        applicationProperties
+    }
 
     protected fun createUser(email: String, firstName: String, lastName: String): User {
         val user = User::class.java.newInstance()
