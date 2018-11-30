@@ -55,6 +55,12 @@ jobs:
       - run:
           name: Generate API documentation
           command: gradle asciidoctor
+      - run:
+          name: Generate test coverage report
+          command: gradle jacocoTestReport
+      - run:
+          name: Verify test coverage minimum limit
+          command: gradle jacocoTestCoverageVerification
           
   deploy:
     docker:
@@ -99,6 +105,8 @@ jobs:
 
       - run: gradle dependencies
       - run: gradle build
+      - run: gradle jacocoTestReport
+      - run: gradle jacocoTestCoverageVerification
 
       - run:
           name: Stop current backend service
