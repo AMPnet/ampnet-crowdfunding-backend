@@ -96,7 +96,6 @@ class UserServiceTest : JpaServiceTestBase() {
                 databaseCleanerService.deleteAllMailTokens()
                 userRepository.delete(it)
             }
-
         }
         suppose("User created new account") {
             val service = createUserService(testContext.applicationProperties)
@@ -142,8 +141,8 @@ class UserServiceTest : JpaServiceTestBase() {
     }
 
     private fun createUserService(properties: ApplicationProperties): UserService {
-       return UserServiceImpl(userRepository, roleRepository, countryRepository, mailTokenRepository,
-                mailService, passwordEncoder, properties)
+        return UserServiceImpl(userRepository, roleRepository, countryRepository, mailTokenRepository, mailService,
+            passwordEncoder, properties)
     }
 
     private fun createUserServiceRequest(email: String): CreateUserServiceRequest {
