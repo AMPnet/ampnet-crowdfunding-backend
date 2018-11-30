@@ -100,7 +100,7 @@ class UserServiceTest : JpaServiceTestBase() {
         }
         suppose("User created new account") {
             val service = createUserService(testContext.applicationProperties)
-            testContext.user = service.create(createUserServiceRequest(testContext.email))
+            testContext.mailUser = service.create(createUserServiceRequest(testContext.email))
         }
 
         verify("Created user account is enabled") {
@@ -127,17 +127,17 @@ class UserServiceTest : JpaServiceTestBase() {
         }
         suppose("User created new account") {
             val service = createUserService(testContext.applicationProperties)
-            testContext.user = service.create(createUserServiceRequest(testContext.email))
+            testContext.mailUser = service.create(createUserServiceRequest(testContext.email))
         }
 
         verify("Created user account is enabled") {
-            assertThat(testContext.user.enabled).isFalse()
+            assertThat(testContext.mailUser.enabled).isFalse()
         }
         verify("Sending mail confirmation was called") {
-            val optionalMailToken = mailTokenRepository.findByUserId(testContext.user.id)
+            val optionalMailToken = mailTokenRepository.findByUserId(testContext.mailUser.id)
             assertThat(optionalMailToken).isPresent
             Mockito.verify(mailService, Mockito.times(1))
-                    .sendConfirmationMail(user.email, optionalMailToken.get().token.toString())
+                    .sendConfirmationMail(testContext.mailUser.email, optionalMailToken.get().token.toString())
         }
     }
 
@@ -153,6 +153,6 @@ class UserServiceTest : JpaServiceTestBase() {
     private class TestContext {
         lateinit var applicationProperties: ApplicationProperties
         lateinit var email: String
-        lateinit var user: User
+        lateinit var mailUser: User
     }
 }
