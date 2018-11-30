@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
@@ -172,6 +173,30 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustThrowExceptionForApprovingNonExistingOrganization() {
+        verify("Service will throw an exception if organization is missing") {
+            assertThrows<ResourceNotFoundException> { organizationService.approveOrganization(999, true, user) }
+        }
+    }
+
+    @Test
+    fun userCanGetListOfHisOrganizations() {
+        suppose("User is a member of two organizations") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            testContext.secondOrganization = createOrganization("Second org", user)
+
+            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+            organizationService.addUserToOrganization(user.id, testContext.secondOrganization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User is a member of two organizations") {
+            val organizations = organizationService.findAllOrganizationsForUser(user.id)
+            assertThat(organizations).hasSize(2)
+            assertThat(organizations.map { it.id }).contains(organization.id, testContext.secondOrganization.id)
+        }
+    }
+
     private fun verifyUserMembership(userId: Int, organizationId: Int, role: OrganizationRoleType) {
         val memberships = membershipRepository.findByUserId(userId)
         assertThat(memberships).hasSize(1)
@@ -184,5 +209,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
     private class TestContext {
         lateinit var invitedUser: User
+        lateinit var secondOrganization: Organization
     }
 }

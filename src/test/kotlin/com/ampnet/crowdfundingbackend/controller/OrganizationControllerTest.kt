@@ -58,15 +58,13 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @BeforeEach
     fun initializeTestContext() {
+        user.id
         testContext = TestContext()
     }
 
     @Test
     @WithMockCrowdfoundUser
     fun mustBeAbleToCreateOrganization() {
-        suppose("User exists") {
-            user.id
-        }
         suppose("Organization does not exist") {
             databaseCleanerService.deleteAllOrganizations()
         }
@@ -314,6 +312,24 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
 
         verify("User cannot invite other user without ORG_ADMIN role") {
+            val request = OrganizationInviteRequest("some@user.ocm", OrganizationRoleType.ORG_MEMBER)
+            mockMvc.perform(
+                    post("$organizationPath/${testContext.organization.id}/invite")
+                            .contentType(MediaType.APPLICATION_JSON_UTF8)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustNotBeAbleToInviteUserToOrganizationIfNotMemberOfOrganization() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization")
+        }
+
+        verify("User can invite user to organization if he is not a member of organization") {
             val request = OrganizationInviteRequest("some@user.ocm", OrganizationRoleType.ORG_MEMBER)
             mockMvc.perform(
                     post("$organizationPath/${testContext.organization.id}/invite")

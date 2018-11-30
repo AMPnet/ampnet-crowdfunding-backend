@@ -51,6 +51,7 @@ class WalletControllerTest : ControllerTestBase() {
 
     @BeforeEach
     fun initTestData() {
+        user.id
         testData = TestData()
     }
 
@@ -172,11 +173,28 @@ class WalletControllerTest : ControllerTestBase() {
 
             testData.transactionId = transactionResponse.id
         }
+
         verify("Transaction is stored in database") {
             val wallet = walletService.getWalletWithTransactionsForUser(user.id)
             assertThat(wallet).isNotNull
             assertThat(wallet!!.transactions).hasSize(1)
             assertThat(wallet.transactions[0].id).isEqualTo(testData.transactionId)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser("test@test.com")
+    fun mustReturnErrorIfUserTriesToDepositWithoutWallet() {
+        suppose("User does not have a wallet") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+        }
+
+        verify("Controller will return error if user tries to deposit founds") {
+            val request = WalletDepositRequest(BigDecimal("6.66"), "electro")
+            mockMvc.perform(post(depositWalletPath)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest)
         }
     }
 

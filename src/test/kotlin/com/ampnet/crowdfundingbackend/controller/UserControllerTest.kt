@@ -275,6 +275,37 @@ class UserControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser(email = "john@smith.com", privileges = [PrivilegeType.PRA_PROFILE])
+    fun adminMustBeAbleToGetUserWithId() {
+        suppose("User exists in database") {
+            databaseCleanerService.deleteAllUsers()
+            testContext.user = saveTestUser()
+        }
+
+        verify("User with PRA_PROFILE privilege can get user via id") {
+            val result = mockMvc.perform(get("$pathUsers/${testContext.user.id}"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(userResponse.email).isEqualTo(testContext.user.email)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "non-existing@user.com", privileges = [PrivilegeType.PRO_PROFILE])
+    fun mustThrowExceptionIfUserDoesNotExists() {
+        suppose("User is not stored in database") {
+            databaseCleanerService.deleteAllUsers()
+        }
+
+        verify("Controller will throw exception for non existing user on /me path") {
+            mockMvc.perform(get(pathMe))
+                    .andExpect(status().isNotFound)
+        }
+    }
+
     private fun saveTestUser(): User {
         return createUser(testUser.email)
     }
