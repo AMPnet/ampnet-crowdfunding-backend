@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
@@ -35,6 +36,7 @@ class WalletServiceTest : JpaServiceTestBase() {
 
     @BeforeEach
     fun init() {
+        user.id
         testData = TestData()
     }
 
@@ -179,6 +181,66 @@ class WalletServiceTest : JpaServiceTestBase() {
             assertThat(transaction.currency).isEqualTo(testData.currency)
             assertThat(transaction.walletId).isEqualTo(receiverWallet.id)
             assertThat(transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+    }
+
+    @Test
+    fun mustThrowAnExceptionIfSenderWalletIsMissing() {
+        suppose("Receiver wallet exits") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+            testData.user2 = createUser("sec@email.com", "Second", "Useros")
+            createWalletForUser(user.id)
+        }
+
+        verify("Service will throw exception if sender wallet is missing") {
+            val receiverWallet = walletService.getWalletForUser(user.id)
+            assertThat(receiverWallet).isNotNull
+
+            val request = TransferRequest(testData.user2.id, user.id, BigDecimal.TEN, Currency.EUR, "hash")
+            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
+        }
+    }
+
+    @Test
+    fun mustThrowAnExceptionIfReceiverWalletIsMissing() {
+        suppose("Sender wallet exits") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+            testData.user2 = createUser("sec@email.com", "Second", "Useros")
+            createWalletForUser(user.id)
+        }
+
+        verify("Service will throw exception if receiver wallet is missing") {
+            val senderWallet = walletService.getWalletForUser(user.id)
+            assertThat(senderWallet).isNotNull
+
+            val request = TransferRequest(user.id, testData.user2.id, BigDecimal.TEN, Currency.EUR, "hash")
+            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
+        }
+    }
+
+    @Test
+    fun mustThrowAnExceptionIfSenderUserIsMissing() {
+        suppose("Receiver user exits") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+            createWalletForUser(user.id)
+        }
+
+        verify("Service will throw exception if sender user is missing") {
+            val request = TransferRequest(999, user.id, BigDecimal.TEN, Currency.EUR, "hash")
+            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
+        }
+    }
+
+    @Test
+    fun mustThrowAnExceptionIfReceiverUserIsMissing() {
+        suppose("Sender user exits") {
+            databaseCleanerService.deleteAllWalletsAndTransactions()
+            createWalletForUser(user.id)
+        }
+
+        verify("Service will throw exception if receiver user is missing") {
+            val request = TransferRequest(user.id, 999, BigDecimal.TEN, Currency.EUR, "hash")
+            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
         }
     }
 
