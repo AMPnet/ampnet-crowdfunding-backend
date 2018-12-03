@@ -1,4 +1,4 @@
-<configuration scan="true" scanPeriod="30 seconds">
+<configuration scan="false">
 
     <property name="LOG_FILE" value="logs-backend" />
     <property name="LOG_DIR" value="./logs" />
