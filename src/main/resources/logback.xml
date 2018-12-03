@@ -1,0 +1,33 @@
+<configuration scan="false">
+
+    <property name="LOG_FILE" value="logs-backend" />
+    <property name="LOG_DIR" value="./logs" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.log</file>
+        <encoder>
+            <pattern>%date{HH:mm:ss.SSS} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <!-- keep 10 days' worth of history capped at 3GB total size -->
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.ampnet" level="DEBUG" />
+
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+</configuration>
