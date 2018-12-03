@@ -131,7 +131,7 @@ jacocoTestReport {
     reports {
         xml.enabled false
         csv.enabled false
-        html.destination file("${buildDir}/jacoco/html")
+        html.destination file("${buildDir}/reports/jacoco/html")
     }
     sourceDirectories = files(["${project.projectDir}/src/main/kotlin"])
     classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**'])
@@ -147,3 +147,7 @@ jacocoTestCoverageVerification {
     }
 }
 jacocoTestCoverageVerification.mustRunAfter jacocoTestReport
+
+task qualityCheck(type: GradleBuild) {
+    tasks = ['ktlintFormat', 'jacocoTestReport', 'jacocoTestCoverageVerification']
+}
