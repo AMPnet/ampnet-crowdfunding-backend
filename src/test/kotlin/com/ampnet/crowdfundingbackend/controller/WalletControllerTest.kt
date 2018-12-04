@@ -4,10 +4,10 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletDepositReque
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
-import com.ampnet.crowdfundingbackend.persistence.model.Currency
+import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Transaction
-import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository

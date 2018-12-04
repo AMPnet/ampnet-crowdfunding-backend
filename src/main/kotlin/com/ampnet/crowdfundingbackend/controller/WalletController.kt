@@ -5,7 +5,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletDepositReque
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
-import com.ampnet.crowdfundingbackend.persistence.model.Currency
+import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest

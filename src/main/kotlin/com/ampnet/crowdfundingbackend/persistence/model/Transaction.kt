@@ -1,5 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 import javax.persistence.Column
@@ -15,32 +17,32 @@ import javax.persistence.Table
 @Table(name = "transaction")
 data class Transaction(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int,
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+val id: Int,
 
     @Column(nullable = false)
-    var walletId: Int,
+var walletId: Int,
 
     @Column(nullable = false)
-    var sender: String,
+var sender: String,
 
     @Column(nullable = false)
-    var receiver: String,
+var receiver: String,
 
     @Column(nullable = false)
-    var amount: BigDecimal,
+var amount: BigDecimal,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 3)
-    var currency: Currency,
+@Column(nullable = false, length = 3)
+var currency: Currency,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 8)
-    var type: TransactionType,
+@Column(nullable = false, length = 8)
+var type: TransactionType,
 
     @Column(nullable = false)
-    var txHash: String,
+var txHash: String,
 
     @Column(nullable = false)
-    var timestamp: ZonedDateTime
+var timestamp: ZonedDateTime
 )

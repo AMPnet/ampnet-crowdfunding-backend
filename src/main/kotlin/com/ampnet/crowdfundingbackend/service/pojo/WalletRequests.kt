@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
-import com.ampnet.crowdfundingbackend.persistence.model.Currency
-import com.ampnet.crowdfundingbackend.persistence.model.TransactionType
+import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import java.math.BigDecimal
 
