@@ -20,45 +20,45 @@ import javax.persistence.Table
 @Table(name = "app_user")
 data class User(
     @Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-val id: Int,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Int,
 
     @Column(nullable = false)
-var email: String,
+    var email: String,
 
     @Column
-var password: String?,
+    var password: String?,
 
     @Column
-var firstName: String?,
+    var firstName: String?,
 
     @Column
-var lastName: String?,
+    var lastName: String?,
 
     @ManyToOne
-@JoinColumn(name = "country_id")
-var country: Country?,
+    @JoinColumn(name = "country_id")
+    var country: Country?,
 
     @Column
-var phoneNumber: String?,
+    var phoneNumber: String?,
 
     @ManyToOne
-@JoinColumn(name = "role_id")
-var role: Role,
+    @JoinColumn(name = "role_id")
+    var role: Role,
 
     @Column(nullable = false)
-var createdAt: ZonedDateTime,
+    var createdAt: ZonedDateTime,
 
     @Enumerated(EnumType.STRING)
-@Column(length = 8)
-var authMethod: AuthMethod,
+    @Column(length = 8)
+    var authMethod: AuthMethod,
 
     @Column(nullable = false)
-var enabled: Boolean,
+    var enabled: Boolean,
 
     @OneToMany
-@JoinColumn(name = "userId")
-var organizations: List<OrganizationMembership>?
+    @JoinColumn(name = "userId")
+    var organizations: List<OrganizationMembership>?
 
 ) {
     fun getAuthorities(): Set<SimpleGrantedAuthority> {

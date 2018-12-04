@@ -17,19 +17,19 @@ import javax.persistence.Table
 @Table(name = "wallet")
 data class Wallet(
     @Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-val id: Int,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Int,
 
     @Column(nullable = false)
-var ownerId: Int,
+    var ownerId: Int,
 
     @Enumerated(EnumType.STRING)
-@Column(nullable = false, length = 3)
-var currency: Currency,
+    @Column(nullable = false, length = 3)
+    var currency: Currency,
 
     @OneToMany(mappedBy = "walletId", fetch = FetchType.LAZY)
-var transactions: List<Transaction>,
+    var transactions: List<Transaction>,
 
     @Column(nullable = false)
-var createdAt: ZonedDateTime
+    var createdAt: ZonedDateTime
 )
