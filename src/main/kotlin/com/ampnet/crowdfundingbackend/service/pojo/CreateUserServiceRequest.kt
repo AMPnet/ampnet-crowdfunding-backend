@@ -3,7 +3,7 @@ package com.ampnet.crowdfundingbackend.service.pojo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
 import com.ampnet.crowdfundingbackend.validation.CountryConstraint
 import com.ampnet.crowdfundingbackend.validation.PasswordConstraint
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.validation.EmailConstraint
 import com.ampnet.crowdfundingbackend.validation.NameConstraint
 import com.ampnet.crowdfundingbackend.validation.PhoneNumberConstraint

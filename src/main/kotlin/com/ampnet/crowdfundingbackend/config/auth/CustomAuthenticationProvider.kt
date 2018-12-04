@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.config.auth
 
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.service.UserService
 import mu.KLogging
 import org.springframework.security.authentication.AuthenticationProvider

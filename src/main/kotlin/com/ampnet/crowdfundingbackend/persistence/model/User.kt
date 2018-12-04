@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.ZonedDateTime

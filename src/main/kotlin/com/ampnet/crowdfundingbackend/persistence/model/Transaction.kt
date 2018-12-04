@@ -1,5 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 import javax.persistence.Column

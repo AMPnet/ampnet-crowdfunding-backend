@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.persistence.model
+package com.ampnet.crowdfundingbackend.enums
 
 enum class AuthMethod {
     FACEBOOK,

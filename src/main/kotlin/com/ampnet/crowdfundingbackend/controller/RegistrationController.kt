@@ -6,7 +6,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocia
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest

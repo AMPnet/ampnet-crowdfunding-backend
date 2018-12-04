@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.request
 
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.AuthMethod
 
 data class TokenRequest(
     val loginMethod: AuthMethod,

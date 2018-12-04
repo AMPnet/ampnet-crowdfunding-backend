@@ -7,7 +7,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.TokenRequestUserIn
 import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
-import com.ampnet.crowdfundingbackend.persistence.model.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.fasterxml.jackson.databind.ObjectMapper

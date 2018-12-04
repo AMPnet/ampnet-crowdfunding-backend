@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import com.ampnet.crowdfundingbackend.enums.Currency
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
