@@ -43,6 +43,7 @@ data class Organization(
     @JoinColumn(name = "approved_by")
     var approvedBy: User?,
 
+    // TODO: change to use document model, @ManyToOne
     @Column(nullable = true)
     @Convert(converter = HashArrayToStringConverter::class)
     var documents: List<String>?,
