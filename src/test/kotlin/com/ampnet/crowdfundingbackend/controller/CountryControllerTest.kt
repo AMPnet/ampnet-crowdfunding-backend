@@ -54,7 +54,7 @@ class CountryControllerTest : ControllerTestBase() {
     @Test
     fun mustReturnNotFoundForInvalidCountryId() {
         verify("The controller returns not found for missing country id") {
-            val nonExistingCountryId = 999
+            val nonExistingCountryId = 0
             mockMvc.perform(get("$pathCountries/$nonExistingCountryId"))
                     .andExpect(status().isNotFound)
         }
