@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
@@ -74,7 +75,7 @@ class OrganizationServiceImpl(
             it.approvedBy = approvedBy
             return it
         }
-        throw ResourceNotFoundException("Missing organization with id: $organizationId")
+        throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
     }
 
     @Transactional(readOnly = true)
@@ -100,7 +101,7 @@ class OrganizationServiceImpl(
     ): OrganizationMembership {
         // user can have only one membership(role) per one organization
         membershipRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
-            throw ResourceAlreadyExistsException(
+            throw ResourceAlreadyExistsException(ErrorCode.ORG_DUPLICATE_USER,
                     "User ${it.userId} is already a member of this organization ${it.organizationId}")
         }
 
@@ -115,11 +116,13 @@ class OrganizationServiceImpl(
     @Transactional
     override fun inviteUserToOrganization(request: OrganizationInviteServiceRequest): OrganizationInvite {
         val user = userRepository.findByEmail(request.email).orElseThrow {
-            ResourceNotFoundException("User with email: ${request.email} does not exists")
+            ResourceNotFoundException(ErrorCode.USER_MISSING,
+                    "User with email: ${request.email} does not exists")
         }
 
         inviteRepository.findByOrganizationIdAndUserId(request.organizationId, user.id).ifPresent {
-            throw ResourceAlreadyExistsException("User is already invited to join organization")
+            throw ResourceAlreadyExistsException(ErrorCode.ORG_DUPLICATE_INVITE,
+                    "User is already invited to join organization")
         }
 
         val organizationInvite = OrganizationInvite::class.java.newInstance()

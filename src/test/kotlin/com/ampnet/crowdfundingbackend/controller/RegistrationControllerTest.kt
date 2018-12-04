@@ -3,8 +3,8 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
-import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
@@ -163,7 +163,8 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andReturn()
 
             val response: ErrorResponse = objectMapper.readValue(result.response.contentAsString)
-            assert(response.reason == ResourceAlreadyExistsException::class.java.canonicalName)
+            val expectedErrorCode = getResponseErrorCode(ErrorCode.REG_USER_EXISTS)
+            assert(response.errCode == expectedErrorCode)
         }
     }
 

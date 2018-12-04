@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationRespo
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -122,7 +123,11 @@ class OrganizationController(
         }
     }
 
-    private fun ifUserHasPrivilegeWriteUserInOrganizationThenDo(userId: Int, organizationId: Int, action: () -> (Unit)): ResponseEntity<Unit> {
+    private fun ifUserHasPrivilegeWriteUserInOrganizationThenDo(
+        userId: Int,
+        organizationId: Int,
+        action: () -> (Unit)
+    ): ResponseEntity<Unit> {
         organizationService.getOrganizationMemberships(organizationId).find { it.userId == userId }?.let {
             return if (hasPrivilegeToWriteOrganizationUsers(it)) {
                 action()
@@ -139,7 +144,8 @@ class OrganizationController(
     private fun getUserFromSecurityContext(): User {
         val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
         return userService.find(userPrincipal.email)
-                ?: throw ResourceNotFoundException("Missing user with email: ${userPrincipal.email}")
+                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING,
+                        "Missing user with email: ${userPrincipal.email}")
     }
 
     private fun hasPrivilegeToSeeOrganizationUsers(membership: OrganizationMembership): Boolean =
