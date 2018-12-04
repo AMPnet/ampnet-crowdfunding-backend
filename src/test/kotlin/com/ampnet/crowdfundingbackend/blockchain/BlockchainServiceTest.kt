@@ -19,7 +19,7 @@ import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
 import org.web3j.utils.Numeric
 
-@Disabled // remove for testing
+@Disabled("Blockchain currently not used.")
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [ApplicationProperties::class])
 @EnableConfigurationProperties
