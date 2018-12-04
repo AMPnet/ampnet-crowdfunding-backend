@@ -7,7 +7,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 class CountryControllerTest : ControllerTestBase() {
 
@@ -22,8 +23,8 @@ class CountryControllerTest : ControllerTestBase() {
 
         verify("The system returns a list of countries") {
             val result = mockMvc.perform(get(pathCountries))
-                    .andExpect(MockMvcResultMatchers.status().isOk)
-                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn()
 
             val countriesResponse: CountriesListResponse = objectMapper.readValue(result.response.contentAsString)
@@ -41,12 +42,21 @@ class CountryControllerTest : ControllerTestBase() {
 
         verify("The system must return country with specified id") {
             val result = mockMvc.perform(get("$pathCountries/$croatiaId"))
-                    .andExpect(MockMvcResultMatchers.status().isOk)
-                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn()
 
             val countryResponse: CountryResponse = objectMapper.readValue(result.response.contentAsString)
             verifyCroatiaCountryResponse(countryResponse)
+        }
+    }
+
+    @Test
+    fun mustReturnNotFoundForInvalidCountryId() {
+        verify("The controller returns not found for missing country id") {
+            val nonExistingCountryId = 999
+            mockMvc.perform(get("$pathCountries/$nonExistingCountryId"))
+                    .andExpect(status().isNotFound)
         }
     }
 
