@@ -206,6 +206,12 @@ include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-reque
 .Response
 include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-response.adoc[]
 
+=== Invalid country id
+.Request
+include::{snippets}/CountryControllerTest/mustReturnNotFoundForInvalidCountryId/http-request.adoc[]
+.Response
+include::{snippets}/CountryControllerTest/mustReturnNotFoundForInvalidCountryId/http-response.adoc[]
+
 == Wallet API
 Collection of endpoints for managing user wallet
 
