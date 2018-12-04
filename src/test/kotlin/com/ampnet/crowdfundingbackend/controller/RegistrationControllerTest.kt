@@ -130,7 +130,7 @@ class RegistrationControllerTest : ControllerTestBase() {
     fun invalidDataSignupRequestShouldFail() {
         verify("The user cannot send request with invalid data (e.g. wrong mail format)") {
             testUser.email = "invalid-mail.com"
-            testUser.password = "unsafepassword123"
+            testUser.password = "short"
             testUser.firstName = ""
             testUser.lastName = "NoFirstName"
             testUser.countryId = 999
@@ -392,7 +392,7 @@ class RegistrationControllerTest : ControllerTestBase() {
     private class TestUser {
         var id = -1
         var email = "john@smith.com"
-        var password = "Password157!"
+        var password = "abcdefgh"
         var firstName = "John"
         var lastName = "Smith"
         var countryId = 1

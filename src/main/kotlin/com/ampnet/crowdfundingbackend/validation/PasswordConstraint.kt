@@ -1,14 +1,17 @@
 package com.ampnet.crowdfundingbackend.validation
 
-import com.ampnet.crowdfundingbackend.validation.validator.PasswordConstraintValidator
 import javax.validation.Constraint
 import javax.validation.Payload
+import javax.validation.ReportAsSingleViolation
+import javax.validation.constraints.Size
 import kotlin.reflect.KClass
 
 @MustBeDocumented
+@ReportAsSingleViolation
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
-@Constraint(validatedBy = [PasswordConstraintValidator::class])
+@Constraint(validatedBy = [])
+@Size(min = 8, max = 64)
 annotation class PasswordConstraint constructor (
 
     val message: String = "Invalid Password",
