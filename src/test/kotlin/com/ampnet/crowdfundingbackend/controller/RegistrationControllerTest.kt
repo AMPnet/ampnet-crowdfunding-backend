@@ -144,7 +144,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyResponseErrorCode(result)
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
         }
     }
 
@@ -166,7 +166,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyResponseErrorCode(result)
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
         }
     }
 
@@ -188,7 +188,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyResponseErrorCode(result)
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
         }
     }
 
@@ -210,7 +210,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyResponseErrorCode(result)
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
         }
     }
 
@@ -232,7 +232,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyResponseErrorCode(result)
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
         }
     }
 
@@ -464,12 +464,6 @@ class RegistrationControllerTest : ControllerTestBase() {
             assert(userInRepo.role.id == UserRoleType.USER.id)
             assertThat(userInRepo.enabled).isTrue()
         }
-    }
-
-    private fun verifyResponseErrorCode(result: MvcResult) {
-        val response: ErrorResponse = objectMapper.readValue(result.response.contentAsString)
-        val expectedErrorCode = getResponseErrorCode(ErrorCode.REG_INVALID)
-        assert(response.errCode == expectedErrorCode)
     }
 
     private fun saveTestUser(): User {
