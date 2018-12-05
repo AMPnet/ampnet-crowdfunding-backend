@@ -3,7 +3,9 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,6 +18,7 @@ import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfig
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
@@ -50,5 +53,11 @@ abstract class ControllerTestBase : TestBase() {
 
     protected fun getResponseErrorCode(errorCode: ErrorCode): String {
         return errorCode.categoryCode + errorCode.specificCode
+    }
+
+    protected fun verifyResponseErrorCode(result: MvcResult, errorCode: ErrorCode) {
+        val response: ErrorResponse = objectMapper.readValue(result.response.contentAsString)
+        val expectedErrorCode = getResponseErrorCode(errorCode)
+        assert(response.errCode == expectedErrorCode)
     }
 }
