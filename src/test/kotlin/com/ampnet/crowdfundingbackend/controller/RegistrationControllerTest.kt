@@ -128,7 +128,7 @@ class RegistrationControllerTest : ControllerTestBase() {
 
     @Test
     fun invalidCountryIdSignupRequestShouldFail() {
-        verify("The user cannot send request with invalid country di") {
+        verify("The user cannot send request with invalid country id") {
             testUser.email = "invalid@mail.com"
             testUser.password = "passsssword"
             testUser.firstName = "Name"
@@ -144,7 +144,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyInvalidRegistrationResponse(result)
+            verifyResponseErrorCode(result)
         }
     }
 
@@ -166,7 +166,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyInvalidRegistrationResponse(result)
+            verifyResponseErrorCode(result)
         }
     }
 
@@ -188,7 +188,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyInvalidRegistrationResponse(result)
+            verifyResponseErrorCode(result)
         }
     }
 
@@ -210,7 +210,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyInvalidRegistrationResponse(result)
+            verifyResponseErrorCode(result)
         }
     }
 
@@ -232,7 +232,7 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
-            verifyInvalidRegistrationResponse(result)
+            verifyResponseErrorCode(result)
         }
     }
 
@@ -466,7 +466,7 @@ class RegistrationControllerTest : ControllerTestBase() {
         }
     }
 
-    private fun verifyInvalidRegistrationResponse(result: MvcResult) {
+    private fun verifyResponseErrorCode(result: MvcResult) {
         val response: ErrorResponse = objectMapper.readValue(result.response.contentAsString)
         val expectedErrorCode = getResponseErrorCode(ErrorCode.REG_INVALID)
         assert(response.errCode == expectedErrorCode)
