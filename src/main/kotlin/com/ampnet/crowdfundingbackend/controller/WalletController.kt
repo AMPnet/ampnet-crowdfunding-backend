@@ -6,6 +6,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionRespon
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
@@ -54,7 +55,8 @@ class WalletController(val walletService: WalletService, val userService: UserSe
         logger.debug("Received request to deposit to Wallet for user: ${userPrincipal.email}")
         val userId = getUserIdFromEmail(userPrincipal.email)
         val wallet = walletService.getWalletWithTransactionsForUser(userId)
-                ?: throw ResourceNotFoundException("Missing wallet for user: ${userPrincipal.email}")
+                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
+                        "Missing wallet for user: ${userPrincipal.email}")
 
         // TODO: define the process with blockchain, getting hash, async actions
         val hash = "hash"
@@ -68,6 +70,6 @@ class WalletController(val walletService: WalletService, val userService: UserSe
     private fun getUserIdFromEmail(email: String): Int {
         // think about adding UserId to UserPrincipal
         return userService.find(email)?.id
-                ?: throw ResourceNotFoundException("Missing user with email: $email")
+                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
     }
 }

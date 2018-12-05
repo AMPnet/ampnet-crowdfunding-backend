@@ -7,6 +7,7 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.MailToken
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -49,7 +50,8 @@ class UserServiceImpl(
     override fun create(request: CreateUserServiceRequest): User {
         if (userRepository.findByEmail(request.email).isPresent) {
             logger.info { "Trying to create user with email that already exists: ${request.email}" }
-            throw ResourceAlreadyExistsException("User with email: ${request.email} already exists!")
+            throw ResourceAlreadyExistsException(ErrorCode.REG_USER_EXISTS,
+                    "User with email: ${request.email} already exists!")
         }
 
         val userRequest = createUserFromRequest(request)
@@ -67,7 +69,7 @@ class UserServiceImpl(
     override fun update(request: UserUpdateRequest): User {
         val savedUser = userRepository.findByEmail(request.email).orElseThrow {
             logger.info { "Trying to update user with email ${request.email} which does not exists in db." }
-            throw ResourceNotFoundException("User with email: ${request.email} does not exists")
+            throw ResourceNotFoundException(ErrorCode.USER_MISSING, "User with email: ${request.email} does not exists")
         }
         val user = updateUserFromRequest(savedUser, request)
         return userRepository.save(user)
@@ -102,7 +104,7 @@ class UserServiceImpl(
         val mailToken = optionalMailToken.get()
         if (mailToken.isExpired()) {
             logger.info { "User is trying to confirm mail with expired token: $token" }
-            throw InvalidRequestException("The token: $token has expired")
+            throw InvalidRequestException(ErrorCode.REG_EMAIL_EXPIRED_TOKEN, "The token: $token has expired")
         }
         val user = mailToken.user
         user.enabled = true
@@ -154,7 +156,8 @@ class UserServiceImpl(
         user.lastName = request.lastName
         user.phoneNumber = request.phoneNumber
         user.country = countryRepository.findById(request.countryId).orElseThrow {
-            throw ResourceNotFoundException("Country with id: ${request.countryId} does not exists")
+            throw ResourceNotFoundException(ErrorCode.COUNTRY_MISSING,
+                    "Country with id: ${request.countryId} does not exists")
         }
         return user
     }

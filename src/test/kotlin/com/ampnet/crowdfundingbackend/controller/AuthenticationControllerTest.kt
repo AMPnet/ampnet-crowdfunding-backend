@@ -4,9 +4,8 @@ import com.ampnet.crowdfundingbackend.config.auth.TokenProvider
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
-import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.SocialService
@@ -227,7 +226,8 @@ class AuthenticationControllerTest : ControllerTestBase() {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn()
             val error = objectMapper.readValue<ErrorResponse>(result.response.contentAsString)
-            assert(error.reason == ResourceNotFoundException::class.java.canonicalName)
+            val expectedErrorCode = getResponseErrorCode(ErrorCode.USER_MISSING)
+            assert(error.errCode == expectedErrorCode)
         }
     }
 
@@ -265,7 +265,8 @@ class AuthenticationControllerTest : ControllerTestBase() {
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn()
             val errorResponse = objectMapper.readValue<ErrorResponse>(result.response.contentAsString)
-            assert(errorResponse.reason == InvalidLoginMethodException::class.java.canonicalName)
+            val expectedErrorCode = getResponseErrorCode(ErrorCode.AUTH_INVALID_LOGIN_METHOD)
+            assert(errorResponse.errCode == expectedErrorCode)
         }
     }
 

@@ -7,6 +7,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserI
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -55,7 +56,7 @@ class RegistrationController(
             return ResponseEntity.notFound().build()
         } catch (ex: IllegalArgumentException) {
             logger.warn { "User is send token which is not UUID: $token" }
-            throw InvalidRequestException("Token: $token is not in a valid format.")
+            throw InvalidRequestException(ErrorCode.REG_EMAIL_INVALID_TOKEN, "Token: $token is not in a valid format.")
         }
     }
 
@@ -93,7 +94,8 @@ class RegistrationController(
             }
         } catch (ex: MissingKotlinParameterException) {
             UserController.logger.info("Could not parse SignupRequest: $request", ex)
-            throw InvalidRequestException("Some fields missing or could not be parsed from JSON request.", ex)
+            throw InvalidRequestException(
+                    ErrorCode.REG_INCOMPLETE, "Some fields missing or could not be parsed from JSON request.", ex)
         }
     }
 
@@ -101,7 +103,7 @@ class RegistrationController(
         val errors = validator.validate(request)
         if (!errors.isEmpty()) {
             UserController.logger.info { "Invalid CreateUserServiceRequest: $request" }
-            throw InvalidRequestException(errors.joinToString(" ") { it.message })
+            throw InvalidRequestException(ErrorCode.REG_INVALID, errors.joinToString(" ") { it.message })
         }
     }
 }
