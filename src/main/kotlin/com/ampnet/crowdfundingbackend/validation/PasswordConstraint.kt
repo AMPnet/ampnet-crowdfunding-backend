@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.validation
 
-import javax.validation.Constraint
 import javax.validation.Payload
 import javax.validation.ReportAsSingleViolation
 import javax.validation.constraints.Size
@@ -10,7 +9,6 @@ import kotlin.reflect.KClass
 @ReportAsSingleViolation
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
-@Constraint(validatedBy = [])
 @Size(min = 8, max = 64)
 annotation class PasswordConstraint constructor (
 
