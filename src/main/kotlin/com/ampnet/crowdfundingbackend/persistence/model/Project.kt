@@ -6,6 +6,7 @@ import java.math.BigDecimal
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Convert
+import javax.persistence.Embeddable
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -52,14 +53,20 @@ data class Project(
     var endDate: ZonedDateTime,
 
     @Column(nullable = false)
-    var expectedFounding: BigDecimal,
+    var expectedFunding: BigDecimal,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
     var currency: Currency,
 
+    @Column(nullable = false)
+    var minPerUser: BigDecimal,
+
+    @Column(nullable = false)
+    var maxPerUser: BigDecimal,
+
     @Column
-    var mainImage: String,
+    var mainImage: String?,
 
     @Column
     @Convert(converter = HashArrayToStringConverter::class)

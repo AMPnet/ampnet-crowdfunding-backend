@@ -13,21 +13,24 @@ CREATE INDEX idx_document_hash ON document(hash);
 CREATE TABLE project (
     id SERIAL PRIMARY KEY,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    name VARCHAR NOT NULL UNIQUE,
+    name VARCHAR NOT NULL,
     description TEXT NOT NULL,
     location VARCHAR(128) NOT NULL,
     location_text VARCHAR NOT NULL,
     return_to_investment VARCHAR(16) NOT NULL,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
-    expected_founding DECIMAL(15,2) NOT NULL,
+    expected_funding DECIMAL(15,2) NOT NULL,
     currency VARCHAR(3) NOT NULL,
+    min_per_user DECIMAL(10,2) NOT NULL,
+    max_per_user DECIMAL(10,2) NOT NULL,
     investors INT REFERENCES app_user(id),
     documents INT REFERENCES document(id),
     main_image VARCHAR,
     gallery TEXT,
     created_by INT REFERENCES app_user(id) NOT NULL,
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL,
+    active BOOLEAN
 );
 
 CREATE TABLE project_investment(
