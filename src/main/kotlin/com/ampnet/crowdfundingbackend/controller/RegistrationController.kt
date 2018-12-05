@@ -103,7 +103,7 @@ class RegistrationController(
         val errors = validator.validate(request)
         if (!errors.isEmpty()) {
             UserController.logger.info { "Invalid CreateUserServiceRequest: $request" }
-            throw InvalidRequestException(ErrorCode.REG_INVALID, errors.joinToString(" ") { it.message })
+            throw InvalidRequestException(ErrorCode.REG_INVALID, errors.joinToString("; ") { it.message })
         }
     }
 }
