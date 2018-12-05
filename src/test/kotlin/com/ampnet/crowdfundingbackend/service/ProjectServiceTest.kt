@@ -44,6 +44,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
     @Test
     fun mustBeAbleToCreateProject() {
         suppose("Service received a request to create a project") {
+            databaseCleanerService.deleteAllProjects()
             testContext.createProjectRequest = createProjectRequest("Test project")
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
@@ -67,6 +68,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(project.maxPerUser).isEqualByComparingTo(request.maxPerUser)
             assertThat(project.createdBy.id).isEqualTo(request.createdBy.id)
             assertThat(project.organization.id).isEqualTo(organization.id)
+            assertThat(project.active).isFalse()
             assertThat(project.mainImage.isNullOrEmpty()).isTrue()
             assertThat(project.gallery.isNullOrEmpty()).isTrue()
             assertThat(project.documents.isNullOrEmpty()).isTrue()
@@ -101,6 +103,69 @@ class ProjectServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustBeAbleToAddMainImage() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.createProjectRequest = createProjectRequest("Image")
+            testContext.project = projectService.createProject(testContext.createProjectRequest)
+        }
+        suppose("Main image is added to project") {
+            testContext.image = "hash-main-image"
+            projectService.addMainImage(testContext.project, testContext.image)
+        }
+
+        verify("Image is stored in project") {
+            val optionalProject = projectRepository.findById(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            assertThat(optionalProject.get().mainImage).isEqualTo(testContext.image)
+        }
+    }
+
+    @Test
+    fun mustBeAbleToAddImagesToGallery() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.createProjectRequest = createProjectRequest("Image")
+            testContext.project = projectService.createProject(testContext.createProjectRequest)
+        }
+        suppose("Two images are added to project gallery") {
+            testContext.gallery = listOf("hash-1", "hash-2")
+            projectService.addImagesToGallery(testContext.project, testContext.gallery)
+        }
+
+        verify("The project gallery contains added images") {
+            val optionalProject = projectRepository.findById(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            assertThat(optionalProject.get().gallery).containsAll(testContext.gallery)
+        }
+    }
+
+    @Test
+    fun mustBeAbleToAppendNewImageToGallery() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.createProjectRequest = createProjectRequest("Image")
+            testContext.project = projectService.createProject(testContext.createProjectRequest)
+        }
+        suppose("The has gallery") {
+            testContext.gallery = listOf("hash-1", "hash-2")
+            projectService.addImagesToGallery(testContext.project, testContext.gallery)
+        }
+        suppose("Additional image is added to gallery") {
+            testContext.image = "hash-new"
+            projectService.addImagesToGallery(testContext.project, listOf(testContext.image))
+        }
+
+        verify("Gallery has additional image") {
+            val optionalProject = projectRepository.findById(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            val gallery = optionalProject.get().gallery
+            assertThat(gallery).containsAll(testContext.gallery)
+            assertThat(gallery).contains(testContext.image)
+        }
+    }
+
     private fun createProjectRequest(name: String): CreateProjectServiceRequest {
         return CreateProjectServiceRequest(
                 organization,
@@ -122,5 +187,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
     private class TestContext {
         lateinit var createProjectRequest: CreateProjectServiceRequest
         lateinit var project: Project
+        lateinit var image: String
+        lateinit var gallery: List<String>
     }
 }

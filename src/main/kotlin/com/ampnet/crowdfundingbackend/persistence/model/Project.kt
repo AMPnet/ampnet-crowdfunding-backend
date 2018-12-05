@@ -79,6 +79,9 @@ data class Project(
     @Column(nullable = false)
     var createdAt: ZonedDateTime,
 
+    @Column(nullable = false)
+    var active: Boolean,
+
     @ManyToMany
     @JoinTable(name = "project_document",
             joinColumns = [JoinColumn(name = "project_id")],

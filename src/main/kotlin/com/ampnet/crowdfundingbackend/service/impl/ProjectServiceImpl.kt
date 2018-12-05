@@ -21,6 +21,7 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
 
         val project = createProjectFromRequest(request)
         project.createdAt = ZonedDateTime.now()
+        project.active = false
         return projectRepository.save(project)
     }
 
@@ -30,13 +31,13 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
     }
 
     @Transactional
-    fun addMainImageToProject(project: Project, mainImage: String) {
+    override fun addMainImage(project: Project, mainImage: String) {
         project.mainImage = mainImage
         projectRepository.save(project)
     }
 
     @Transactional
-    fun addToGallery(project: Project, images: List<String>) {
+    override fun addImagesToGallery(project: Project, images: List<String>) {
         val gallery = project.gallery.orEmpty().toMutableList()
         gallery.addAll(images)
         project.gallery = gallery
