@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
@@ -45,5 +46,9 @@ abstract class ControllerTestBase : TestBase() {
                         Preprocessors.preprocessResponse(Preprocessors.prettyPrint())
                 ))
                 .build()
+    }
+
+    protected fun getResponseErrorCode(errorCode: ErrorCode): String {
+        return errorCode.categoryCode + errorCode.specificCode
     }
 }

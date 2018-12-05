@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.AuthTokenResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidLoginMethodException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -64,7 +65,7 @@ class AuthenticationController(
 
     private fun validateLoginParamsOrThrowException(email: String, loginMethod: AuthMethod) {
         val storedUser = userService.find(email)
-                ?: throw ResourceNotFoundException("User with email: $email does not exists")
+                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "User with email: $email does not exists")
         val userAuthMethod = storedUser.authMethod
         if (userAuthMethod != loginMethod) {
             throw InvalidLoginMethodException("Invalid method. Try to login using ${userAuthMethod.name}")

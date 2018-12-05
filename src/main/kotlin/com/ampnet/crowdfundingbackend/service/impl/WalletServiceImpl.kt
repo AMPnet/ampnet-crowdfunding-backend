@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
@@ -50,7 +51,8 @@ class WalletServiceImpl(
     override fun createWallet(ownerId: Int): Wallet {
         if (walletRepository.findByOwnerId(ownerId).isPresent) {
             logger.info("Trying to save wallet with ownerId: $ownerId which already exists in db.")
-            throw ResourceAlreadyExistsException("Wallet with ownerId: $ownerId already exits")
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
+                    "Wallet with ownerId: $ownerId already exits")
         }
 
         val wallet = Wallet::class.java.newInstance()
@@ -85,7 +87,8 @@ class WalletServiceImpl(
         if (sender == null || receiver == null) {
             logger.warn("Trying to transfer from or to non existing account. " +
                     "SenderId: ${request.senderId} and ReceiverId: ${request.receiverId}")
-            throw ResourceNotFoundException("Cannot transferFromWalletToWallet. User is missing.")
+            throw ResourceNotFoundException(ErrorCode.USER_MISSING,
+                    "Cannot transferFromWalletToWallet. User is missing.")
         }
 
         val withdrawRequest = createWithdrawTransaction(sender, request, receiver.getFullName())
@@ -105,7 +108,7 @@ class WalletServiceImpl(
         val senderWallet = getWalletForUser(sender.id)
         if (senderWallet == null) {
             logger.warn("Trying to transfer founds from wallet. Missing wallet for user: ${sender.id}")
-            throw ResourceNotFoundException("Missing wallet for user: ${sender.email}")
+            throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "Missing wallet for user: ${sender.email}")
         }
         return WithdrawRequest(
                 senderWallet,
@@ -124,7 +127,7 @@ class WalletServiceImpl(
         val receiverWallet = getWalletForUser(receiver.id)
         if (receiverWallet == null) {
             logger.warn("Trying to transfer founds to wallet. Missing wallet for user: ${receiver.id}")
-            throw ResourceNotFoundException("Missing wallet for user: ${receiver.email}")
+            throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "Missing wallet for user: ${receiver.email}")
         }
         return DepositRequest(
                 receiverWallet,
@@ -151,7 +154,7 @@ class WalletServiceImpl(
 
     private fun getUsernameForWalletId(wallet: Wallet): String {
         val user = userService.find(wallet.ownerId)
-                ?: throw ResourceNotFoundException("Missing user with id: ${wallet.ownerId}")
+                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with id: ${wallet.ownerId}")
         return user.getFullName()
     }
 }

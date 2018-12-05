@@ -6,6 +6,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvit
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
@@ -99,6 +100,7 @@ class UserController(private val userService: UserService, private val organizat
     private fun getUserId(): Int {
         val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
         return userService.find(userPrincipal.email)?.id
-                ?: throw ResourceNotFoundException("Missing user with email: ${userPrincipal.email}")
+                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING,
+                        "Missing user with email: ${userPrincipal.email}")
     }
 }
