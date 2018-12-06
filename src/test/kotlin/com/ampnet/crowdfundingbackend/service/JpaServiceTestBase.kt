@@ -8,8 +8,12 @@ import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
+import com.ampnet.crowdfundingbackend.persistence.model.Project
+import com.ampnet.crowdfundingbackend.persistence.model.ProjectInvestment
+import com.ampnet.crowdfundingbackend.persistence.model.Transaction
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
@@ -18,6 +22,8 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowe
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.ProjectInvestmentRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
@@ -30,6 +36,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @ExtendWith(SpringExtension::class)
@@ -62,6 +69,10 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var countryRepository: CountryRepository
     @Autowired
     protected lateinit var mailTokenRepository: MailTokenRepository
+    @Autowired
+    protected lateinit var projectRepository: ProjectRepository
+    @Autowired
+    protected lateinit var projectInvestmentRepository: ProjectInvestmentRepository
 
     protected val applicationProperties: ApplicationProperties by lazy {
         // add additional properties as needed
@@ -115,5 +126,70 @@ abstract class JpaServiceTestBase : TestBase() {
         invite.role = roleRepository.getOne(role.id)
         invite.invitedBy = invitedBy
         return inviteRepository.save(invite)
+    }
+
+    protected fun createProject(
+        name: String,
+        organization: Organization,
+        createdBy: User,
+        active: Boolean = true,
+        startDate: ZonedDateTime = ZonedDateTime.now(),
+        endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
+        expectedFunding: BigDecimal = BigDecimal(10_000_000),
+        minPerUser: BigDecimal = BigDecimal(10),
+        maxPerUser: BigDecimal = BigDecimal(10_000)
+    ): Project {
+        val project = Project::class.java.newInstance()
+        project.organization = organization
+        project.name = name
+        project.description = "description"
+        project.location = "location"
+        project.locationText = "locationText"
+        project.returnToInvestment = "0-1%"
+        project.startDate = startDate
+        project.endDate = endDate
+        project.expectedFunding = expectedFunding
+        project.currency = Currency.EUR
+        project.minPerUser = minPerUser
+        project.maxPerUser = maxPerUser
+        project.createdBy = createdBy
+        project.active = active
+        project.createdAt = startDate.minusMinutes(1)
+        return projectRepository.save(project)
+    }
+
+    protected fun createProjectInvestment(
+        user: User,
+        walletId: Int,
+        project: Project,
+        amount: BigDecimal,
+        txHash: String = "hash"
+    ): ProjectInvestment {
+        val investment = ProjectInvestment::class.java.newInstance()
+        investment.user = user
+        investment.project = project
+        investment.transaction = createTransaction(
+                walletId, user.getFullName(), project.name, amount, txHash, TransactionType.TRANSFER)
+        return projectInvestmentRepository.save(investment)
+    }
+
+    protected fun createTransaction(
+        walletId: Int,
+        sender: String,
+        receiver: String,
+        amount: BigDecimal,
+        txHash: String,
+        type: TransactionType
+    ): Transaction {
+        val transaction = Transaction::class.java.newInstance()
+        transaction.timestamp = ZonedDateTime.now()
+        transaction.currency = Currency.EUR
+        transaction.walletId = walletId
+        transaction.sender = sender
+        transaction.receiver = receiver
+        transaction.amount = amount
+        transaction.txHash = txHash
+        transaction.type = type
+        return transactionRepository.save(transaction)
     }
 }

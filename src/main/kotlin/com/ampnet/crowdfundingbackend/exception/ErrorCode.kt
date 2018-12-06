@@ -27,6 +27,7 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     // Wallet: 05
     WALLET_MISSING("05", "01", "User does not have a wallet"),
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),
+    WALLET_FOUNDS("05", "03", "User does not have enough funds on wallet"),
 
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),
@@ -37,5 +38,10 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
 
     // Project: 07
     PRJ_MISSING("07", "01", "Non existing project"),
-    PRJ_DATE("07", "02", "Invalid date")
+    PRJ_DATE("07", "02", "Invalid date"),
+    PRJ_DATE_EXPIRED("07", "03", "Project has expired"),
+    PRJ_MAX_PER_USER("07", "04", "User has exceeded max funds per project"),
+    PRJ_MIN_PER_USER("07", "05", "Funding is below project minimum"),
+    PRJ_MAX_FUNDS("07", "06", "Project has reached expected funding"),
+    PRJ_NOT_ACTIVE("07", "07", "Project is not active")
 }

@@ -54,14 +54,11 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
         project.returnToInvestment = request.returnToInvestment
         project.startDate = request.startDate
         project.endDate = request.endDate
-        project.expectedFunding = request.expectedFounding
+        project.expectedFunding = request.expectedFunding
         project.currency = request.currency
         project.minPerUser = request.minPerUser
         project.maxPerUser = request.maxPerUser
         project.createdBy = request.createdBy
-//        project.mainImage = request.mainImage
-//        project.gallery = request.gallery
-//        project.documents = request.documents
         return project
     }
 }

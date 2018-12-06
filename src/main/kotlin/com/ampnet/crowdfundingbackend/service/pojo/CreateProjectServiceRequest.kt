@@ -1,7 +1,6 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
 import com.ampnet.crowdfundingbackend.enums.Currency
-import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import java.math.BigDecimal
@@ -16,7 +15,7 @@ data class CreateProjectServiceRequest(
     val returnToInvestment: String,
     val startDate: ZonedDateTime,
     val endDate: ZonedDateTime,
-    val expectedFounding: BigDecimal,
+    val expectedFunding: BigDecimal,
     val currency: Currency,
     val minPerUser: BigDecimal,
     val maxPerUser: BigDecimal,

@@ -6,7 +6,6 @@ import java.math.BigDecimal
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Convert
-import javax.persistence.Embeddable
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -82,12 +81,16 @@ data class Project(
     @Column(nullable = false)
     var active: Boolean,
 
-    @ManyToMany
+//    TODO: wallet model
+//    @ManyToOne -> wallet
+//    var wallet: Wallet?,
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "project_document",
             joinColumns = [JoinColumn(name = "project_id")],
             inverseJoinColumns = [JoinColumn(name = "document_id")]
     )
     var documents: List<Document>?
 
-    // TODO: add @OneToMany for document and investors, lazy
+    // TODO: add @OneToMany for investors, lazy
 )

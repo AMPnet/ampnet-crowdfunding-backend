@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.service.impl.ProjectServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -14,14 +13,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 class ProjectServiceTest : JpaServiceTestBase() {
-
-    @Autowired
-    private lateinit var projectRepository: ProjectRepository
 
     private val projectService: ProjectService by lazy { ProjectServiceImpl(projectRepository) }
     private val user: User by lazy {
@@ -62,7 +57,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(project.returnToInvestment).isEqualTo(request.returnToInvestment)
             assertThat(project.startDate).isEqualTo(request.startDate)
             assertThat(project.endDate).isEqualTo(request.endDate)
-            assertThat(project.expectedFunding).isEqualByComparingTo(request.expectedFounding)
+            assertThat(project.expectedFunding).isEqualByComparingTo(request.expectedFunding)
             assertThat(project.currency).isEqualTo(request.currency)
             assertThat(project.minPerUser).isEqualByComparingTo(request.minPerUser)
             assertThat(project.maxPerUser).isEqualByComparingTo(request.maxPerUser)

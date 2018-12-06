@@ -31,6 +31,7 @@ CREATE TABLE project (
     created_by INT REFERENCES app_user(id) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     active BOOLEAN
+--     wallet_id int ref wallet(id)   TODO: think about wallet
 );
 
 CREATE TABLE project_investment(
