@@ -55,7 +55,7 @@ class WalletServiceImpl(
                     "Wallet with ownerId: $ownerId already exits")
         }
 
-        val wallet = Wallet::class.java.newInstance()
+        val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.ownerId = ownerId
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()
@@ -139,7 +139,7 @@ class WalletServiceImpl(
     }
 
     private fun saveTransaction(request: TransactionRequest): Transaction {
-        val transaction = Transaction::class.java.newInstance()
+        val transaction = Transaction::class.java.getConstructor().newInstance()
         transaction.timestamp = ZonedDateTime.now()
         transaction.currency = Currency.EUR
         transaction.walletId = request.walletId

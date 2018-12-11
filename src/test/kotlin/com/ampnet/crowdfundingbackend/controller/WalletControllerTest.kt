@@ -199,7 +199,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     private fun createUser(email: String): User {
-        val user = User::class.java.newInstance()
+        val user = User::class.java.getConstructor().newInstance()
         user.authMethod = AuthMethod.EMAIL
         user.createdAt = ZonedDateTime.now()
         user.email = email
@@ -211,7 +211,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     private fun createWalletForUser(userId: Int): Wallet {
-        val wallet = Wallet::class.java.newInstance()
+        val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.ownerId = userId
         wallet.currency = Currency.EUR
         wallet.transactions = emptyList()
