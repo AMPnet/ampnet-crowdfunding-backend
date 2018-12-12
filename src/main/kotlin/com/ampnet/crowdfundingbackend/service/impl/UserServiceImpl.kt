@@ -127,7 +127,7 @@ class UserServiceImpl(
     }
 
     private fun createUserFromRequest(request: CreateUserServiceRequest): User {
-        val user = User::class.java.newInstance()
+        val user = User::class.java.getConstructor().newInstance()
         user.email = request.email
         user.password = passwordEncoder.encode(request.password.orEmpty())
         user.firstName = request.firstName
@@ -163,7 +163,7 @@ class UserServiceImpl(
     }
 
     private fun createMailToken(user: User): MailToken {
-        val mailToken = MailToken::class.java.newInstance()
+        val mailToken = MailToken::class.java.getConstructor().newInstance()
         mailToken.user = user
         mailToken.token = generateToken()
         mailToken.createdAt = ZonedDateTime.now()

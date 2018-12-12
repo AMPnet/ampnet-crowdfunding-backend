@@ -43,7 +43,7 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun createOrganization(serviceRequest: OrganizationServiceRequest): Organization {
-        val organization = Organization::class.java.newInstance()
+        val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = serviceRequest.name
         organization.createdByUser = serviceRequest.owner
         organization.legalInfo = serviceRequest.legalInfo
@@ -105,7 +105,7 @@ class OrganizationServiceImpl(
                     "User ${it.userId} is already a member of this organization ${it.organizationId}")
         }
 
-        val membership = OrganizationMembership::class.java.newInstance()
+        val membership = OrganizationMembership::class.java.getConstructor().newInstance()
         membership.organizationId = organizationId
         membership.userId = userId
         membership.role = getRole(role)
@@ -125,7 +125,7 @@ class OrganizationServiceImpl(
                     "User is already invited to join organization")
         }
 
-        val organizationInvite = OrganizationInvite::class.java.newInstance()
+        val organizationInvite = OrganizationInvite::class.java.getConstructor().newInstance()
         organizationInvite.organizationId = request.organizationId
         organizationInvite.userId = user.id
         organizationInvite.role = getRole(request.roleType)
@@ -164,7 +164,7 @@ class OrganizationServiceImpl(
         ServiceUtils.wrapOptional(followerRepository.findByUserIdAndOrganizationId(userId, organizationId))?.let {
             return it
         }
-        val follower = OrganizationFollower::class.java.newInstance()
+        val follower = OrganizationFollower::class.java.getConstructor().newInstance()
         follower.userId = userId
         follower.organizationId = organizationId
         follower.createdAt = ZonedDateTime.now()

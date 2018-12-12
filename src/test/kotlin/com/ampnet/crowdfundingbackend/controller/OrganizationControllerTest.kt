@@ -362,7 +362,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     private fun createUser(email: String): User {
-        val user = User::class.java.newInstance()
+        val user = User::class.java.getConstructor().newInstance()
         user.authMethod = AuthMethod.EMAIL
         user.createdAt = ZonedDateTime.now()
         user.email = email
@@ -374,7 +374,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     private fun createOrganization(name: String): Organization {
-        val organization = Organization::class.java.newInstance()
+        val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = name
         organization.legalInfo = "some legal info"
         organization.createdAt = ZonedDateTime.now()
@@ -385,7 +385,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     private fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
-        val membership = OrganizationMembership::class.java.newInstance()
+        val membership = OrganizationMembership::class.java.getConstructor().newInstance()
         membership.userId = userId
         membership.organizationId = organizationId
         membership.role = roleRepository.getOne(role.id)
@@ -394,7 +394,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     private fun inviteUserToOrganization(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType) {
-        val invitation = OrganizationInvite::class.java.newInstance()
+        val invitation = OrganizationInvite::class.java.getConstructor().newInstance()
         invitation.userId = userId
         invitation.organizationId = organizationId
         invitation.invitedBy = invitedBy

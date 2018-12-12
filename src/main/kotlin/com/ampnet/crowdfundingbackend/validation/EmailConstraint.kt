@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.validation
 
+import javax.validation.Constraint
 import javax.validation.Payload
 import javax.validation.ReportAsSingleViolation
 import javax.validation.constraints.Email
@@ -7,6 +8,7 @@ import kotlin.reflect.KClass
 
 @MustBeDocumented
 @ReportAsSingleViolation
+@Constraint(validatedBy = [])
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 @Email

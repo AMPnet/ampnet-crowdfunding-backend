@@ -324,7 +324,7 @@ class UserControllerTest : ControllerTestBase() {
     }
 
     private fun createOrganization(name: String, createdBy: User): Organization {
-        val organization = Organization::class.java.newInstance()
+        val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = name
         organization.legalInfo = "Some info"
         organization.createdAt = ZonedDateTime.now()
@@ -335,7 +335,7 @@ class UserControllerTest : ControllerTestBase() {
     }
 
     private fun createOrganizationInvite(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType): OrganizationInvite {
-        val organizationInvite = OrganizationInvite::class.java.newInstance()
+        val organizationInvite = OrganizationInvite::class.java.getConstructor().newInstance()
         organizationInvite.userId = userId
         organizationInvite.organizationId = organizationId
         organizationInvite.invitedBy = invitedBy

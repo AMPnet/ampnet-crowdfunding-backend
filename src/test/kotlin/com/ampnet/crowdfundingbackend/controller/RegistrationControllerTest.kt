@@ -127,21 +127,112 @@ class RegistrationControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun invalidDataSignupRequestShouldFail() {
-        verify("The user cannot send request with invalid data (e.g. wrong mail format)") {
-            testUser.email = "invalid-mail.com"
-            testUser.password = "short"
-            testUser.firstName = ""
+    fun invalidCountryIdSignupRequestShouldFail() {
+        verify("The user cannot send request with invalid country id") {
+            testUser.email = "invalid@mail.com"
+            testUser.password = "passsssword"
+            testUser.firstName = "Name"
             testUser.lastName = "NoFirstName"
-            testUser.countryId = 999
-            testUser.phoneNumber = "012abc345wrong"
+            testUser.countryId = 0
+            testUser.phoneNumber = "0981234567"
             val invalidJsonRequest = generateSignupJson()
 
-            mockMvc.perform(
+            val result = mockMvc.perform(
                     post(pathSignup)
                             .content(invalidJsonRequest)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andReturn()
+
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
+        }
+    }
+
+    @Test
+    fun emptyNameSignupRequestShouldFail() {
+        verify("The user cannot send request with empty name") {
+            testUser.email = "test@email.com"
+            testUser.password = "passsssword"
+            testUser.firstName = ""
+            testUser.lastName = "NoFirstName"
+            testUser.countryId = 1
+            testUser.phoneNumber = "0981234567"
+            val invalidJsonRequest = generateSignupJson()
+
+            val result = mockMvc.perform(
+                    post(pathSignup)
+                            .content(invalidJsonRequest)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andReturn()
+
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
+        }
+    }
+
+    @Test
+    fun invalidEmailSignupRequestShouldFail() {
+        verify("The user cannot send request with invalid email") {
+            testUser.email = "invalid-mail.com"
+            testUser.password = "passssword"
+            testUser.firstName = "Name"
+            testUser.lastName = "NoFirstName"
+            testUser.countryId = 1
+            testUser.phoneNumber = "0981234567"
+            val invalidJsonRequest = generateSignupJson()
+
+            val result = mockMvc.perform(
+                    post(pathSignup)
+                            .content(invalidJsonRequest)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andReturn()
+
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
+        }
+    }
+
+    @Test
+    fun shortPasswordSignupRequestShouldFail() {
+        verify("The user cannot send request with too short passowrd") {
+            testUser.email = "invalid@mail.com"
+            testUser.password = "short"
+            testUser.firstName = "Name"
+            testUser.lastName = "NoFirstName"
+            testUser.countryId = 1
+            testUser.phoneNumber = "0981234567"
+            val invalidJsonRequest = generateSignupJson()
+
+            val result = mockMvc.perform(
+                    post(pathSignup)
+                            .content(invalidJsonRequest)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andReturn()
+
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
+        }
+    }
+
+    @Test
+    fun invalidPhoneNumberSignupRequestShouldFail() {
+        verify("The user cannot send request with invalid phone number") {
+            testUser.email = "invalid@mail.com"
+            testUser.password = "passssword"
+            testUser.firstName = "Name"
+            testUser.lastName = "NoFirstName"
+            testUser.countryId = 1
+            testUser.phoneNumber = "012abc345wrong"
+            val invalidJsonRequest = generateSignupJson()
+
+            val result = mockMvc.perform(
+                    post(pathSignup)
+                            .content(invalidJsonRequest)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andReturn()
+
+            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
         }
     }
 
