@@ -47,7 +47,7 @@ class ProjectInvestmentServiceImpl(
     }
 
     private fun verifyProjectDidNotReachExpectedInvestment(project: Project) {
-        // TODO: fetch project funds from blockchain, project.walletAddress
+        // TODO: fetch project funds from blockchain, project.wallet.address
         val currentFunds = BigDecimal.ONE
         if (currentFunds == project.expectedFunding) {
             throw InvalidRequestException(

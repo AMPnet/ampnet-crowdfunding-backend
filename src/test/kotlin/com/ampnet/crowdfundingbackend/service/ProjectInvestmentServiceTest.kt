@@ -158,7 +158,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         suppose("User does not have enough funds on wallet") {
             testContext.investmentRequest = ProjectInvestmentRequest(
                     testContext.project, user, BigDecimal(100), Currency.EUR)
-            // TODO: mock blockchain service
+            // TODO: mock blockchain service, current user funds are BigDecimal.ONE
         }
 
         verify("Service will throw exception investment below project minimum") {
@@ -169,7 +169,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
     }
 
-    @Disabled
+    @Disabled("Need blockchain service")
     @Test
     fun otherProjectInvestmentsMustNotBeCalculateToMaxPerUserFunding() {
         suppose("Project exists") {
