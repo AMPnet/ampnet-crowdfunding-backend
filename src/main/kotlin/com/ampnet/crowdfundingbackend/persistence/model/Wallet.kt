@@ -1,16 +1,15 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
 import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.WalletType
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
-import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
-import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Entity
@@ -20,15 +19,16 @@ data class Wallet(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
 
-    @Column(nullable = false)
-    var ownerId: Int,
+    @Column(nullable = false, length = 42)
+    var address: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 8)
+    var type: WalletType,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
     var currency: Currency,
-
-    @OneToMany(mappedBy = "walletId", fetch = FetchType.LAZY)
-    var transactions: List<Transaction>,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime

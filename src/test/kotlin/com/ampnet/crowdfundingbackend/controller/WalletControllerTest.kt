@@ -1,88 +1,55 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletDepositRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
-import com.ampnet.crowdfundingbackend.persistence.model.Transaction
-import com.ampnet.crowdfundingbackend.enums.TransactionType
+import com.ampnet.crowdfundingbackend.enums.WalletType
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.service.WalletService
-import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 class WalletControllerTest : ControllerTestBase() {
 
-    private val myWalletPath = "/wallet"
-    private val createWalletPath = "/wallet/create"
-    private val depositWalletPath = "/wallet/deposit"
-
-    @Autowired
-    private lateinit var walletService: WalletService
-    @Autowired
-    private lateinit var userRepository: UserRepository
-    @Autowired
-    private lateinit var roleRepository: RoleRepository
-    @Autowired
-    private lateinit var walletRepository: WalletRepository
+    private val walletPath = "/wallet"
 
     private lateinit var testData: TestData
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser("test@test.com")
-    }
+    private lateinit var user: User
 
     @BeforeEach
     fun initTestData() {
-        user.id
+        databaseCleanerService.deleteAllWalletsAndOwners()
         testData = TestData()
+        user = createUser("test@test.com")
     }
 
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToGetOwnWallet() {
         suppose("User wallet exists with one transaction") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            testData.wallet = createWalletForUser(user.id)
-            testData.transaction = depositToWallet(testData.wallet)
+            testData.wallet = createWalletForUser(user, testData.address)
         }
 
         verify("Controller returns user wallet response") {
-            val result = mockMvc.perform(get(myWalletPath))
+            val result = mockMvc.perform(get(walletPath))
                     .andExpect(status().isOk)
                     .andReturn()
 
             val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(walletResponse.id).isEqualTo(testData.wallet.id)
-            assertThat(walletResponse.currency).isEqualTo(testData.wallet.currency.name)
+            assertThat(walletResponse.address).isEqualTo(testData.address)
+            assertThat(walletResponse.currency).isEqualTo(testData.wallet.currency)
+            assertThat(walletResponse.type).isEqualTo(testData.wallet.type)
             assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(walletResponse.transactions).hasSize(1)
-
-            val transactionResponse = walletResponse.transactions[0]
-            assertThat(transactionResponse.id).isEqualTo(testData.transaction.id)
-            assertThat(transactionResponse.currency).isEqualTo(testData.transaction.currency.name)
-            assertThat(transactionResponse.amount).isEqualTo(testData.transaction.amount)
-            assertThat(transactionResponse.receiver).isEqualTo(testData.transaction.receiver)
-            assertThat(transactionResponse.sender).isEqualTo(testData.transaction.sender)
-            assertThat(transactionResponse.txHash).isEqualTo(testData.transaction.txHash)
-            assertThat(transactionResponse.timestamp).isEqualTo(testData.transaction.timestamp)
 
             // TODO: change balance, mock fetching from blockchain
             assertThat(walletResponse.balance).isZero()
@@ -92,12 +59,8 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustReturnNotFoundForMissingWallet() {
-        suppose("User does not have a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-        }
-
         verify("Controller returns 404 for missing wallet") {
-            mockMvc.perform(get(myWalletPath))
+            mockMvc.perform(get(walletPath))
                     .andExpect(status().isNotFound)
         }
     }
@@ -105,29 +68,33 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToCreateWallet() {
-        suppose("User does not have a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            user.id
-        }
-
         verify("User can create a wallet") {
-            val result = mockMvc.perform(post(createWalletPath))
+            val request = WalletCreateRequest(testData.address)
+            val result = mockMvc.perform(
+                    post(walletPath)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk)
                     .andReturn()
 
             val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(walletResponse.id).isNotNull()
-            assertThat(walletResponse.currency).isEqualTo(Currency.EUR.name) // default currency is eur
+            assertThat(walletResponse.address).isEqualTo(testData.address)
+            assertThat(walletResponse.currency).isEqualTo(Currency.EUR)
+            assertThat(walletResponse.type).isEqualTo(WalletType.USER)
             assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(walletResponse.transactions).hasSize(0)
 
             testData.walletId = walletResponse.id
         }
 
         verify("Wallet is created") {
-            val wallet = walletRepository.findByOwnerId(user.id)
-            assertThat(wallet).isPresent
-            assertThat(wallet.get().id).isEqualTo(testData.walletId)
+            val userWithWallet = userRepository.findByEmailWithWallet(user.email)
+            assertThat(userWithWallet).isPresent
+            assertThat(userWithWallet.get().wallet).isNotNull
+
+            val wallet = userWithWallet.get().wallet!!
+            assertThat(wallet.id).isEqualTo(testData.walletId)
+            assertThat(wallet.address).isEqualTo(testData.address)
         }
     }
 
@@ -135,103 +102,48 @@ class WalletControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustNotBeAbleToCreateAdditionalWallet() {
         suppose("User wallet exists") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            testData.wallet = createWalletForUser(user.id)
+            testData.wallet = createWalletForUser(user, testData.address)
         }
 
         verify("User cannot create a wallet") {
-            mockMvc.perform(post(createWalletPath))
+            val request = WalletCreateRequest(testData.address)
+            mockMvc.perform(
+                    post(walletPath)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest)
                     .andReturn()
         }
     }
 
     @Test
-    @WithMockCrowdfoundUser("test@test.com")
-    fun mustBeAbleToDepositToOwnWallet() {
-        suppose("User wallet exists") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            testData.wallet = createWalletForUser(user.id)
-        }
-
-        verify("User can deposit to own wallet") {
-            val request = WalletDepositRequest(BigDecimal("6.66"), "electro")
-            val result = mockMvc.perform(post(depositWalletPath)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk)
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustNotBeAbleToCreateWalletWithInvalidAddress() {
+        verify("User cannot create wallet with invalid wallet address") {
+            val request = WalletCreateRequest("0x00")
+            mockMvc.perform(
+                    post(walletPath)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest)
                     .andReturn()
-
-            val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(transactionResponse.type).isEqualTo(TransactionType.DEPOSIT.name)
-            assertThat(transactionResponse.id).isNotNull()
-            assertThat(transactionResponse.sender).isEqualTo(request.sender)
-            assertThat(transactionResponse.amount).isEqualTo(request.amount)
-            assertThat(transactionResponse.currency).isEqualTo(Currency.EUR.name)
-            assertThat(transactionResponse.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(transactionResponse.txHash).isNotBlank()
-
-            testData.transactionId = transactionResponse.id
-        }
-
-        verify("Transaction is stored in database") {
-            val wallet = walletService.getWalletWithTransactionsForUser(user.id)
-            assertThat(wallet).isNotNull
-            assertThat(wallet!!.transactions).hasSize(1)
-            assertThat(wallet.transactions[0].id).isEqualTo(testData.transactionId)
         }
     }
 
     @Test
-    @WithMockCrowdfoundUser("test@test.com")
-    fun mustReturnErrorIfUserTriesToDepositWithoutWallet() {
-        suppose("User does not have a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-        }
-
-        verify("Controller will return error if user tries to deposit founds") {
-            val request = WalletDepositRequest(BigDecimal("6.66"), "electro")
-            mockMvc.perform(post(depositWalletPath)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+    @WithMockCrowdfoundUser(email = "missing@user.com")
+    fun mustReturnErrorForNonExistingUser() {
+        verify("Controller will return not found for missing user") {
+            val response = mockMvc.perform(get(walletPath))
                     .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
         }
-    }
-
-    private fun createUser(email: String): User {
-        val user = User::class.java.getConstructor().newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = "First"
-        user.lastName = "Last"
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
-    }
-
-    private fun createWalletForUser(userId: Int): Wallet {
-        val wallet = Wallet::class.java.getConstructor().newInstance()
-        wallet.ownerId = userId
-        wallet.currency = Currency.EUR
-        wallet.transactions = emptyList()
-        wallet.createdAt = ZonedDateTime.now()
-        return walletRepository.save(wallet)
-    }
-
-    private fun depositToWallet(wallet: Wallet): Transaction {
-        val amount = BigDecimal("6.66")
-        val sender = "sender"
-        val txHash = "tx_hash"
-        val currency = Currency.EUR
-        val depositRequest = DepositRequest(wallet, amount, currency, sender, txHash)
-        return walletService.depositToWallet(depositRequest)
     }
 
     private class TestData {
         lateinit var wallet: Wallet
-        lateinit var transaction: Transaction
         var walletId = -1
-        var transactionId = -1
+        var address = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
     }
 }

@@ -7,7 +7,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -36,8 +35,6 @@ class AuthenticationControllerTest : ControllerTestBase() {
     private lateinit var tokenProvider: TokenProvider
     @Autowired
     private lateinit var socialService: SocialService
-    @Autowired
-    private lateinit var userRepository: UserRepository
 
     private lateinit var result: MvcResult
     private lateinit var user: User

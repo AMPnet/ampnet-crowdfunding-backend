@@ -4,10 +4,11 @@ import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.config.PasswordEncoderConfig
-import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
+import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -19,7 +20,6 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteR
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.TransactionRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import org.junit.jupiter.api.extension.ExtendWith
@@ -57,8 +57,6 @@ abstract class JpaServiceTestBase : TestBase() {
     @Autowired
     protected lateinit var walletRepository: WalletRepository
     @Autowired
-    protected lateinit var transactionRepository: TransactionRepository
-    @Autowired
     protected lateinit var countryRepository: CountryRepository
     @Autowired
     protected lateinit var mailTokenRepository: MailTokenRepository
@@ -93,11 +91,18 @@ abstract class JpaServiceTestBase : TestBase() {
         return organizationRepository.save(organization)
     }
 
-    protected fun createWalletForUser(userId: Int): Wallet {
+    protected fun createWalletForUser(user: User, address: String): Wallet {
+        val wallet = createWallet(address, WalletType.USER)
+        user.wallet = wallet
+        userRepository.save(user)
+        return wallet
+    }
+
+    protected fun createWallet(address: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
-        wallet.ownerId = userId
+        wallet.address = address
+        wallet.type = type
         wallet.currency = Currency.EUR
-        wallet.transactions = emptyList()
         wallet.createdAt = ZonedDateTime.now()
         return walletRepository.save(wallet)
     }

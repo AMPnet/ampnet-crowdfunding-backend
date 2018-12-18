@@ -8,6 +8,7 @@ import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
+import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
@@ -58,7 +59,11 @@ data class User(
 
     @OneToMany
     @JoinColumn(name = "userId")
-    var organizations: List<OrganizationMembership>?
+    var organizations: List<OrganizationMembership>?,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id")
+    var wallet: Wallet?
 
 ) {
     fun getAuthorities(): Set<SimpleGrantedAuthority> {
