@@ -15,6 +15,7 @@ import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 import javax.persistence.OneToMany
+import javax.persistence.OneToOne
 import javax.persistence.Table
 
 @Entity
@@ -57,11 +58,11 @@ data class User(
     @Column(nullable = false)
     var enabled: Boolean,
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     var organizations: List<OrganizationMembership>?,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id")
     var wallet: Wallet?
 
