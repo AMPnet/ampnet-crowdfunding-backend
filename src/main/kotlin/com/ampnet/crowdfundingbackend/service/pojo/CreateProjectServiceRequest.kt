@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 data class CreateProjectServiceRequest(
-    val organization: Organization, // or use organizationId
+    val organization: Organization,
     val name: String,
     val description: String,
     val location: String,

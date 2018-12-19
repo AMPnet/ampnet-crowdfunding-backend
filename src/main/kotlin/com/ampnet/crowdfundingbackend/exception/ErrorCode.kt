@@ -27,7 +27,7 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     // Wallet: 05
     WALLET_MISSING("05", "01", "User does not have a wallet"),
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),
-    WALLET_FOUNDS("05", "03", "User does not have enough funds on wallet"),
+    WALLET_FUNDS("05", "03", "User does not have enough funds on wallet"),
 
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),

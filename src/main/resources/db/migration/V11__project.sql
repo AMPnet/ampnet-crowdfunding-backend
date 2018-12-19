@@ -28,7 +28,7 @@ CREATE TABLE project (
     created_by INT REFERENCES app_user(id) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     wallet_id INT REFERENCES wallet(id),
-    active BOOLEAN
+    active BOOLEAN NOT NULL
 );
 
 CREATE TABLE project_document(

@@ -2,9 +2,11 @@ package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
+import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,16 +14,16 @@ import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
-class ProjectInvestmentServiceImpl : ProjectInvestmentService {
+class ProjectInvestmentServiceImpl(private val walletService: WalletService) : ProjectInvestmentService {
 
     @Transactional
-    @Throws(InvalidRequestException::class)
+    @Throws(InvalidRequestException::class, ResourceNotFoundException::class)
     override fun investToProject(request: ProjectInvestmentRequest) {
         verifyProjectIsStillActive(request.project)
         verifyInvestmentAmountIsValid(request.project, request.amount)
+        verifyUserHasEnoughFunds(request.investor, request.amount)
         verifyProjectDidNotReachExpectedInvestment(request.project)
         verifyUserDidNotReachMaximumInvestment(request)
-        verifyUserHasEnoughFunds(request.investor, request.amount)
     }
 
     private fun verifyProjectIsStillActive(project: Project) {
@@ -43,36 +45,33 @@ class ProjectInvestmentServiceImpl : ProjectInvestmentService {
         }
     }
 
+    private fun verifyUserHasEnoughFunds(user: User, amount: BigDecimal) {
+        val wallet = user.wallet
+                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have the wallet")
+
+        val funds = walletService.getWalletBalance(wallet)
+        if (funds < amount) {
+            throw InvalidRequestException(ErrorCode.WALLET_FUNDS, "User does not have enough funds on wallet")
+        }
+    }
+
     private fun verifyProjectDidNotReachExpectedInvestment(project: Project) {
-        // TODO: fetch project funds from blockchain, project.wallet.address
-        val currentFunds = BigDecimal.ONE
+        val wallet = project.wallet
+                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "Project does not have the wallet")
+
+        val currentFunds = walletService.getWalletBalance(wallet)
         if (currentFunds == project.expectedFunding) {
             throw InvalidRequestException(
-                    ErrorCode.PRJ_MAX_FUNDS, "Project has reached expected founding: $currentFunds")
+                    ErrorCode.PRJ_MAX_FUNDS, "Project has reached expected funding: $currentFunds")
         }
     }
 
     private fun verifyUserDidNotReachMaximumInvestment(request: ProjectInvestmentRequest) {
-//        val allInvestmentsToProject = projectInvestmentRepository
-//                .findByProjectIdAndUserId(request.project.id, request.investor.id)
-//        val currentInvestment = allInvestmentsToProject
-//                // TODO: filter by transaction state, skip only failed or better create specific query
-//                .map { it.transaction.amount }
-//                .stream()
-//                .reduce(BigDecimal.ZERO, BigDecimal::add)
-
+        // TODO: implement logic: fetch all user investments in current project
         val currentInvestment = BigDecimal.ZERO
         if ((currentInvestment + request.amount) > request.project.maxPerUser) {
             val maxInvestment = request.project.maxPerUser.minus(currentInvestment)
             throw InvalidRequestException(ErrorCode.PRJ_MAX_PER_USER, "User can invest max $maxInvestment")
-        }
-    }
-
-    private fun verifyUserHasEnoughFunds(user: User, amount: BigDecimal) {
-        // TODO: fetch from blockchain
-        val funds = BigDecimal.ZERO
-        if (funds < amount) {
-            throw InvalidRequestException(ErrorCode.WALLET_FOUNDS, "User does not have enough founds on wallet")
         }
     }
 }

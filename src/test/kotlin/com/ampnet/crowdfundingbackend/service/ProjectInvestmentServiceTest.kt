@@ -3,10 +3,12 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.ProjectInvestmentServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -15,11 +17,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
     private val projectInvestmentService: ProjectInvestmentService by lazy {
-        ProjectInvestmentServiceImpl()
+        val walletService = WalletServiceImpl(walletRepository, userRepository, projectRepository)
+        ProjectInvestmentServiceImpl(walletService)
     }
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()
@@ -119,6 +123,44 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustThrowExceptionIfUserDoesNotHaveWallet() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("test name", organization, user)
+        }
+
+        verify("Service will throw exception that user wallet is missing") {
+            val investmentRequest = ProjectInvestmentRequest(
+                    testContext.project, user, BigDecimal(100), Currency.EUR)
+            val exception = assertThrows<ResourceNotFoundException> {
+                projectInvestmentService.investToProject(investmentRequest)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Disabled
+    @Test
+    fun mustThrowExceptionIfProjectDoesNotHaveWallet() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("test name", organization, user)
+        }
+        suppose("User has a wallet") {
+            // TODO: create user wallet, delete wallets and refactor creating user because deleting wallets deletes users
+        }
+
+        verify("Service will throw exception that project wallet is missing") {
+            val investmentRequest = ProjectInvestmentRequest(
+                    testContext.project, user, BigDecimal(100), Currency.EUR)
+            val exception = assertThrows<ResourceNotFoundException> {
+                projectInvestmentService.investToProject(investmentRequest)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
+        }
+    }
+
     @Disabled("Define transactions")
     @Test
     fun mustThrowExceptionIfUserReachedMaximumFunding() {
@@ -128,8 +170,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
                     maxPerUser = BigDecimal(10_000))
         }
         suppose("User invested once") {
-//            databaseCleanerService.deleteAllProjectInvestmentsAndTransactions()
-//            createProjectInvestment(user, wallet.id, testContext.project, BigDecimal(9_000))
+            // TODO: invest to project 9_000 greenars
         }
         suppose("Request amount is about maximum per user") {
             testContext.investmentRequest = ProjectInvestmentRequest(
@@ -144,6 +185,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Disabled("Create user wallet")
     @Test
     fun mustThrowExceptionIfUserDoesNotEnoughFunds() {
         suppose("Project exists") {
@@ -160,7 +202,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
             val exception = assertThrows<InvalidRequestException> {
                 projectInvestmentService.investToProject(testContext.investmentRequest)
             }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_FOUNDS)
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_FUNDS)
         }
     }
 
@@ -173,14 +215,13 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
                     maxPerUser = BigDecimal(10_000))
         }
         suppose("User invested once") {
-//            databaseCleanerService.deleteAllProjectInvestmentsAndTransactions()
-//            createProjectInvestment(user, wallet.id, testContext.project, BigDecimal(5_000))
+            // TODO: invest to project
         }
         suppose("User invested in other project") {
-//            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
-//            val secondProject = createProject(
-//                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = BigDecimal(10_000))
-//            createProjectInvestment(user, wallet.id, secondProject, BigDecimal(5_000))
+            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
+            val secondProject = createProject(
+                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = BigDecimal(10_000))
+            // TODO: invest to second project
         }
         suppose("User has enough funds on wallet") {
             testContext.investmentRequest = ProjectInvestmentRequest(
@@ -190,9 +231,6 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
         verify("Service will accept second investment") {
             projectInvestmentService.investToProject(testContext.investmentRequest)
-        }
-        verify("Transaction is saved") {
-            // TODO: verify
         }
     }
 
