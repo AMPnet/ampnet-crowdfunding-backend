@@ -8,8 +8,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserR
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
@@ -17,8 +15,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -38,10 +34,6 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var organizationService: OrganizationService
-    @Autowired
-    private lateinit var userRepository: UserRepository
-    @Autowired
-    private lateinit var roleRepository: RoleRepository
     @Autowired
     private lateinit var organizationRepository: OrganizationRepository
     @Autowired
@@ -359,18 +351,6 @@ class OrganizationControllerTest : ControllerTestBase() {
                     post("$organizationPath/${testContext.organization.id}/invite/${testContext.user2.id}/revoke"))
                     .andExpect(status().isOk)
         }
-    }
-
-    private fun createUser(email: String): User {
-        val user = User::class.java.getConstructor().newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = "First"
-        user.lastName = "Last"
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
     }
 
     private fun createOrganization(name: String): Organization {
