@@ -13,9 +13,8 @@ class DatabaseCleanerService(val em: EntityManager) {
     }
 
     @Transactional
-    fun deleteAllWalletsAndTransactions() {
+    fun deleteAllWalletsAndOwners() {
         em.createNativeQuery("TRUNCATE wallet CASCADE").executeUpdate()
-        em.createNativeQuery("TRUNCATE transaction CASCADE").executeUpdate()
     }
 
     @Transactional
@@ -46,11 +45,5 @@ class DatabaseCleanerService(val em: EntityManager) {
     @Transactional
     fun deleteAllProjects() {
         em.createNativeQuery("TRUNCATE project CASCADE").executeUpdate()
-    }
-
-    @Transactional
-    fun deleteAllProjectInvestmentsAndTransactions() {
-        em.createNativeQuery("TRUNCATE transaction CASCADE").executeUpdate()
-        em.createNativeQuery("TRUNCATE project_investment CASCADE").executeUpdate()
     }
 }

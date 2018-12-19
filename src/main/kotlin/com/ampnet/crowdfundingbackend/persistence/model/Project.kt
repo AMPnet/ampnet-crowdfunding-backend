@@ -17,6 +17,7 @@ import javax.persistence.JoinColumn
 import javax.persistence.JoinTable
 import javax.persistence.ManyToMany
 import javax.persistence.ManyToOne
+import javax.persistence.OneToOne
 import javax.persistence.Table
 
 @Entity
@@ -81,9 +82,9 @@ data class Project(
     @Column(nullable = false)
     var active: Boolean,
 
-//    TODO: wallet model
-//    @ManyToOne -> wallet
-//    var wallet: Wallet?,
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id")
+    var wallet: Wallet?,
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "project_document",
@@ -91,6 +92,4 @@ data class Project(
             inverseJoinColumns = [JoinColumn(name = "document_id")]
     )
     var documents: List<Document>?
-
-    // TODO: add @OneToMany for investors, lazy
 )

@@ -4,7 +4,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.ProjectInvestmentRepository
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import org.springframework.stereotype.Service
@@ -13,9 +12,7 @@ import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
-class ProjectInvestmentServiceImpl(
-    private val projectInvestmentRepository: ProjectInvestmentRepository
-) : ProjectInvestmentService {
+class ProjectInvestmentServiceImpl : ProjectInvestmentService {
 
     @Transactional
     @Throws(InvalidRequestException::class)
@@ -56,14 +53,15 @@ class ProjectInvestmentServiceImpl(
     }
 
     private fun verifyUserDidNotReachMaximumInvestment(request: ProjectInvestmentRequest) {
-        val allInvestmentsToProject = projectInvestmentRepository
-                .findByProjectIdAndUserId(request.project.id, request.investor.id)
-        val currentInvestment = allInvestmentsToProject
-                // TODO: filter by transaction state, skip only failed or better create specific query
-                .map { it.transaction.amount }
-                .stream()
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
+//        val allInvestmentsToProject = projectInvestmentRepository
+//                .findByProjectIdAndUserId(request.project.id, request.investor.id)
+//        val currentInvestment = allInvestmentsToProject
+//                // TODO: filter by transaction state, skip only failed or better create specific query
+//                .map { it.transaction.amount }
+//                .stream()
+//                .reduce(BigDecimal.ZERO, BigDecimal::add)
 
+        val currentInvestment = BigDecimal.ZERO
         if ((currentInvestment + request.amount) > request.project.maxPerUser) {
             val maxInvestment = request.project.maxPerUser.minus(currentInvestment)
             throw InvalidRequestException(ErrorCode.PRJ_MAX_PER_USER, "User can invest max $maxInvestment")

@@ -253,23 +253,25 @@ include::{snippets}/WalletControllerTest/mustReturnNotFoundForMissingWallet/http
 .Response
 include::{snippets}/WalletControllerTest/mustReturnNotFoundForMissingWallet/http-response.adoc[]
 
-=== Create wallet for active user
+=== Create Wallet
+
+==== Create wallet for active user
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateWallet/http-response.adoc[]
 
-=== Active user cannot create additional wallet
+==== Active user cannot create wallet with invalid wallet address
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-response.adoc[]
+
+==== Active user cannot create additional wallet
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-response.adoc[]
-
-=== Active user can deposit to wallet
-.Request
-include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-response.adoc[]
 
 == Organization API
 Collection of endpoints for managing organization

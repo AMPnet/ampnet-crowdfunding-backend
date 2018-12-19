@@ -7,7 +7,6 @@ CREATE TABLE document (
     created_by INT REFERENCES app_user(id) NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
-
 CREATE INDEX idx_document_hash ON document(hash);
 
 CREATE TABLE project (
@@ -24,23 +23,13 @@ CREATE TABLE project (
     currency VARCHAR(3) NOT NULL,
     min_per_user DECIMAL(10,2) NOT NULL,
     max_per_user DECIMAL(10,2) NOT NULL,
-    investors INT REFERENCES app_user(id),
-    documents INT REFERENCES document(id),
     main_image VARCHAR,
     gallery TEXT,
     created_by INT REFERENCES app_user(id) NOT NULL,
     created_at TIMESTAMP NOT NULL,
+    wallet_id INT REFERENCES wallet(id),
     active BOOLEAN
 );
-
-CREATE TABLE project_investment(
-    id SERIAL PRIMARY KEY,
-    project_id INT REFERENCES project(id) NOT NULL,
-    user_id INT REFERENCES app_user(id) NOT NULL,
-    transaction_id INT REFERENCES transaction(id) NOT NULL
-);
-
-CREATE INDEX idx_project_investor_project_id ON project_investment(project_id);
 
 CREATE TABLE project_document(
     project_id INT REFERENCES project(id) NOT NULL,
