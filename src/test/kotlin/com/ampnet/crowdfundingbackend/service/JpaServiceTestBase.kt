@@ -103,6 +103,13 @@ abstract class JpaServiceTestBase : TestBase() {
         return wallet
     }
 
+    protected fun createWalletForProject(project: Project, address: String): Wallet {
+        val wallet = createWallet(address, WalletType.PROJECT)
+        project.wallet = wallet
+        projectRepository.save(project)
+        return wallet
+    }
+
     protected fun createWallet(address: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.address = address

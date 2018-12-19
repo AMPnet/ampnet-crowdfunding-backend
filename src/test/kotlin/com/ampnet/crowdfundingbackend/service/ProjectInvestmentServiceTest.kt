@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.ZonedDateTime
-import java.util.UUID
 
 class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
@@ -178,9 +177,9 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 //            createProjectInvestment(user, wallet.id, testContext.project, BigDecimal(5_000))
         }
         suppose("User invested in other project") {
-            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
-            val secondProject = createProject(
-                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = BigDecimal(10_000))
+//            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
+//            val secondProject = createProject(
+//                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = BigDecimal(10_000))
 //            createProjectInvestment(user, wallet.id, secondProject, BigDecimal(5_000))
         }
         suppose("User has enough funds on wallet") {

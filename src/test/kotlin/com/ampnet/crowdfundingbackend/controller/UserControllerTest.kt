@@ -12,7 +12,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -35,8 +34,6 @@ class UserControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var userService: UserService
-    @Autowired
-    private lateinit var organizationRepository: OrganizationRepository
     @Autowired
     private lateinit var organizationInviteRepository: OrganizationInviteRepository
 
@@ -318,17 +315,6 @@ class UserControllerTest : ControllerTestBase() {
                 authMethod = testUser.authMethod
         )
         return userService.create(request)
-    }
-
-    private fun createOrganization(name: String, createdBy: User): Organization {
-        val organization = Organization::class.java.getConstructor().newInstance()
-        organization.name = name
-        organization.legalInfo = "Some info"
-        organization.createdAt = ZonedDateTime.now()
-        organization.approved = true
-        organization.createdByUser = createdBy
-        organization.documents = emptyList()
-        return organizationRepository.save(organization)
     }
 
     private fun createOrganizationInvite(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType): OrganizationInvite {

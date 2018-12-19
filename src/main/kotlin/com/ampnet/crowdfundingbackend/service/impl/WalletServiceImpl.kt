@@ -4,8 +4,10 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.WalletService
@@ -18,7 +20,8 @@ import java.time.ZonedDateTime
 @Service
 class WalletServiceImpl(
     private val walletRepository: WalletRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val projectRepository: ProjectRepository
 ) : WalletService {
 
     companion object : KLogging()
@@ -40,6 +43,20 @@ class WalletServiceImpl(
         val wallet = createWallet(address, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
+        return wallet
+    }
+
+    @Transactional
+    @Throws(ResourceAlreadyExistsException::class)
+    override fun createProjectWallet(project: Project, address: String): Wallet {
+        project.wallet?.let {
+            logger.info("Trying to create wallet for user: ${project.id} but user already has a wallet.")
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
+                    "Project: ${project.name} already has a wallet.")
+        }
+        val wallet = createWallet(address, WalletType.PROJECT)
+        project.wallet = wallet
+        projectRepository.save(project)
         return wallet
     }
 
