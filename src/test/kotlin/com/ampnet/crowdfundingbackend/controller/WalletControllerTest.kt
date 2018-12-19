@@ -239,9 +239,9 @@ class WalletControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustNotBeAbleToCreateWalletForNonExistingProject() {
         verify("User cannot create project wallet for non existing project") {
-            val request = WalletCreateRequest("0x00")
+            val request = WalletCreateRequest(testData.address)
             val response = mockMvc.perform(
-                    get("$projectWalletPath/0")
+                    post("$projectWalletPath/0")
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest)
