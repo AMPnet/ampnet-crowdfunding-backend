@@ -76,6 +76,7 @@ class WebSecurityConfig(
                 .antMatchers("/token/**", "/signup").permitAll()
                 .antMatchers("/countries/**").permitAll()
                 .antMatchers("/mail-confirmation").permitAll()
+                .antMatchers("/mail-check").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()

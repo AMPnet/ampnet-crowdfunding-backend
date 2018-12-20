@@ -1,9 +1,11 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
+import com.ampnet.crowdfundingbackend.controller.pojo.request.MailCheckRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocialInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
+import com.ampnet.crowdfundingbackend.controller.pojo.response.MailCheckResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
+import javax.validation.Valid
 import javax.validation.Validator
 
 @RestController
@@ -44,7 +47,7 @@ class RegistrationController(
     }
 
     @GetMapping("/mail-confirmation")
-    fun mailConfirmation(@RequestParam("token") token: String): ResponseEntity<Any> {
+    fun mailConfirmation(@RequestParam("token") token: String): ResponseEntity<Void> {
         logger.debug { "Received to confirm mail with token: $token" }
         try {
             val tokenUuid = UUID.fromString(token)
@@ -70,6 +73,13 @@ class RegistrationController(
         }
         logger.warn { "User ${userPrincipal.email} missing in database, trying to resend mail confirmation" }
         return ResponseEntity.notFound().build()
+    }
+
+    @PostMapping("/mail-check")
+    fun checkIfMailExists(@RequestBody @Valid request: MailCheckRequest): ResponseEntity<MailCheckResponse> {
+        logger.debug { "Received request to check if email exists: $request" }
+        val emailUsed = userService.find(request.email) != null
+        return ResponseEntity.ok(MailCheckResponse(request.email, emailUsed))
     }
 
     private fun createUserRequest(request: SignupRequest): CreateUserServiceRequest {

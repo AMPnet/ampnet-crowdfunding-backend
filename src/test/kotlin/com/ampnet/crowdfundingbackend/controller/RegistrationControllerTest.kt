@@ -1,5 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.MailCheckRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.MailCheckResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
@@ -37,6 +39,7 @@ class RegistrationControllerTest : ControllerTestBase() {
     private val pathSignup = "/signup"
     private val confirmationPath = "/mail-confirmation"
     private val resendConfirmationPath = "/mail-confirmation/resend"
+    private val checkMail = "/mail-check"
 
     @Autowired
     private lateinit var userService: UserService
@@ -401,6 +404,61 @@ class RegistrationControllerTest : ControllerTestBase() {
     fun unauthorizedUserCannotResendConfirmationEmail() {
         verify("User will get error unauthorized") {
             mockMvc.perform(get(resendConfirmationPath)).andExpect(status().isUnauthorized)
+        }
+    }
+
+    @Test
+    fun mustReturnFalseForUnusedEmail() {
+        suppose("Email is not used") {
+            databaseCleanerService.deleteAllUsers()
+        }
+
+        verify("User will get false for non existing email") {
+            val request = MailCheckRequest("missing@email.com")
+            val result = mockMvc.perform(
+                    post(checkMail)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val response: MailCheckResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(response.email).isEqualTo(request.email)
+            assertThat(response.userExists).isFalse()
+        }
+    }
+
+    @Test
+    fun mustReturnTrueIfEmailIsUsed() {
+        suppose("User exists") {
+            databaseCleanerService.deleteAllUsers()
+            saveTestUser()
+        }
+
+        verify("User will get true for used email") {
+            val request = MailCheckRequest(testUser.email)
+            val result = mockMvc.perform(
+                    post(checkMail)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val response: MailCheckResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(response.email).isEqualTo(request.email)
+            assertThat(response.userExists).isTrue()
+        }
+    }
+
+    @Test
+    fun mustReturnErrorForInvalidEmailFormat() {
+        verify("System will reject invalid Email format") {
+            val request = MailCheckRequest("invalid-format@")
+            mockMvc.perform(
+                    post(checkMail)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isBadRequest)
         }
     }
 
