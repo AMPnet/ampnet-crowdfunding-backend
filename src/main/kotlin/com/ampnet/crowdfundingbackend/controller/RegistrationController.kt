@@ -103,7 +103,7 @@ class RegistrationController(
                 }
             }
         } catch (ex: MissingKotlinParameterException) {
-            UserController.logger.info("Could not parse SignupRequest: $request", ex)
+            logger.info("Could not parse SignupRequest: $request", ex)
             throw InvalidRequestException(
                     ErrorCode.REG_INCOMPLETE, "Some fields missing or could not be parsed from JSON request.", ex)
         }
@@ -112,7 +112,7 @@ class RegistrationController(
     private fun validateRequestOrThrow(request: CreateUserServiceRequest) {
         val errors = validator.validate(request)
         if (!errors.isEmpty()) {
-            UserController.logger.info { "Invalid CreateUserServiceRequest: $request" }
+            logger.info { "Invalid CreateUserServiceRequest: $request" }
             throw InvalidRequestException(ErrorCode.REG_INVALID, errors.joinToString("; ") { it.message })
         }
     }
