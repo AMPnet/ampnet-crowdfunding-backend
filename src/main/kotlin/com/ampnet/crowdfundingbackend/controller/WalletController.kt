@@ -6,19 +6,26 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
 @RestController
-class WalletController(val walletService: WalletService, val userService: UserService) {
+class WalletController(
+    private val walletService: WalletService,
+    private val userService: UserService,
+    private val projectService: ProjectService
+) {
 
     companion object : KLogging()
 
@@ -48,9 +55,58 @@ class WalletController(val walletService: WalletService, val userService: UserSe
         return ResponseEntity.ok(response)
     }
 
+    @GetMapping("/wallet/project/{projectId}")
+    fun getProjectWallet(@PathVariable projectId: Int): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to get project($projectId) wallet" }
+
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+
+        val project = projectService.getProjectByIdWithWallet(projectId)
+                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
+        val user = getUser(userPrincipal.email)
+
+        if (project.createdBy.id == user.id) {
+            project.wallet?.let {
+                val balance = walletService.getWalletBalance(it)
+                val response = WalletResponse(it, balance)
+                return ResponseEntity.ok(response)
+            }
+            return ResponseEntity.notFound().build()
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
+    @PostMapping("/wallet/project/{projectId}")
+    fun createProjectWallet(
+        @PathVariable projectId: Int,
+        @RequestBody @Valid request: WalletCreateRequest
+    ): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to create project($projectId) wallet: $request" }
+
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+
+        val project = projectService.getProjectByIdWithWallet(projectId)
+                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
+        val user = getUser(userPrincipal.email)
+
+        if (project.createdBy.id == user.id) {
+            val wallet = walletService.createProjectWallet(project, request.address)
+            val balance = walletService.getWalletBalance(wallet)
+            val response = WalletResponse(wallet, balance)
+            return ResponseEntity.ok(response)
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
     private fun getUserWithWallet(email: String): User {
-        // think about adding UserId to UserPrincipal
         return userService.findWithWallet(email)
+                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
+    }
+
+    private fun getUser(email: String): User {
+        return userService.find(email)
                 ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
     }
 }

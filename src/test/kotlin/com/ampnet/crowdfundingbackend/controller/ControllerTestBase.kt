@@ -8,8 +8,12 @@ import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
+import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
@@ -31,6 +35,7 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
@@ -50,6 +55,10 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var roleRepository: RoleRepository
     @Autowired
     protected lateinit var walletRepository: WalletRepository
+    @Autowired
+    protected lateinit var projectRepository: ProjectRepository
+    @Autowired
+    protected lateinit var organizationRepository: OrganizationRepository
 
     protected lateinit var mockMvc: MockMvc
 
@@ -95,6 +104,13 @@ abstract class ControllerTestBase : TestBase() {
         return wallet
     }
 
+    protected fun createWalletForProject(project: Project, address: String): Wallet {
+        val wallet = createWallet(address, WalletType.PROJECT)
+        project.wallet = wallet
+        projectRepository.save(project)
+        return wallet
+    }
+
     protected fun createWallet(address: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.address = address
@@ -102,5 +118,46 @@ abstract class ControllerTestBase : TestBase() {
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()
         return walletRepository.save(wallet)
+    }
+
+    protected fun createOrganization(name: String, user: User): Organization {
+        val organization = Organization::class.java.getConstructor().newInstance()
+        organization.name = name
+        organization.legalInfo = "some legal info"
+        organization.createdAt = ZonedDateTime.now()
+        organization.approved = true
+        organization.createdByUser = user
+        organization.documents = listOf("hash1", "hash2", "hash3")
+        return organizationRepository.save(organization)
+    }
+
+    protected fun createProject(
+        name: String,
+        organization: Organization,
+        createdBy: User,
+        active: Boolean = true,
+        startDate: ZonedDateTime = ZonedDateTime.now(),
+        endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
+        expectedFunding: BigDecimal = BigDecimal(10_000_000),
+        minPerUser: BigDecimal = BigDecimal(10),
+        maxPerUser: BigDecimal = BigDecimal(10_000)
+    ): Project {
+        val project = Project::class.java.newInstance()
+        project.organization = organization
+        project.name = name
+        project.description = "description"
+        project.location = "location"
+        project.locationText = "locationText"
+        project.returnToInvestment = "0-1%"
+        project.startDate = startDate
+        project.endDate = endDate
+        project.expectedFunding = expectedFunding
+        project.currency = Currency.EUR
+        project.minPerUser = minPerUser
+        project.maxPerUser = maxPerUser
+        project.createdBy = createdBy
+        project.active = active
+        project.createdAt = startDate.minusMinutes(1)
+        return projectRepository.save(project)
     }
 }
