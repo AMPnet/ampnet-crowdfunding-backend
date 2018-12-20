@@ -53,12 +53,12 @@ class SocialServiceImpl(private val countryRepository: CountryRepository) : Soci
 
         try {
             val template = GoogleTemplate(token)
-            val userInfo = template.userOperations().userInfo
+            val userInfo = template.oauth2Operations().userinfo
             logger.debug { "Received Google user info with mail: ${userInfo.email}" }
             return SocialUser(
                     email = userInfo.email,
-                    firstName = userInfo.firstName,
-                    lastName = userInfo.lastName,
+                    firstName = userInfo.givenName,
+                    lastName = userInfo.familyName,
                     countryId = null
             )
         } catch (ex: Exception) {
