@@ -10,7 +10,7 @@ data class OrganizationResponse(
     val createdAt: ZonedDateTime,
     val approved: Boolean,
     val legalInfo: String,
-    val documents: List<String>
+    val documents: List<DocumentResponse>
 ) {
     constructor(organization: Organization): this(
             organization.id,
@@ -19,8 +19,10 @@ data class OrganizationResponse(
             organization.createdAt,
             organization.approved,
             organization.legalInfo,
-            organization.documents ?: emptyList()
+            organization.documents?.map { DocumentResponse(it) }.orEmpty()
     )
 }
 
+// TODO: think about defining OrganizationListResponse without documents, legalInfo...
+// also change the query for fetch list of organizations
 data class OrganizationListResponse(val organizations: List<OrganizationResponse>)

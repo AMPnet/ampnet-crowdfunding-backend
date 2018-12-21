@@ -57,10 +57,7 @@ class OrganizationController(
         logger.debug { "Received request to create organization: $request" }
         val user = getUserFromSecurityContext()
 
-        // TODO: use ipfs client and get document hashes
-        val documentHashes = emptyList<String>()
-
-        val serviceRequest = OrganizationServiceRequest(request, user, documentHashes)
+        val serviceRequest = OrganizationServiceRequest(request, user)
         val organization = organizationService.createOrganization(serviceRequest)
         return ResponseEntity.ok(OrganizationResponse(organization))
     }

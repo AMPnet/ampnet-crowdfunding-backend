@@ -1,8 +1,10 @@
 package com.ampnet.crowdfundingbackend.service
 
+import com.ampnet.crowdfundingbackend.enums.DocumentType
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
@@ -197,6 +199,48 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustGetOrganizationWithDocument() {
+        suppose("Organization has document") {
+            testContext.document = createOrganizationDocument(organization, user, "test doc", "0x00")
+        }
+
+        verify("Service returns organization with document") {
+            val organizationWithDocument = organizationService.findOrganizationById(organization.id)
+            assertThat(organizationWithDocument).isNotNull
+            assertThat(organizationWithDocument!!.id).isEqualTo(organization.id)
+            assertThat(organizationWithDocument.documents).hasSize(1)
+            verifyDocument(organizationWithDocument.documents!!.first(), testContext.document)
+        }
+    }
+
+    @Test
+    fun mustGetOrganizationWithMultipleDocuments() {
+        suppose("Organization has 3 documents") {
+            createOrganizationDocument(organization, user, "Doc 1", "0x01")
+            createOrganizationDocument(organization, user, "Doc 2", "0x02")
+            createOrganizationDocument(organization, user, "Doc 3", "0x03")
+        }
+
+        verify("Service returns organization with documents") {
+            val organizationWithDocument = organizationService.findOrganizationById(organization.id)
+            assertThat(organizationWithDocument).isNotNull
+            assertThat(organizationWithDocument!!.id).isEqualTo(organization.id)
+            assertThat(organizationWithDocument.documents).hasSize(3)
+            assertThat(organizationWithDocument.documents!!.map { it.hash }).containsAll(listOf("0x01", "0x02", "0x03"))
+        }
+    }
+
+    private fun verifyDocument(receivedDocument: Document, savedDocument: Document) {
+        assertThat(receivedDocument.id).isEqualTo(savedDocument.id)
+        assertThat(receivedDocument.hash).isEqualTo(savedDocument.hash)
+        assertThat(receivedDocument.name).isEqualTo(savedDocument.name)
+        assertThat(receivedDocument.size).isEqualTo(savedDocument.size)
+        assertThat(receivedDocument.type).isEqualTo(savedDocument.type)
+        assertThat(receivedDocument.createdAt).isEqualTo(savedDocument.createdAt)
+        assertThat(receivedDocument.createdBy.id).isEqualTo(savedDocument.createdBy.id)
+    }
+
     private fun verifyUserMembership(userId: Int, organizationId: Int, role: OrganizationRoleType) {
         val memberships = membershipRepository.findByUserId(userId)
         assertThat(memberships).hasSize(1)
@@ -207,8 +251,34 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         assertThat(membership.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
     }
 
+    protected fun createOrganizationDocument(
+        organization: Organization,
+        createdBy: User,
+        name: String,
+        hash: String,
+        type: DocumentType = DocumentType.DOC,
+        size: Int = 100
+    ): Document {
+        val document = Document::class.java.newInstance()
+        document.name = name
+        document.hash = hash
+        document.type = type
+        document.size = size
+        document.createdBy = createdBy
+        document.createdAt = ZonedDateTime.now()
+        val savedDocument = documentRepository.save(document)
+
+        val documents = organization.documents.orEmpty().toMutableList()
+        documents.add(savedDocument)
+
+        organization.documents = documents
+        organizationRepository.save(organization)
+        return savedDocument
+    }
+
     private class TestContext {
         lateinit var invitedUser: User
         lateinit var secondOrganization: Organization
+        lateinit var document: Document
     }
 }

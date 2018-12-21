@@ -47,7 +47,6 @@ class OrganizationServiceImpl(
         organization.name = serviceRequest.name
         organization.createdByUser = serviceRequest.owner
         organization.legalInfo = serviceRequest.legalInfo
-        organization.documents = serviceRequest.documentHashes
         organization.approved = false
         organization.createdAt = ZonedDateTime.now()
 
@@ -59,12 +58,12 @@ class OrganizationServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getAllOrganizations(): List<Organization> {
-        return organizationRepository.findAll()
+        return organizationRepository.findAllWithDocuments()
     }
 
     @Transactional(readOnly = true)
     override fun findOrganizationById(id: Int): Organization? {
-        return ServiceUtils.wrapOptional(organizationRepository.findById(id))
+        return ServiceUtils.wrapOptional(organizationRepository.findByIdWithDocuments(id))
     }
 
     @Transactional

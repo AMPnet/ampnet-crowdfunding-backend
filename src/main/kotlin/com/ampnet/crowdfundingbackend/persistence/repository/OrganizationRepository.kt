@@ -6,7 +6,12 @@ import org.springframework.data.jpa.repository.Query
 import java.util.Optional
 
 interface OrganizationRepository : JpaRepository<Organization, Int> {
-    fun findByName(name: String): Optional<Organization>
+
+    @Query("SELECT org FROM Organization org LEFT JOIN FETCH org.documents")
+    fun findAllWithDocuments(): List<Organization>
+
+    @Query("SELECT org FROM Organization org LEFT JOIN FETCH org.documents WHERE org.id = ?1")
+    fun findByIdWithDocuments(organizationId: Int): Optional<Organization>
 
     // Each Organization in the list will have only one membership because of inner join
     @Query("SELECT org FROM Organization org INNER JOIN FETCH org.memberships mem WHERE mem.userId = ?1")
