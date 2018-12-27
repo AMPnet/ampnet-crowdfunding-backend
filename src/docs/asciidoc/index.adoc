@@ -410,3 +410,40 @@ include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrgani
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
+
+== Project API
+Collection of endpoints for managing project
+
+=== Get project
+
+==== Project exists
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnProject/http-response.adoc[]
+
+==== Project missing
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
+
+=== Create project
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
+
+==== Successfully create
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToCreateProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToCreateProject/http-response.adoc[]
+
+==== Cannot create project without privilege
+User cannot create project without admin role in organization, privilege: PW_PROJECT
+
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-response.adoc[]

@@ -4,14 +4,17 @@ import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
@@ -59,6 +62,8 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var projectRepository: ProjectRepository
     @Autowired
     protected lateinit var organizationRepository: OrganizationRepository
+    @Autowired
+    private lateinit var membershipRepository: OrganizationMembershipRepository
 
     protected lateinit var mockMvc: MockMvc
 
@@ -129,6 +134,15 @@ abstract class ControllerTestBase : TestBase() {
         organization.createdByUser = user
         organization.documents = listOf("hash1", "hash2", "hash3")
         return organizationRepository.save(organization)
+    }
+
+    protected fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
+        val membership = OrganizationMembership::class.java.getConstructor().newInstance()
+        membership.userId = userId
+        membership.organizationId = organizationId
+        membership.role = roleRepository.getOne(role.id)
+        membership.createdAt = ZonedDateTime.now()
+        membershipRepository.save(membership)
     }
 
     protected fun createProject(

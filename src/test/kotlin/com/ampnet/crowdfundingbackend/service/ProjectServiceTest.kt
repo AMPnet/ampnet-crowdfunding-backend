@@ -63,7 +63,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(project.maxPerUser).isEqualByComparingTo(request.maxPerUser)
             assertThat(project.createdBy.id).isEqualTo(request.createdBy.id)
             assertThat(project.organization.id).isEqualTo(organization.id)
-            assertThat(project.active).isFalse()
+            assertThat(project.active).isEqualTo(request.active)
             assertThat(project.mainImage.isNullOrEmpty()).isTrue()
             assertThat(project.gallery.isNullOrEmpty()).isTrue()
             assertThat(project.documents.isNullOrEmpty()).isTrue()
@@ -86,6 +86,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     Currency.EUR,
                     BigDecimal("100"),
                     BigDecimal("10000"),
+                    false,
                     user
             )
         }
@@ -175,6 +176,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                 Currency.EUR,
                 BigDecimal("100"),
                 BigDecimal("10000"),
+                false,
                 user
         )
     }

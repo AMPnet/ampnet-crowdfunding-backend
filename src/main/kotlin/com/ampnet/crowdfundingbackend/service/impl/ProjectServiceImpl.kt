@@ -21,7 +21,6 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
 
         val project = createProjectFromRequest(request)
         project.createdAt = ZonedDateTime.now()
-        project.active = false
         return projectRepository.save(project)
     }
 
@@ -64,6 +63,7 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
         project.minPerUser = request.minPerUser
         project.maxPerUser = request.maxPerUser
         project.createdBy = request.createdBy
+        project.active = request.active
         return project
     }
 }

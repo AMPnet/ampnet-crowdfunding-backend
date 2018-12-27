@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -19,5 +20,23 @@ data class CreateProjectServiceRequest(
     val currency: Currency,
     val minPerUser: BigDecimal,
     val maxPerUser: BigDecimal,
+    val active: Boolean,
     val createdBy: User
-)
+) {
+    constructor(request: ProjectRequest, organization: Organization, user: User): this(
+        organization,
+            request.name,
+            request.description,
+            request.location,
+            request.locationText,
+            request.returnToInvestment,
+            request.startDate,
+            request.endDate,
+            request.expectedFunding,
+            request.currency,
+            request.minPerUser,
+            request.maxPerUser,
+            request.active,
+            user
+    )
+}

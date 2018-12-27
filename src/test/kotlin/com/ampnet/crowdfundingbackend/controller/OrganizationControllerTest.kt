@@ -10,10 +10,8 @@ import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -33,8 +31,6 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var organizationService: OrganizationService
-    @Autowired
-    private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     private lateinit var inviteRepository: OrganizationInviteRepository
 
@@ -348,15 +344,6 @@ class OrganizationControllerTest : ControllerTestBase() {
                     post("$organizationPath/${testContext.organization.id}/invite/${testContext.user2.id}/revoke"))
                     .andExpect(status().isOk)
         }
-    }
-
-    private fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
-        val membership = OrganizationMembership::class.java.getConstructor().newInstance()
-        membership.userId = userId
-        membership.organizationId = organizationId
-        membership.role = roleRepository.getOne(role.id)
-        membership.createdAt = ZonedDateTime.now()
-        membershipRepository.save(membership)
     }
 
     private fun inviteUserToOrganization(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType) {
