@@ -77,7 +77,6 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
             }
 
-            // TODO: mock blockchain/wallet service
             assertThat(projectResponse.currentFunding).isEqualByComparingTo(BigDecimal.ZERO)
         }
     }
@@ -209,8 +208,8 @@ class ProjectControllerTest : ControllerTestBase() {
                 name,
                 "description",
                 "location",
-        "locationText",
-        "1%-100%",
+                "locationText",
+                "1%-100%",
                 time,
                 time.plusDays(30),
                 BigDecimal(1_000_000),

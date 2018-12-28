@@ -43,5 +43,8 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     PRJ_MAX_PER_USER("07", "04", "User has exceeded max funds per project"),
     PRJ_MIN_PER_USER("07", "05", "Funding is below project minimum"),
     PRJ_MAX_FUNDS("07", "06", "Project has reached expected funding"),
-    PRJ_NOT_ACTIVE("07", "07", "Project is not active")
+    PRJ_NOT_ACTIVE("07", "07", "Project is not active"),
+    PRJ_MIN_ABOVE_MAX("07", "08", "Min investment per user is higher than max investment per user"),
+    PRJ_MAX_FUNDS_TOO_HIGH("07", "09", "Expected funding is too high"),
+    PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "09", "Max funding per user is too high")
 }

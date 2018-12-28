@@ -8,16 +8,18 @@ import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
 class ProjectServiceImpl(private val projectRepository: ProjectRepository) : ProjectService {
 
+    private val maxProjectInvestment = BigDecimal(100_000_000_000_000)
+    private val maxPerUserInvestment = BigDecimal(1_000_000_000_000)
+
     @Transactional
     override fun createProject(request: CreateProjectServiceRequest): Project {
-        if (request.endDate.isBefore(request.startDate)) {
-            throw InvalidRequestException(ErrorCode.PRJ_DATE, "End date cannot be before start date")
-        }
+        validateCreateProjectRequest(request)
 
         val project = createProjectFromRequest(request)
         project.createdAt = ZonedDateTime.now()
@@ -46,6 +48,27 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
         gallery.addAll(images)
         project.gallery = gallery
         projectRepository.save(project)
+    }
+
+    private fun validateCreateProjectRequest(request: CreateProjectServiceRequest) {
+        if (request.endDate.isBefore(request.startDate)) {
+            throw InvalidRequestException(ErrorCode.PRJ_DATE, "End date cannot be before start date")
+        }
+        if (request.endDate.isBefore(ZonedDateTime.now())) {
+            throw InvalidRequestException(ErrorCode.PRJ_DATE, "End date cannot be before present date")
+        }
+        if (request.minPerUser > request.maxPerUser) {
+            throw InvalidRequestException(ErrorCode.PRJ_MIN_ABOVE_MAX,
+                    "Min: ${request.minPerUser} > Max: ${request.maxPerUser}")
+        }
+        if (maxProjectInvestment <= request.expectedFunding) {
+            throw InvalidRequestException(ErrorCode.PRJ_MAX_FUNDS_TOO_HIGH,
+                    "Max expected funding is: $maxProjectInvestment")
+        }
+        if (maxPerUserInvestment <= request.maxPerUser) {
+            throw InvalidRequestException(ErrorCode.PRJ_MAX_FUNDS_PER_USER_TOO_HIGH,
+                    "Max funds per user is: $maxPerUserInvestment")
+        }
     }
 
     private fun createProjectFromRequest(request: CreateProjectServiceRequest): Project {

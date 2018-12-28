@@ -162,6 +162,126 @@ class ProjectServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustNotBeAbleToSetEndDateBeforePresent() {
+        suppose("Request has end date before present date") {
+            val currentTime = ZonedDateTime.now()
+            testContext.createProjectRequest = CreateProjectServiceRequest(
+                    organization,
+                    "Invalid end date",
+                    "Description",
+                    "location",
+                    "locationText",
+                    "1-2%",
+                    currentTime.minusDays(60),
+                    currentTime.minusDays(30),
+                    BigDecimal("1000000"),
+                    Currency.EUR,
+                    BigDecimal("100"),
+                    BigDecimal("10000"),
+                    false,
+                    user
+            )
+        }
+
+        verify("Service will throw an exception") {
+            val exception = assertThrows<InvalidRequestException> {
+                projectService.createProject(testContext.createProjectRequest)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.PRJ_DATE)
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToSetMinPerUserAboveMaxPerUser() {
+        suppose("Request has min per user value above max per user") {
+            val currentTime = ZonedDateTime.now()
+            testContext.createProjectRequest = CreateProjectServiceRequest(
+                    organization,
+                    "Invalid end date",
+                    "Description",
+                    "location",
+                    "locationText",
+                    "1-2%",
+                    currentTime,
+                    currentTime.plusDays(30),
+                    BigDecimal("1000000"),
+                    Currency.EUR,
+                    BigDecimal(1_000),
+                    BigDecimal(1),
+                    false,
+                    user
+            )
+        }
+
+        verify("Service will throw an exception") {
+            val exception = assertThrows<InvalidRequestException> {
+                projectService.createProject(testContext.createProjectRequest)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.PRJ_MIN_ABOVE_MAX)
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToSetMaxPerUserAboveSystemMax() {
+        suppose("Request has max per user value above system max") {
+            val currentTime = ZonedDateTime.now()
+            testContext.createProjectRequest = CreateProjectServiceRequest(
+                    organization,
+                    "Invalid end date",
+                    "Description",
+                    "location",
+                    "locationText",
+                    "1-2%",
+                    currentTime,
+                    currentTime.plusDays(30),
+                    BigDecimal(10_000_000_000_000),
+                    Currency.EUR,
+                    BigDecimal(1),
+                    BigDecimal(1_000_000_000_000),
+                    false,
+                    user
+            )
+        }
+
+        verify("Service will throw an exception") {
+            val exception = assertThrows<InvalidRequestException> {
+                projectService.createProject(testContext.createProjectRequest)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.PRJ_MAX_FUNDS_PER_USER_TOO_HIGH)
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToSetExpectedFundingAboveSystemMax() {
+        suppose("Request has max per user value above system max") {
+            val currentTime = ZonedDateTime.now()
+            testContext.createProjectRequest = CreateProjectServiceRequest(
+                    organization,
+                    "Invalid end date",
+                    "Description",
+                    "location",
+                    "locationText",
+                    "1-2%",
+                    currentTime,
+                    currentTime.plusDays(30),
+                    BigDecimal(100_000_000_000_000),
+                    Currency.EUR,
+                    BigDecimal(1),
+                    BigDecimal(1_000_000_000),
+                    false,
+                    user
+            )
+        }
+
+        verify("Service will throw an exception") {
+            val exception = assertThrows<InvalidRequestException> {
+                projectService.createProject(testContext.createProjectRequest)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.PRJ_MAX_FUNDS_TOO_HIGH)
+        }
+    }
+
     private fun createProjectRequest(name: String): CreateProjectServiceRequest {
         return CreateProjectServiceRequest(
                 organization,
