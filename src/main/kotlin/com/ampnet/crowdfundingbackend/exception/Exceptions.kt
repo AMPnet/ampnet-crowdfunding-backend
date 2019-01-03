@@ -13,3 +13,5 @@ class SocialException(val errorCode: ErrorCode, exceptionMessage: String, throwa
     : Exception(exceptionMessage, throwable)
 
 class TokenException(exceptionMessage: String, throwable: Throwable? = null) : Exception(exceptionMessage, throwable)
+
+class IpfsException(exceptionMessage: String, throwable: Throwable? = null) : Exception(exceptionMessage, throwable)
