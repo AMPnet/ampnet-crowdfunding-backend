@@ -18,7 +18,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 class ProjectControllerTest : ControllerTestBase() {
@@ -65,10 +64,10 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.returnToInvestment).isEqualTo(testContext.project.returnToInvestment)
                 it.assertThat(projectResponse.startDate).isEqualTo(testContext.project.startDate)
                 it.assertThat(projectResponse.endDate).isEqualTo(testContext.project.endDate)
-                it.assertThat(projectResponse.expectedFunding).isEqualByComparingTo(testContext.project.expectedFunding)
+                it.assertThat(projectResponse.expectedFunding).isEqualTo(testContext.project.expectedFunding)
                 it.assertThat(projectResponse.currency).isEqualTo(testContext.project.currency)
-                it.assertThat(projectResponse.minPerUser).isEqualByComparingTo(testContext.project.minPerUser)
-                it.assertThat(projectResponse.maxPerUser).isEqualByComparingTo(testContext.project.maxPerUser)
+                it.assertThat(projectResponse.minPerUser).isEqualTo(testContext.project.minPerUser)
+                it.assertThat(projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
                 it.assertThat(projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
                 it.assertThat(projectResponse.gallery).isEqualTo(testContext.project.gallery.orEmpty())
                 it.assertThat(projectResponse.active).isEqualTo(testContext.project.active)
@@ -77,7 +76,7 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
             }
 
-            assertThat(projectResponse.currentFunding).isEqualByComparingTo(BigDecimal.ZERO)
+            assertThat(projectResponse.currentFunding).isEqualTo(0)
         }
     }
 
@@ -181,11 +180,11 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.startDate).isEqualTo(testContext.projectRequest.startDate)
                 it.assertThat(projectResponse.endDate).isEqualTo(testContext.projectRequest.endDate)
                 it.assertThat(projectResponse.expectedFunding)
-                        .isEqualByComparingTo(testContext.projectRequest.expectedFunding)
+                        .isEqualTo(testContext.projectRequest.expectedFunding)
 
                 it.assertThat(projectResponse.currency).isEqualTo(testContext.projectRequest.currency)
-                it.assertThat(projectResponse.minPerUser).isEqualByComparingTo(testContext.projectRequest.minPerUser)
-                it.assertThat(projectResponse.maxPerUser).isEqualByComparingTo(testContext.projectRequest.maxPerUser)
+                it.assertThat(projectResponse.minPerUser).isEqualTo(testContext.projectRequest.minPerUser)
+                it.assertThat(projectResponse.maxPerUser).isEqualTo(testContext.projectRequest.maxPerUser)
                 it.assertThat(projectResponse.active).isEqualTo(testContext.projectRequest.active)
                 it.assertThat(projectResponse.mainImage).isNullOrEmpty()
                 it.assertThat(projectResponse.gallery).isNullOrEmpty()
@@ -212,10 +211,10 @@ class ProjectControllerTest : ControllerTestBase() {
                 "1%-100%",
                 time,
                 time.plusDays(30),
-                BigDecimal(1_000_000),
+                1_000_000,
                 Currency.EUR,
-                BigDecimal(1),
-                BigDecimal(1_000_000),
+                1,
+                1_000_000,
                 true
         )
     }

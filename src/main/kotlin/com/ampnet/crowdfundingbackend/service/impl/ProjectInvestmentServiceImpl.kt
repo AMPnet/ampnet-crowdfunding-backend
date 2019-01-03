@@ -10,7 +10,6 @@ import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
@@ -35,7 +34,7 @@ class ProjectInvestmentServiceImpl(private val walletService: WalletService) : P
         }
     }
 
-    private fun verifyInvestmentAmountIsValid(project: Project, amount: BigDecimal) {
+    private fun verifyInvestmentAmountIsValid(project: Project, amount: Long) {
         if (amount > project.maxPerUser) {
             throw InvalidRequestException(ErrorCode.PRJ_MAX_PER_USER, "User can invest max ${project.maxPerUser}")
         }
@@ -45,7 +44,7 @@ class ProjectInvestmentServiceImpl(private val walletService: WalletService) : P
         }
     }
 
-    private fun verifyUserHasEnoughFunds(user: User, amount: BigDecimal) {
+    private fun verifyUserHasEnoughFunds(user: User, amount: Long) {
         val wallet = user.wallet
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have the wallet")
 
@@ -68,7 +67,7 @@ class ProjectInvestmentServiceImpl(private val walletService: WalletService) : P
 
     private fun verifyUserDidNotReachMaximumInvestment(request: ProjectInvestmentRequest) {
         // TODO: implement logic: fetch all user investments in current project
-        val currentInvestment = BigDecimal.ZERO
+        val currentInvestment: Long = 0
         if ((currentInvestment + request.amount) > request.project.maxPerUser) {
             val maxInvestment = request.project.maxPerUser.minus(currentInvestment)
             throw InvalidRequestException(ErrorCode.PRJ_MAX_PER_USER, "User can invest max $maxInvestment")

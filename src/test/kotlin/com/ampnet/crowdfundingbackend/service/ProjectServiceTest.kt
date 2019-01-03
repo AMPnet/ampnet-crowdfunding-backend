@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 class ProjectServiceTest : JpaServiceTestBase() {
@@ -57,10 +56,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(project.returnToInvestment).isEqualTo(request.returnToInvestment)
             assertThat(project.startDate).isEqualTo(request.startDate)
             assertThat(project.endDate).isEqualTo(request.endDate)
-            assertThat(project.expectedFunding).isEqualByComparingTo(request.expectedFunding)
+            assertThat(project.expectedFunding).isEqualTo(request.expectedFunding)
             assertThat(project.currency).isEqualTo(request.currency)
-            assertThat(project.minPerUser).isEqualByComparingTo(request.minPerUser)
-            assertThat(project.maxPerUser).isEqualByComparingTo(request.maxPerUser)
+            assertThat(project.minPerUser).isEqualTo(request.minPerUser)
+            assertThat(project.maxPerUser).isEqualTo(request.maxPerUser)
             assertThat(project.createdBy.id).isEqualTo(request.createdBy.id)
             assertThat(project.organization.id).isEqualTo(organization.id)
             assertThat(project.active).isEqualTo(request.active)
@@ -82,10 +81,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     "1-2%",
                     ZonedDateTime.now(),
                     ZonedDateTime.now().minusDays(1),
-                    BigDecimal("1000000"),
+                    1000000,
                     Currency.EUR,
-                    BigDecimal("100"),
-                    BigDecimal("10000"),
+                    100,
+                    10000,
                     false,
                     user
             )
@@ -175,10 +174,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     "1-2%",
                     currentTime.minusDays(60),
                     currentTime.minusDays(30),
-                    BigDecimal("1000000"),
+                    1000000,
                     Currency.EUR,
-                    BigDecimal("100"),
-                    BigDecimal("10000"),
+                    100,
+                    10000,
                     false,
                     user
             )
@@ -205,10 +204,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     "1-2%",
                     currentTime,
                     currentTime.plusDays(30),
-                    BigDecimal("1000000"),
+                    1000000,
                     Currency.EUR,
-                    BigDecimal(1_000),
-                    BigDecimal(1),
+                    1_000,
+                    1,
                     false,
                     user
             )
@@ -235,10 +234,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     "1-2%",
                     currentTime,
                     currentTime.plusDays(30),
-                    BigDecimal(10_000_000_000_000),
+                    10_000_000_000_000,
                     Currency.EUR,
-                    BigDecimal(1),
-                    BigDecimal(1_000_000_000_000),
+                    1,
+                    1_000_000_000_000,
                     false,
                     user
             )
@@ -265,10 +264,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     "1-2%",
                     currentTime,
                     currentTime.plusDays(30),
-                    BigDecimal(100_000_000_000_000),
+                    100_000_000_000_000,
                     Currency.EUR,
-                    BigDecimal(1),
-                    BigDecimal(1_000_000_000),
+                    1,
+                    1_000_000_000,
                     false,
                     user
             )
@@ -292,10 +291,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
                 "1-2%",
                 ZonedDateTime.now(),
                 ZonedDateTime.now().plusDays(30),
-                BigDecimal("1000000"),
+                1000000,
                 Currency.EUR,
-                BigDecimal("100"),
-                BigDecimal("10000"),
+                100,
+                10000,
                 false,
                 user
         )

@@ -8,14 +8,13 @@ import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
 class ProjectServiceImpl(private val projectRepository: ProjectRepository) : ProjectService {
 
-    private val maxProjectInvestment = BigDecimal(100_000_000_000_000)
-    private val maxPerUserInvestment = BigDecimal(1_000_000_000_000)
+    private val maxProjectInvestment: Long = 100_000_000_000_000
+    private val maxPerUserInvestment: Long = 1_000_000_000_000
 
     @Transactional
     override fun createProject(request: CreateProjectServiceRequest): Project {

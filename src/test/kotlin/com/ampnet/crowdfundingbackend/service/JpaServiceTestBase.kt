@@ -32,7 +32,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @ExtendWith(SpringExtension::class)
@@ -141,9 +140,9 @@ abstract class JpaServiceTestBase : TestBase() {
         active: Boolean = true,
         startDate: ZonedDateTime = ZonedDateTime.now(),
         endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
-        expectedFunding: BigDecimal = BigDecimal(10_000_000),
-        minPerUser: BigDecimal = BigDecimal(10),
-        maxPerUser: BigDecimal = BigDecimal(10_000)
+        expectedFunding: Long = 10_000_000,
+        minPerUser: Long = 10,
+        maxPerUser: Long = 10_000
     ): Project {
         val project = Project::class.java.newInstance()
         project.organization = organization

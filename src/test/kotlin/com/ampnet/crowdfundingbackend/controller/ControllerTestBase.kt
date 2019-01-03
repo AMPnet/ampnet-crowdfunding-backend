@@ -38,7 +38,6 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
@@ -152,9 +151,9 @@ abstract class ControllerTestBase : TestBase() {
         active: Boolean = true,
         startDate: ZonedDateTime = ZonedDateTime.now(),
         endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
-        expectedFunding: BigDecimal = BigDecimal(10_000_000),
-        minPerUser: BigDecimal = BigDecimal(10),
-        maxPerUser: BigDecimal = BigDecimal(10_000)
+        expectedFunding: Long = 10_000_000,
+        minPerUser: Long = 10,
+        maxPerUser: Long = 10_000
     ): Project {
         val project = Project::class.java.newInstance()
         project.organization = organization

@@ -1,7 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.request
 
 import com.ampnet.crowdfundingbackend.enums.Currency
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 import javax.validation.constraints.Size
 
@@ -28,13 +27,13 @@ data class ProjectRequest(
 
     val endDate: ZonedDateTime,
 
-    val expectedFunding: BigDecimal,
+    val expectedFunding: Long,
 
     val currency: Currency,
 
-    val minPerUser: BigDecimal,
+    val minPerUser: Long,
 
-    val maxPerUser: BigDecimal,
+    val maxPerUser: Long,
 
     val active: Boolean
 )

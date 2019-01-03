@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import java.math.BigDecimal
 import javax.validation.Valid
 
 @RestController
@@ -44,7 +43,7 @@ class ProjectController(
             val currentFunding = if (project.wallet == null) {
                 logger.info { "Project $id does not have a wallet" }
                 // TODO: rethink what to return if the wallet is missing
-                BigDecimal.ZERO
+                0
             } else {
                 walletService.getWalletBalance(project.wallet!!)
             }
@@ -81,7 +80,7 @@ class ProjectController(
         val project = projectService.createProject(serviceRequest)
 
         // TODO: is it safe to return zero?
-        val funding = BigDecimal.ZERO
+        val funding: Long = 0
         return ProjectResponse(project, funding)
     }
 

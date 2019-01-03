@@ -14,7 +14,6 @@ import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
@@ -27,9 +26,9 @@ class WalletServiceImpl(
     companion object : KLogging()
 
     @Transactional(readOnly = true)
-    override fun getWalletBalance(wallet: Wallet): BigDecimal {
+    override fun getWalletBalance(wallet: Wallet): Long {
         // TODO: get balance from blockchain, throw exception if it fails
-        return BigDecimal.ZERO
+        return 0
     }
 
     @Transactional
