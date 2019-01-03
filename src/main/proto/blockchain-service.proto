@@ -1,0 +1,117 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.ampnet.crowdfunding;
+
+/********** IMPORTANT NOTE:***************
+All amount (fiat) values in request and response messages are x100 format integers,
+for example amount: 1550 is actually 15.50 EUR.
+******************************************/
+
+//////// AMPnet contract messages ///////
+
+message GenerateAddWalletTxRequest {
+    string wallet = 1;
+    string from = 2;
+}
+
+message GenerateAddOrganizationTxRequest {
+    string name = 1;
+    string from = 2;
+}
+
+message GetAllOrganizationsResponse {
+    repeated string organizations = 1;
+}
+
+message WalletActiveRequest {
+    string wallet = 1;
+}
+
+message WalletActiveResponse {
+    bool active = 1;
+}
+
+
+///////// EUR contract messages //////////
+
+message BalanceRequest {
+    string address = 1;
+}
+
+message BalanceResponse {
+    uint64 balance = 1;
+}
+
+message GenerateMintTxRequest {
+    string from = 1;
+    string to = 2;
+    uint64 amount = 3;
+}
+
+message GenerateBurnFromTxRequest {
+    string from = 1;
+    string burnFrom = 2;
+    uint64 amount = 3;
+}
+
+message GenerateApproveTxRequest {
+    string from = 1;
+    string approve = 2;
+    uint64 amount = 3;
+}
+
+
+///////// Organization contract //////////
+
+message GenerateActivateTxRequest {
+    string from = 1;
+    string organization = 2;
+}
+
+
+////////// Transaction messages //////////
+
+message PostTransactionRequest {
+    string data = 1;
+}
+
+message PostTransactionResponse {
+    string txHash = 1;
+}
+
+
+////////// Generic messages ////////////////
+
+message RawTxResponse {
+    string data = 1;
+    string to = 2;
+    uint64 nonce = 3;
+    uint64 gasLimit = 4;
+    uint64 gasPrice = 5;
+    uint64 value = 6;
+}
+
+message Empty {
+
+}
+
+
+///////// Service definition ////////////////
+
+service BlockchainService {
+
+    rpc generateAddWalletTx(GenerateAddWalletTxRequest) returns (RawTxResponse);
+    rpc generateAddOrganizationTx(GenerateAddOrganizationTxRequest) returns (RawTxResponse);
+    rpc getAllOrganizations(Empty) returns (GetAllOrganizationsResponse);
+    rpc isWalletActive(WalletActiveRequest) returns (WalletActiveResponse);
+
+    rpc generateMintTx(GenerateMintTxRequest) returns (RawTxResponse);
+    rpc generateBurnFromTx(GenerateBurnFromTxRequest) returns (RawTxResponse);
+    rpc generateApproveTx(GenerateApproveTxRequest) returns (RawTxResponse);
+    rpc getBalance(BalanceRequest) returns (BalanceResponse);
+
+    rpc generateActivateTx(GenerateActivateTxRequest) returns (RawTxResponse);
+
+    rpc postTransaction(PostTransactionRequest) returns (PostTransactionResponse);
+
+}

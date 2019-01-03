@@ -112,7 +112,7 @@ dependencies {
 compileJava.dependsOn(processResources)
 
 protobuf {
-    protoc { artifact = 'com.google.protobuf:protoc:3.5.1-1' }
+    protoc { artifact = 'com.google.protobuf:protoc:3.6.1' }
     plugins {
         grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
     }
