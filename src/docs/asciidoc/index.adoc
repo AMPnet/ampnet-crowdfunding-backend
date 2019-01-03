@@ -106,6 +106,20 @@ include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithEx
 .Response
 include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-response.adoc[]
 
+==== Check Email
+
+===== Email used
+.Request
+include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailExists/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailExists/http-response.adoc[]
+
+===== Email not used
+.Request
+include::{snippets}/RegistrationControllerTest/mustReturnFalseForNonExistingEmail/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustReturnFalseForNonExistingEmail/http-response.adoc[]
+
 == Authentication API
 
 === Successful user signin (EMAIL method)
@@ -239,37 +253,113 @@ include::{snippets}/CountryControllerTest/mustReturnNotFoundForInvalidCountryId/
 include::{snippets}/CountryControllerTest/mustReturnNotFoundForInvalidCountryId/http-response.adoc[]
 
 == Wallet API
-Collection of endpoints for managing user wallet
+Collection of endpoints for managing wallets
 
-=== Get wallet for active user
+=== User Wallet
+Collection of endpoints for managing User wallet
+
+==== Get wallet for active user
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToGetOwnWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToGetOwnWallet/http-response.adoc[]
 
-=== Active user does not have a wallet
+==== Active user does not have a wallet
 .Request
 include::{snippets}/WalletControllerTest/mustReturnNotFoundForMissingWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustReturnNotFoundForMissingWallet/http-response.adoc[]
 
-=== Create wallet for active user
+==== Create Wallet
+
+===== Create wallet for active user
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateWallet/http-response.adoc[]
 
-=== Active user cannot create additional wallet
+===== Invalid wallet address
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-response.adoc[]
+
+===== Active user cannot create wallet with invalid wallet address
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-response.adoc[]
+
+===== Active user cannot create additional wallet
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-response.adoc[]
 
-=== Active user can deposit to wallet
+=== Project Wallet
+Collection of endpoints for managing Project wallet
+
+==== Get project wallet
+
+===== Successfully get wallet
 .Request
-include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-request.adoc[]
+include::{snippets}/WalletControllerTest/mustBeAbleToGetProjectWallet/http-request.adoc[]
 .Response
-include::{snippets}/WalletControllerTest/mustBeAbleToDepositToOwnWallet/http-response.adoc[]
+include::{snippets}/WalletControllerTest/mustBeAbleToGetProjectWallet/http-response.adoc[]
+
+===== Project does not have a wallet
+.Request
+include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-response.adoc[]
+
+===== Project does not exists
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
+
+===== User did not create the project
+User can only access a wallet for project HE created
+
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
+
+==== Create project wallet
+
+===== Successfully create
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWallet/http-response.adoc[]
+
+===== Project wallet exists
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-response.adoc[]
+
+===== Cannot create project wallet
+User can create wallet only for project that HE created
+
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletIfUserDidNotCreatedProject/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletIfUserDidNotCreatedProject/http-response.adoc[]
+
+===== Missing project
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-response.adoc[]
+
+===== Invalid address
+.Request
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateProjectWalletWithInvalidAddress/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateProjectWalletWithInvalidAddress/http-response.adoc[]
 
 == Organization API
 Collection of endpoints for managing organization
@@ -334,3 +424,40 @@ include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrgani
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
+
+== Project API
+Collection of endpoints for managing project
+
+=== Get project
+
+==== Project exists
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnProject/http-response.adoc[]
+
+==== Project missing
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
+
+=== Create project
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
+
+==== Successfully create
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToCreateProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToCreateProject/http-response.adoc[]
+
+==== Cannot create project without privilege
+User cannot create project without admin role in organization, privilege: PW_PROJECT
+
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-response.adoc[]

@@ -24,3 +24,7 @@ data class OrganizationResponse(
 }
 
 data class OrganizationListResponse(val organizations: List<OrganizationResponse>)
+
+data class OrganizationSmallResponse(val id: Int, val name: String) {
+    constructor(organization: Organization): this(organization.id, organization.name)
+}

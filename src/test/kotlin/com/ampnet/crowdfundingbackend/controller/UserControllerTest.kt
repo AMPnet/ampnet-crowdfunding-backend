@@ -12,8 +12,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
@@ -37,11 +35,7 @@ class UserControllerTest : ControllerTestBase() {
     @Autowired
     private lateinit var userService: UserService
     @Autowired
-    private lateinit var organizationRepository: OrganizationRepository
-    @Autowired
     private lateinit var organizationInviteRepository: OrganizationInviteRepository
-    @Autowired
-    private lateinit var roleRepository: RoleRepository
 
     private lateinit var testUser: TestUser
     private lateinit var testContext: TestContext
@@ -186,7 +180,7 @@ class UserControllerTest : ControllerTestBase() {
         suppose("User has organization invites") {
             databaseCleanerService.deleteAllOrganizations()
             testContext.organization = createOrganization("Test org", testContext.user)
-            testContext.invitedByUser = createUser("invited@by.com")
+            testContext.invitedByUser = createServiceUser("invited@by.com")
             createOrganizationInvite(testContext.user.id, testContext.organization.id, testContext.invitedByUser.id,
                     OrganizationRoleType.ORG_MEMBER)
         }
@@ -218,7 +212,7 @@ class UserControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllOrganizations()
             databaseCleanerService.deleteAllOrganizationInvites()
             testContext.organization = createOrganization("Test org", testContext.user)
-            testContext.invitedByUser = createUser("invited@by.com")
+            testContext.invitedByUser = createServiceUser("invited@by.com")
             createOrganizationInvite(testContext.user.id, testContext.organization.id, testContext.invitedByUser.id,
                     OrganizationRoleType.ORG_MEMBER)
         }
@@ -254,7 +248,7 @@ class UserControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllOrganizations()
             databaseCleanerService.deleteAllOrganizationInvites()
             testContext.organization = createOrganization("Test org", testContext.user)
-            testContext.invitedByUser = createUser("invited@by.com")
+            testContext.invitedByUser = createServiceUser("invited@by.com")
             createOrganizationInvite(testContext.user.id, testContext.organization.id, testContext.invitedByUser.id,
                     OrganizationRoleType.ORG_MEMBER)
         }
@@ -307,10 +301,10 @@ class UserControllerTest : ControllerTestBase() {
     }
 
     private fun saveTestUser(): User {
-        return createUser(testUser.email)
+        return createServiceUser(testUser.email)
     }
 
-    private fun createUser(email: String): User {
+    private fun createServiceUser(email: String): User {
         val request = CreateUserServiceRequest(
                 email = email,
                 password = testUser.password,
@@ -321,17 +315,6 @@ class UserControllerTest : ControllerTestBase() {
                 authMethod = testUser.authMethod
         )
         return userService.create(request)
-    }
-
-    private fun createOrganization(name: String, createdBy: User): Organization {
-        val organization = Organization::class.java.getConstructor().newInstance()
-        organization.name = name
-        organization.legalInfo = "Some info"
-        organization.createdAt = ZonedDateTime.now()
-        organization.approved = true
-        organization.createdByUser = createdBy
-        organization.documents = emptyList()
-        return organizationRepository.save(organization)
     }
 
     private fun createOrganizationInvite(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType): OrganizationInvite {

@@ -90,6 +90,11 @@ class UserServiceImpl(
         return ServiceUtils.wrapOptional(userRepository.findById(id))
     }
 
+    @Transactional(readOnly = true)
+    override fun findWithWallet(email: String): User? {
+        return ServiceUtils.wrapOptional(userRepository.findByEmailWithWallet(email))
+    }
+
     @Transactional
     override fun delete(id: Int) {
         userRepository.deleteById(id)

@@ -1,255 +1,133 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.enums.Currency
-import com.ampnet.crowdfundingbackend.persistence.model.Transaction
-import com.ampnet.crowdfundingbackend.enums.TransactionType
+import com.ampnet.crowdfundingbackend.enums.WalletType
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
-import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
-import com.ampnet.crowdfundingbackend.service.pojo.TransferRequest
-import com.ampnet.crowdfundingbackend.service.pojo.WithdrawRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 class WalletServiceTest : JpaServiceTestBase() {
 
-    private val walletService: WalletService by lazy {
+    private val userService: UserService by lazy {
         val mailService = Mockito.mock(MailService::class.java)
-        val userService = UserServiceImpl(userRepository, roleRepository, countryRepository, mailTokenRepository,
+        UserServiceImpl(userRepository, roleRepository, countryRepository, mailTokenRepository,
                 mailService, passwordEncoder, applicationProperties)
-        WalletServiceImpl(walletRepository, transactionRepository, userService)
     }
+    private val walletService: WalletService by lazy {
+        WalletServiceImpl(walletRepository, userRepository, projectRepository)
+    }
+    private lateinit var user: User
+    private lateinit var testContext: TestContext
 
-    private lateinit var testData: TestData
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser("test@email.com", "First", "Last")
-    }
+    private val defaultAddress = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
 
     @BeforeEach
     fun init() {
-        user.id
-        testData = TestData()
+        databaseCleanerService.deleteAllWalletsAndOwners()
+        user = createUser("test@email.com", "First", "Last")
+        testContext = TestContext()
     }
 
     @Test
     fun mustBeAbleToGetWalletForUserId() {
         suppose("User has a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            createWalletForUser(user.id)
+            createWalletForUser(user, defaultAddress)
         }
 
         verify("Service must fetch wallet for user with id") {
-            val wallet = walletService.getWalletForUser(user.id)
-            assertThat(wallet).isNotNull
-            assertThat(wallet!!.ownerId).isEqualTo(user.id)
-            assertThat(wallet.currency).isEqualTo(Currency.EUR)
+            val user = userService.findWithWallet(user.email)
+            assertThat(user).isNotNull
+            assertThat(user!!.wallet).isNotNull
+            assertThat(user.wallet!!.address).isEqualTo(defaultAddress)
+            assertThat(user.wallet!!.currency).isEqualTo(Currency.EUR)
+            assertThat(user.wallet!!.type).isEqualTo(WalletType.USER)
         }
     }
 
     @Test
     fun mustBeAbleToCreateWalletForUser() {
         verify("Service can create wallet for a user") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
+            val wallet = walletService.createUserWallet(user, defaultAddress)
+            assertThat(wallet.address).isEqualTo(defaultAddress)
+            assertThat(wallet.currency).isEqualTo(Currency.EUR)
+            assertThat(wallet.type).isEqualTo(WalletType.USER)
+            assertThat(wallet.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+        verify("Wallet is assigned to the user") {
+            val userWithWallet = userService.findWithWallet(user.email)
+            assertThat(userWithWallet).isNotNull
+            assertThat(userWithWallet!!.wallet).isNotNull
+            assertThat(userWithWallet.wallet!!.address).isEqualTo(defaultAddress)
+        }
+    }
 
-            val wallet = walletService.createWallet(user.id)
-            assertThat(wallet).isNotNull
-            assertThat(wallet.ownerId).isEqualTo(user.id)
+    @Test
+    fun mustBeAbleToCreateWalletForProject() {
+        suppose("Project exists") {
+            val organization = createOrganization("Org", user)
+            testContext.project = createProject("Das project", organization, user)
+        }
+
+        verify("Service can create wallet for project") {
+            val wallet = walletService.createProjectWallet(testContext.project, defaultAddress)
+            assertThat(wallet.address).isEqualTo(defaultAddress)
+            assertThat(wallet.currency).isEqualTo(Currency.EUR)
+            assertThat(wallet.type).isEqualTo(WalletType.PROJECT)
+            assertThat(wallet.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+        verify("Wallet is assigned to the project") {
+            val optionalProjectWithWallet = projectRepository.findByIdWithWallet(testContext.project.id)
+            assertThat(optionalProjectWithWallet).isPresent
+
+            val projectWithWallet = optionalProjectWithWallet.get()
+            assertThat(projectWithWallet.wallet).isNotNull
+            assertThat(projectWithWallet.wallet!!.address).isEqualTo(defaultAddress)
         }
     }
 
     @Test
     fun mustNotBeAbleToCreateMultipleWalletsForOneUser() {
         suppose("User has a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            createWalletForUser(user.id)
+            createWalletForUser(user, defaultAddress)
         }
 
         verify("Service cannot create additional account") {
-            assertThrows<ResourceAlreadyExistsException> { walletService.createWallet(user.id) }
+            val exception = assertThrows<ResourceAlreadyExistsException> {
+                walletService.createUserWallet(user, defaultAddress)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
         }
     }
 
     @Test
-    fun mustBeAbleToDepositToWallet() {
-        suppose("User has a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            createWalletForUser(user.id)
+    fun mustNotBeAbleToCreateMultipleWalletsForOneProject() {
+        suppose("Project exists") {
+            val organization = createOrganization("Org", user)
+            testContext.project = createProject("Das project", organization, user)
         }
 
-        verify("Service can record deposit transaction") {
-            val userWallet = walletService.getWalletForUser(user.id)
-            assertThat(userWallet).isNotNull
-            val depositRequest = DepositRequest(
-                    userWallet!!, testData.amount, testData.currency, testData.electro, testData.txHash)
-            testData.transaction = walletService.depositToWallet(depositRequest)
-            assertThat(testData.transaction.type).isEqualTo(TransactionType.DEPOSIT)
-            assertThat(testData.transaction.txHash).isEqualTo(testData.txHash)
-            assertThat(testData.transaction.sender).isEqualTo(testData.electro)
-            assertThat(testData.transaction.receiver).isEqualTo(user.getFullName())
-            assertThat(testData.transaction.amount).isEqualTo(testData.amount)
-            assertThat(testData.transaction.currency).isEqualTo(testData.currency)
-            assertThat(testData.transaction.walletId).isEqualTo(userWallet.id)
-            assertThat(testData.transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
+        suppose("Project has a wallet") {
+            createWalletForProject(testContext.project, defaultAddress)
         }
-        verify("Verify transaction is stored in database") {
-            val optionalStoredTransaction = transactionRepository.findById(testData.transaction.id)
-            assertThat(optionalStoredTransaction).isPresent
-            assertThat(optionalStoredTransaction.get()).isEqualTo(testData.transaction)
+
+        verify("Service cannot create additional account") {
+            val exception = assertThrows<ResourceAlreadyExistsException> {
+                walletService.createProjectWallet(testContext.project, defaultAddress)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
         }
     }
 
-    @Test
-    fun mustBeAbleToWithdrawFromWallet() {
-        suppose("User has a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            createWalletForUser(user.id)
-        }
-
-        verify("Service can record withdraw transaction") {
-            val userWallet = walletService.getWalletForUser(user.id)
-            assertThat(userWallet).isNotNull
-            val withdrawRequest = WithdrawRequest(
-                    userWallet!!, testData.amount, testData.currency, testData.electro, testData.txHash)
-            testData.transaction = walletService.withdrawFromWallet(withdrawRequest)
-            assertThat(testData.transaction.type).isEqualTo(TransactionType.WITHDRAW)
-            assertThat(testData.transaction.txHash).isEqualTo(testData.txHash)
-            assertThat(testData.transaction.receiver).isEqualTo(testData.electro)
-            assertThat(testData.transaction.sender).isEqualTo(user.getFullName())
-            assertThat(testData.transaction.amount).isEqualTo(testData.amount)
-            assertThat(testData.transaction.currency).isEqualTo(testData.currency)
-            assertThat(testData.transaction.walletId).isEqualTo(userWallet.id)
-            assertThat(testData.transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
-        }
-        verify("Verify transaction is stored in database") {
-            val optionalWallet = walletService.getWalletWithTransactionsForUser(user.id)
-            assertThat(optionalWallet).isNotNull
-            assertThat(optionalWallet!!.transactions).hasSize(1)
-            assertThat(optionalWallet.transactions[0]).isEqualTo(testData.transaction)
-        }
-    }
-
-    @Test
-    fun mustBeAbleToTransferFromWalletToWallet() {
-        suppose("Two users have a wallet") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            createWalletForUser(user.id)
-            testData.user2 = createUser("second@mail.com", "Second", "Name")
-            createWalletForUser(testData.user2.id)
-        }
-
-        verify("Service can transfer founds from wallet to wallet") {
-            val senderWallet = walletService.getWalletForUser(user.id)
-            assertThat(senderWallet).isNotNull
-
-            val transferRequest = TransferRequest(
-                    user.id, testData.user2.id, testData.amount, testData.currency, testData.txHash)
-            testData.transaction = walletService.transferFromWalletToWallet(transferRequest)
-            assertThat(testData.transaction.type).isEqualTo(TransactionType.WITHDRAW)
-            assertThat(testData.transaction.txHash).isEqualTo(testData.txHash)
-            assertThat(testData.transaction.receiver).isEqualTo(testData.user2.getFullName())
-            assertThat(testData.transaction.sender).isEqualTo(user.getFullName())
-            assertThat(testData.transaction.amount).isEqualTo(testData.amount)
-            assertThat(testData.transaction.currency).isEqualTo(testData.currency)
-            assertThat(testData.transaction.walletId).isEqualTo(senderWallet!!.id)
-            assertThat(testData.transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
-        }
-        verify("Transaction is stored for sender") {
-            val optionalStoredTransaction = transactionRepository.findById(testData.transaction.id)
-            assertThat(optionalStoredTransaction).isPresent
-            assertThat(optionalStoredTransaction.get()).isEqualTo(testData.transaction)
-        }
-        verify("Transaction is stored for receiver") {
-            val receiverWallet = walletService.getWalletWithTransactionsForUser(testData.user2.id)
-            assertThat(receiverWallet).isNotNull
-            assertThat(receiverWallet!!.transactions.size).isEqualTo(1)
-
-            val transaction = receiverWallet.transactions[0]
-            assertThat(transaction.type).isEqualTo(TransactionType.DEPOSIT)
-            assertThat(transaction.txHash).isEqualTo(testData.txHash)
-            assertThat(transaction.receiver).isEqualTo(testData.user2.getFullName())
-            assertThat(transaction.sender).isEqualTo(user.getFullName())
-            assertThat(transaction.amount).isEqualTo(testData.amount)
-            assertThat(transaction.currency).isEqualTo(testData.currency)
-            assertThat(transaction.walletId).isEqualTo(receiverWallet.id)
-            assertThat(transaction.timestamp).isBeforeOrEqualTo(ZonedDateTime.now())
-        }
-    }
-
-    @Test
-    fun mustThrowAnExceptionIfSenderWalletIsMissing() {
-        suppose("Receiver wallet exits") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            testData.user2 = createUser("sec@email.com", "Second", "Useros")
-            createWalletForUser(user.id)
-        }
-
-        verify("Service will throw exception if sender wallet is missing") {
-            val receiverWallet = walletService.getWalletForUser(user.id)
-            assertThat(receiverWallet).isNotNull
-
-            val request = TransferRequest(testData.user2.id, user.id, BigDecimal.TEN, Currency.EUR, "hash")
-            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
-        }
-    }
-
-    @Test
-    fun mustThrowAnExceptionIfReceiverWalletIsMissing() {
-        suppose("Sender wallet exits") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            testData.user2 = createUser("sec@email.com", "Second", "Useros")
-            createWalletForUser(user.id)
-        }
-
-        verify("Service will throw exception if receiver wallet is missing") {
-            val senderWallet = walletService.getWalletForUser(user.id)
-            assertThat(senderWallet).isNotNull
-
-            val request = TransferRequest(user.id, testData.user2.id, BigDecimal.TEN, Currency.EUR, "hash")
-            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
-        }
-    }
-
-    @Test
-    fun mustThrowAnExceptionIfSenderUserIsMissing() {
-        suppose("Receiver user exits") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            createWalletForUser(user.id)
-        }
-
-        verify("Service will throw exception if sender user is missing") {
-            val request = TransferRequest(999, user.id, BigDecimal.TEN, Currency.EUR, "hash")
-            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
-        }
-    }
-
-    @Test
-    fun mustThrowAnExceptionIfReceiverUserIsMissing() {
-        suppose("Sender user exits") {
-            databaseCleanerService.deleteAllWalletsAndTransactions()
-            createWalletForUser(user.id)
-        }
-
-        verify("Service will throw exception if receiver user is missing") {
-            val request = TransferRequest(user.id, 999, BigDecimal.TEN, Currency.EUR, "hash")
-            assertThrows<ResourceNotFoundException> { walletService.transferFromWalletToWallet(request) }
-        }
-    }
-
-    private class TestData {
-        val amount = BigDecimal("5.24")
-        val currency = Currency.EUR
-        val electro = "Electro"
-        val txHash = "0x_Das_Hash"
-        lateinit var transaction: Transaction
-        lateinit var user2: User
+    private class TestContext {
+        lateinit var project: Project
     }
 }

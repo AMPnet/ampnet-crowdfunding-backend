@@ -4,12 +4,14 @@ import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.config.PasswordEncoderConfig
-import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
+import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
+import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
+import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
@@ -18,8 +20,8 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowe
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.TransactionRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import org.junit.jupiter.api.extension.ExtendWith
@@ -57,11 +59,11 @@ abstract class JpaServiceTestBase : TestBase() {
     @Autowired
     protected lateinit var walletRepository: WalletRepository
     @Autowired
-    protected lateinit var transactionRepository: TransactionRepository
-    @Autowired
     protected lateinit var countryRepository: CountryRepository
     @Autowired
     protected lateinit var mailTokenRepository: MailTokenRepository
+    @Autowired
+    protected lateinit var projectRepository: ProjectRepository
 
     protected val applicationProperties: ApplicationProperties by lazy {
         // add additional properties as needed
@@ -93,11 +95,25 @@ abstract class JpaServiceTestBase : TestBase() {
         return organizationRepository.save(organization)
     }
 
-    protected fun createWalletForUser(userId: Int): Wallet {
+    protected fun createWalletForUser(user: User, address: String): Wallet {
+        val wallet = createWallet(address, WalletType.USER)
+        user.wallet = wallet
+        userRepository.save(user)
+        return wallet
+    }
+
+    protected fun createWalletForProject(project: Project, address: String): Wallet {
+        val wallet = createWallet(address, WalletType.PROJECT)
+        project.wallet = wallet
+        projectRepository.save(project)
+        return wallet
+    }
+
+    protected fun createWallet(address: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
-        wallet.ownerId = userId
+        wallet.address = address
+        wallet.type = type
         wallet.currency = Currency.EUR
-        wallet.transactions = emptyList()
         wallet.createdAt = ZonedDateTime.now()
         return walletRepository.save(wallet)
     }
@@ -115,5 +131,35 @@ abstract class JpaServiceTestBase : TestBase() {
         invite.role = roleRepository.getOne(role.id)
         invite.invitedBy = invitedBy
         return inviteRepository.save(invite)
+    }
+
+    protected fun createProject(
+        name: String,
+        organization: Organization,
+        createdBy: User,
+        active: Boolean = true,
+        startDate: ZonedDateTime = ZonedDateTime.now(),
+        endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
+        expectedFunding: Long = 10_000_000,
+        minPerUser: Long = 10,
+        maxPerUser: Long = 10_000
+    ): Project {
+        val project = Project::class.java.newInstance()
+        project.organization = organization
+        project.name = name
+        project.description = "description"
+        project.location = "location"
+        project.locationText = "locationText"
+        project.returnToInvestment = "0-1%"
+        project.startDate = startDate
+        project.endDate = endDate
+        project.expectedFunding = expectedFunding
+        project.currency = Currency.EUR
+        project.minPerUser = minPerUser
+        project.maxPerUser = maxPerUser
+        project.createdBy = createdBy
+        project.active = active
+        project.createdAt = startDate.minusMinutes(1)
+        return projectRepository.save(project)
     }
 }

@@ -8,17 +8,10 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserR
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -38,14 +31,6 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var organizationService: OrganizationService
-    @Autowired
-    private lateinit var userRepository: UserRepository
-    @Autowired
-    private lateinit var roleRepository: RoleRepository
-    @Autowired
-    private lateinit var organizationRepository: OrganizationRepository
-    @Autowired
-    private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     private lateinit var inviteRepository: OrganizationInviteRepository
 
@@ -125,7 +110,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustBeAbleToGetOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
+            testContext.organization = createOrganization("test organization", user)
         }
 
         verify("User can get organization with id") {
@@ -150,9 +135,9 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustReturnListOfOrganizations() {
         suppose("Multiple organizations exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
-            createOrganization("test 2")
-            createOrganization("test 3")
+            testContext.organization = createOrganization("test organization", user)
+            createOrganization("test 2", user)
+            createOrganization("test 3", user)
         }
 
         verify("User can get all organizations") {
@@ -171,7 +156,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustBeAbleToApproveOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("Approve organization")
+            testContext.organization = createOrganization("Approve organization", user)
         }
 
         verify("Admin can approve organization") {
@@ -199,7 +184,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustNotBeAbleApproveOrganizationWithoutPrivilege() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("Approve organization")
+            testContext.organization = createOrganization("Approve organization", user)
         }
 
         verify("User without privilege cannot approve organization") {
@@ -224,10 +209,10 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustReturnUsersListForOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
+            testContext.organization = createOrganization("test organization", user)
         }
         suppose("Organization admin is member of another organization") {
-            val organization = createOrganization("org 2")
+            val organization = createOrganization("org 2", user)
             addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
         }
         suppose("Organization has 2 users") {
@@ -256,7 +241,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun userOutsideOrganizationMustNotBeAbleToFetchOrganizationUsers() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
+            testContext.organization = createOrganization("test organization", user)
         }
 
         verify("User is not able fetch organization users from other organization") {
@@ -271,7 +256,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustBeAbleToInviteUserToOrganizationWithOrgAdminRole() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
+            testContext.organization = createOrganization("test organization", user)
         }
         suppose("User has admin role in the organization") {
             addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
@@ -305,7 +290,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
+            testContext.organization = createOrganization("test organization", user)
         }
         suppose("User has admin role in the organization") {
             addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
@@ -326,7 +311,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustNotBeAbleToInviteUserToOrganizationIfNotMemberOfOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
+            testContext.organization = createOrganization("test organization", user)
         }
 
         verify("User can invite user to organization if he is not a member of organization") {
@@ -344,7 +329,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     fun mustBeAbleToRevokeUserInvitation() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
-            testContext.organization = createOrganization("test organization")
+            testContext.organization = createOrganization("test organization", user)
         }
         suppose("User has admin role in the organization") {
             addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
@@ -359,38 +344,6 @@ class OrganizationControllerTest : ControllerTestBase() {
                     post("$organizationPath/${testContext.organization.id}/invite/${testContext.user2.id}/revoke"))
                     .andExpect(status().isOk)
         }
-    }
-
-    private fun createUser(email: String): User {
-        val user = User::class.java.getConstructor().newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = "First"
-        user.lastName = "Last"
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
-    }
-
-    private fun createOrganization(name: String): Organization {
-        val organization = Organization::class.java.getConstructor().newInstance()
-        organization.name = name
-        organization.legalInfo = "some legal info"
-        organization.createdAt = ZonedDateTime.now()
-        organization.approved = true
-        organization.createdByUser = user
-        organization.documents = listOf("hash1", "hash2", "hash3")
-        return organizationRepository.save(organization)
-    }
-
-    private fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
-        val membership = OrganizationMembership::class.java.getConstructor().newInstance()
-        membership.userId = userId
-        membership.organizationId = organizationId
-        membership.role = roleRepository.getOne(role.id)
-        membership.createdAt = ZonedDateTime.now()
-        membershipRepository.save(membership)
     }
 
     private fun inviteUserToOrganization(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType) {

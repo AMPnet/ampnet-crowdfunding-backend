@@ -1,26 +1,31 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
-import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletDepositRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
-import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
-import com.ampnet.crowdfundingbackend.service.pojo.DepositRequest
 import mu.KLogging
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import java.math.BigDecimal
+import javax.validation.Valid
 
 @RestController
-class WalletController(val walletService: WalletService, val userService: UserService) {
+class WalletController(
+    private val walletService: WalletService,
+    private val userService: UserService,
+    private val projectService: ProjectService
+) {
 
     companion object : KLogging()
 
@@ -28,48 +33,80 @@ class WalletController(val walletService: WalletService, val userService: UserSe
     fun getMyWallet(): ResponseEntity<WalletResponse> {
         val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
         logger.debug("Received request for Wallet from user: ${userPrincipal.email}")
-        val userId = getUserIdFromEmail(userPrincipal.email)
-        val wallet = walletService.getWalletWithTransactionsForUser(userId)
-                ?: return ResponseEntity.notFound().build() // or throw exception ResourceNotFound
+        val user = getUserWithWallet(userPrincipal.email)
+        val wallet = user.wallet ?: return ResponseEntity.notFound().build()
 
         val balance = walletService.getWalletBalance(wallet)
         val response = WalletResponse(wallet, balance)
         return ResponseEntity.ok(response)
     }
 
-    @PostMapping("/wallet/create")
-    fun createWallet(): ResponseEntity<WalletResponse> {
+    @PostMapping("/wallet")
+    fun createWallet(@RequestBody @Valid request: WalletCreateRequest): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to create wallet: $request" }
+
         val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
         logger.debug("Received request to create a Wallet for user: ${userPrincipal.email}")
-        val userId = getUserIdFromEmail(userPrincipal.email)
-        val wallet = walletService.createWallet(userId)
+        val user = getUserWithWallet(userPrincipal.email)
+        val wallet = walletService.createUserWallet(user, request.address)
 
-        val balance = BigDecimal.ZERO // balance should be zero after creating account, or define other flow
+        val balance = walletService.getWalletBalance(wallet)
         val response = WalletResponse(wallet, balance)
         return ResponseEntity.ok(response)
     }
 
-    @PostMapping("/wallet/deposit")
-    fun depositToWallet(@RequestBody request: WalletDepositRequest): ResponseEntity<TransactionResponse> {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to deposit to Wallet for user: ${userPrincipal.email}")
-        val userId = getUserIdFromEmail(userPrincipal.email)
-        val wallet = walletService.getWalletWithTransactionsForUser(userId)
-                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
-                        "Missing wallet for user: ${userPrincipal.email}")
+    @GetMapping("/wallet/project/{projectId}")
+    fun getProjectWallet(@PathVariable projectId: Int): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to get project($projectId) wallet" }
 
-        // TODO: define the process with blockchain, getting hash, async actions
-        val hash = "hash"
-        val depositRequest = DepositRequest(wallet, request.amount, Currency.EUR, request.sender, hash)
-        logger.debug("Creating deposit: $depositRequest")
-        val transaction = walletService.depositToWallet(depositRequest)
-        logger.debug("Successful deposit with transaction: $transaction")
-        return ResponseEntity.ok(TransactionResponse(transaction))
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+
+        val project = projectService.getProjectByIdWithWallet(projectId)
+                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
+        val user = getUser(userPrincipal.email)
+
+        if (project.createdBy.id == user.id) {
+            project.wallet?.let {
+                val balance = walletService.getWalletBalance(it)
+                val response = WalletResponse(it, balance)
+                return ResponseEntity.ok(response)
+            }
+            return ResponseEntity.notFound().build()
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
-    private fun getUserIdFromEmail(email: String): Int {
-        // think about adding UserId to UserPrincipal
-        return userService.find(email)?.id
+    @PostMapping("/wallet/project/{projectId}")
+    fun createProjectWallet(
+        @PathVariable projectId: Int,
+        @RequestBody @Valid request: WalletCreateRequest
+    ): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to create project($projectId) wallet: $request" }
+
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+
+        val project = projectService.getProjectByIdWithWallet(projectId)
+                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
+        val user = getUser(userPrincipal.email)
+
+        if (project.createdBy.id == user.id) {
+            val wallet = walletService.createProjectWallet(project, request.address)
+            val balance = walletService.getWalletBalance(wallet)
+            val response = WalletResponse(wallet, balance)
+            return ResponseEntity.ok(response)
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
+    private fun getUserWithWallet(email: String): User {
+        return userService.findWithWallet(email)
+                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
+    }
+
+    private fun getUser(email: String): User {
+        return userService.find(email)
                 ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
     }
 }
