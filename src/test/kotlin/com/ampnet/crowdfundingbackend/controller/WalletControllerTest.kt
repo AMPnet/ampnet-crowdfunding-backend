@@ -9,10 +9,13 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
+import com.ampnet.crowdfundingbackend.service.BlockchainService
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -23,6 +26,9 @@ class WalletControllerTest : ControllerTestBase() {
 
     private val walletPath = "/wallet"
     private val projectWalletPath = "/wallet/project"
+
+    @Autowired
+    private lateinit var blockchainService: BlockchainService
 
     private lateinit var testData: TestData
     private lateinit var user: User
@@ -37,8 +43,12 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToGetOwnWallet() {
-        suppose("User wallet exists with one transaction") {
+        suppose("User wallet exists") {
             testData.wallet = createWalletForUser(user, testData.address)
+        }
+        suppose("User has some funds on wallet") {
+            testData.balance = 100_00
+            Mockito.`when`(blockchainService.getBalance(testData.address)).thenReturn(testData.balance)
         }
 
         verify("Controller returns user wallet response") {
@@ -53,8 +63,7 @@ class WalletControllerTest : ControllerTestBase() {
             assertThat(walletResponse.type).isEqualTo(testData.wallet.type)
             assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
 
-            // TODO: change balance, mock fetching from blockchain
-            assertThat(walletResponse.balance).isZero()
+            assertThat(walletResponse.balance).isEqualTo(testData.balance)
         }
     }
 
@@ -332,5 +341,6 @@ class WalletControllerTest : ControllerTestBase() {
         lateinit var project: Project
         var walletId = -1
         var address = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
+        var balance: Long = -1
     }
 }

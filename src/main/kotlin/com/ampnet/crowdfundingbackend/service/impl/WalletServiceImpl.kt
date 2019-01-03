@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import com.ampnet.crowdfundingbackend.service.BlockchainService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -20,15 +21,15 @@ import java.time.ZonedDateTime
 class WalletServiceImpl(
     private val walletRepository: WalletRepository,
     private val userRepository: UserRepository,
-    private val projectRepository: ProjectRepository
+    private val projectRepository: ProjectRepository,
+    private val blockchainService: BlockchainService
 ) : WalletService {
 
     companion object : KLogging()
 
     @Transactional(readOnly = true)
     override fun getWalletBalance(wallet: Wallet): Long {
-        // TODO: get balance from blockchain, throw exception if it fails
-        return 0
+        return blockchainService.getBalance(wallet.address)
     }
 
     @Transactional

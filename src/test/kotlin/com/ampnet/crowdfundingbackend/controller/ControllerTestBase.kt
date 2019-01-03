@@ -42,7 +42,7 @@ import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
-@ActiveProfiles("MailMockConfig")
+@ActiveProfiles("MailMockConfig", "BlockchainServiceMockConfig")
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"

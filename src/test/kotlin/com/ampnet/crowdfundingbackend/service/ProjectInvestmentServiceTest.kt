@@ -21,7 +21,8 @@ import java.util.UUID
 class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
     private val projectInvestmentService: ProjectInvestmentService by lazy {
-        val walletService = WalletServiceImpl(walletRepository, userRepository, projectRepository)
+        val walletService = WalletServiceImpl(
+                walletRepository, userRepository, projectRepository, mockedBlockchainService)
         ProjectInvestmentServiceImpl(walletService)
     }
     private val user: User by lazy {
@@ -165,8 +166,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfUserReachedMaximumFunding() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user,
-                    maxPerUser = 10_000)
+            testContext.project = createProject("test name", organization, user, maxPerUser = 10_000)
         }
         suppose("User invested once") {
             // TODO: invest to project 9_000 greenars

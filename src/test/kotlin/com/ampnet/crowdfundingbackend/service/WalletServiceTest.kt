@@ -23,7 +23,7 @@ class WalletServiceTest : JpaServiceTestBase() {
                 mailService, passwordEncoder, applicationProperties)
     }
     private val walletService: WalletService by lazy {
-        WalletServiceImpl(walletRepository, userRepository, projectRepository)
+        WalletServiceImpl(walletRepository, userRepository, projectRepository, mockedBlockchainService)
     }
     private lateinit var user: User
     private lateinit var testContext: TestContext
@@ -114,7 +114,6 @@ class WalletServiceTest : JpaServiceTestBase() {
             val organization = createOrganization("Org", user)
             testContext.project = createProject("Das project", organization, user)
         }
-
         suppose("Project has a wallet") {
             createWalletForProject(testContext.project, defaultAddress)
         }
@@ -127,7 +126,24 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustBeAbleToGetWalletBalance() {
+        suppose("User has a wallet") {
+            createWalletForUser(user, defaultAddress)
+        }
+        suppose("User has some funds on a wallet") {
+            testContext.balance = 100
+            Mockito.`when`(mockedBlockchainService.getBalance(defaultAddress)).thenReturn(testContext.balance)
+        }
+
+        verify("Service can return wallet balance") {
+            val balance = walletService.getWalletBalance(user.wallet!!)
+            assertThat(balance).isEqualTo(testContext.balance)
+        }
+    }
+
     private class TestContext {
         lateinit var project: Project
+        var balance: Long = -1
     }
 }
