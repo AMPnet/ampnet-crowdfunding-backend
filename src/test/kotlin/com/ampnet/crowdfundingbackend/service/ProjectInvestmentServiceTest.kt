@@ -15,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -48,7 +47,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
         suppose("Request is for inactive project") {
             testContext.investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(100), Currency.EUR)
+                    testContext.project, user, 100, Currency.EUR)
         }
 
         verify("Service will throw exception project not active") {
@@ -70,7 +69,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
         suppose("Request is for expired project") {
             testContext.investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(100), Currency.EUR)
+                    testContext.project, user, 100, Currency.EUR)
         }
 
         verify("Service will throw exception project expired") {
@@ -86,12 +85,12 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
             testContext.project = createProject("test name", organization, user,
-                    minPerUser = BigDecimal(100)
+                    minPerUser = 100
             )
         }
         suppose("Request amount is below project minimum") {
             testContext.investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(10), Currency.EUR)
+                    testContext.project, user, 10, Currency.EUR)
         }
 
         verify("Service will throw exception investment below project minimum") {
@@ -107,12 +106,12 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
             testContext.project = createProject("test name", organization, user,
-                    maxPerUser = BigDecimal(1_000)
+                    maxPerUser = 1_000
             )
         }
         suppose("Request amount is about project maximum") {
             testContext.investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(10_000), Currency.EUR)
+                    testContext.project, user, 10_000, Currency.EUR)
         }
 
         verify("Service will throw exception investment below project minimum") {
@@ -132,7 +131,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception that user wallet is missing") {
             val investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(100), Currency.EUR)
+                    testContext.project, user, 100, Currency.EUR)
             val exception = assertThrows<ResourceNotFoundException> {
                 projectInvestmentService.investToProject(investmentRequest)
             }
@@ -153,7 +152,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception that project wallet is missing") {
             val investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(100), Currency.EUR)
+                    testContext.project, user, 100, Currency.EUR)
             val exception = assertThrows<ResourceNotFoundException> {
                 projectInvestmentService.investToProject(investmentRequest)
             }
@@ -167,14 +166,14 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
             testContext.project = createProject("test name", organization, user,
-                    maxPerUser = BigDecimal(10_000))
+                    maxPerUser = 10_000)
         }
         suppose("User invested once") {
             // TODO: invest to project 9_000 greenars
         }
         suppose("Request amount is about maximum per user") {
             testContext.investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(2_000), Currency.EUR)
+                    testContext.project, user, 2_000, Currency.EUR)
         }
 
         verify("Service will throw exception investment below project minimum") {
@@ -194,7 +193,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
         suppose("User does not have enough funds on wallet") {
             testContext.investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(100), Currency.EUR)
+                    testContext.project, user, 100, Currency.EUR)
             // TODO: mock blockchain service, current user funds are BigDecimal.ONE
         }
 
@@ -212,7 +211,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
             testContext.project = createProject("test name", organization, user,
-                    maxPerUser = BigDecimal(10_000))
+                    maxPerUser = 10_000)
         }
         suppose("User invested once") {
             // TODO: invest to project
@@ -220,12 +219,12 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         suppose("User invested in other project") {
             val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
             val secondProject = createProject(
-                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = BigDecimal(10_000))
+                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = 10_000)
             // TODO: invest to second project
         }
         suppose("User has enough funds on wallet") {
             testContext.investmentRequest = ProjectInvestmentRequest(
-                    testContext.project, user, BigDecimal(4_500), Currency.EUR)
+                    testContext.project, user, 4_500, Currency.EUR)
             // TODO: mock blockchain
         }
 

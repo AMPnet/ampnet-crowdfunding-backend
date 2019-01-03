@@ -2,7 +2,6 @@ package com.ampnet.crowdfundingbackend.persistence.model
 
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.persistence.HashArrayToStringConverter
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Convert
@@ -53,17 +52,17 @@ data class Project(
     var endDate: ZonedDateTime,
 
     @Column(nullable = false)
-    var expectedFunding: BigDecimal,
+    var expectedFunding: Long,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
     var currency: Currency,
 
     @Column(nullable = false)
-    var minPerUser: BigDecimal,
+    var minPerUser: Long,
 
     @Column(nullable = false)
-    var maxPerUser: BigDecimal,
+    var maxPerUser: Long,
 
     @Column
     var mainImage: String?,
