@@ -19,12 +19,17 @@ message GenerateAddOrganizationTxRequest {
     string from = 2;
 }
 
+message GetAllOrganizationsRequest {
+    string from = 1;
+}
+
 message GetAllOrganizationsResponse {
     repeated string organizations = 1;
 }
 
 message WalletActiveRequest {
-    string wallet = 1;
+    string from = 1;
+    string wallet = 2;
 }
 
 message WalletActiveResponse {
@@ -102,7 +107,7 @@ service BlockchainService {
 
     rpc generateAddWalletTx(GenerateAddWalletTxRequest) returns (RawTxResponse);
     rpc generateAddOrganizationTx(GenerateAddOrganizationTxRequest) returns (RawTxResponse);
-    rpc getAllOrganizations(Empty) returns (GetAllOrganizationsResponse);
+    rpc getAllOrganizations(GetAllOrganizationsRequest) returns (GetAllOrganizationsResponse);
     rpc isWalletActive(WalletActiveRequest) returns (WalletActiveResponse);
 
     rpc generateMintTx(GenerateMintTxRequest) returns (RawTxResponse);

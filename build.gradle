@@ -96,7 +96,7 @@ dependencies {
     compile('org.postgresql:postgresql:42.2.5')
     compile('io.github.microutils:kotlin-logging:1.6.22')
 
-    compile('net.devh:grpc-client-spring-boot-starter:2.1.0.RELEASE')
+    compile('net.devh:grpc-client-spring-boot-starter:2.2.0.RELEASE')
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')

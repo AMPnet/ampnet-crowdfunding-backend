@@ -46,5 +46,8 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     PRJ_NOT_ACTIVE("07", "07", "Project is not active"),
     PRJ_MIN_ABOVE_MAX("07", "08", "Min investment per user is higher than max investment per user"),
     PRJ_MAX_FUNDS_TOO_HIGH("07", "09", "Expected funding is too high"),
-    PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "09", "Max funding per user is too high")
+    PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "09", "Max funding per user is too high"),
+
+    // Internal: 08
+    INT_WALLET_FUNDS("08", "01", "Could not fetch founds from blockchain service.")
 }

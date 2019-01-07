@@ -11,6 +11,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
+import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -28,8 +29,10 @@ class WalletServiceImpl(
     companion object : KLogging()
 
     @Transactional(readOnly = true)
+    @Throws(InternalException::class)
     override fun getWalletBalance(wallet: Wallet): Long {
         return blockchainService.getBalance(wallet.address)
+                ?: throw InternalException(ErrorCode.INT_WALLET_FUNDS, "Could not fetch wallet funds from blockchain")
     }
 
     @Transactional

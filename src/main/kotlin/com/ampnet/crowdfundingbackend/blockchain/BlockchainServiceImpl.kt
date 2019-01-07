@@ -2,14 +2,16 @@ package com.ampnet.crowdfundingbackend.blockchain
 
 import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
+import com.ampnet.crowdfundingbackend.config.ApplicationProperties
+import io.grpc.StatusRuntimeException
 import mu.KLogging
-import net.devh.springboot.autoconfigure.grpc.client.GrpcChannelFactory
-import org.springframework.beans.factory.annotation.Qualifier
+import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory
 import org.springframework.stereotype.Service
 
 @Service
 class BlockchainServiceImpl(
-    @Qualifier("addressChannelFactory") grpcChannelFactory: GrpcChannelFactory
+    private val applicationProperties: ApplicationProperties,
+    private val grpcChannelFactory: GrpcChannelFactory
 ) : BlockchainService {
 
     companion object : KLogging()
@@ -19,14 +21,19 @@ class BlockchainServiceImpl(
         BlockchainServiceGrpc.newBlockingStub(channel)
     }
 
-    override fun getBalance(address: String): Long {
-        logger.debug { "Fetching balance for address: $address" }
-        val response = serviceBlockingStub.getBalance(
-                BalanceRequest.newBuilder()
-                        .setAddress(address)
-                        .build()
-        )
-        logger.debug { "Received response: $response" }
-        return response.balance
+    override fun getBalance(address: String): Long? {
+        logger.info { "Fetching balance for address: $address" }
+        return try {
+            val response = serviceBlockingStub.getBalance(
+                    BalanceRequest.newBuilder()
+                            .setAddress(address)
+                            .build()
+            )
+            logger.info { "Received response: $response" }
+            response.balance
+        } catch (ex: StatusRuntimeException) {
+            logger.error(ex) { "Could not get balance for wallet: $address" }
+            null
+        }
     }
 }

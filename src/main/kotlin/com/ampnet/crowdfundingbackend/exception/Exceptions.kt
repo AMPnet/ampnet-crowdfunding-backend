@@ -13,3 +13,6 @@ class SocialException(val errorCode: ErrorCode, exceptionMessage: String, throwa
     : Exception(exceptionMessage, throwable)
 
 class TokenException(exceptionMessage: String, throwable: Throwable? = null) : Exception(exceptionMessage, throwable)
+
+class InternalException(val errorCode: ErrorCode, exceptionMessage: String, throwable: Throwable? = null)
+    : Exception(exceptionMessage, throwable)

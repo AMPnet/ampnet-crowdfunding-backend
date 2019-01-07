@@ -39,6 +39,13 @@ class GlobalExceptionHandler {
         return generateErrorResponse(exception.errorCode, exception.message)
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(InternalException::class)
+    fun handleInternalException(exception: InternalException): ErrorResponse {
+        logger.info("InternalException", exception)
+        return generateErrorResponse(exception.errorCode, exception.message)
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidLoginMethodException::class)
     fun handleInvalidLoginMethod(exception: InvalidLoginMethodException): ErrorResponse {
