@@ -10,7 +10,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
-import com.ampnet.crowdfundingbackend.service.BlockchainService
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
 import org.springframework.stereotype.Service

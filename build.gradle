@@ -148,10 +148,13 @@ jacocoTestReport {
         html.destination file("${buildDir}/reports/jacoco/html")
     }
     sourceDirectories = files(["${project.projectDir}/src/main/kotlin"])
-    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**'])
+    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**', 'blockchain/**'])
 }
 
 jacocoTestCoverageVerification {
+    afterEvaluate {
+        classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['blockchain/**', '**/proto/**'])
+    }
     violationRules {
         rule {
             limit {

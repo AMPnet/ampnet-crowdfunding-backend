@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.config
 
-import com.ampnet.crowdfundingbackend.service.BlockchainService
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import org.mockito.Mockito
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
