@@ -110,15 +110,15 @@ include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithEx
 
 ===== Email used
 .Request
-include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailExists/http-request.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailIsUsed/http-request.adoc[]
 .Response
-include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailExists/http-response.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailIsUsed/http-response.adoc[]
 
 ===== Email not used
 .Request
-include::{snippets}/RegistrationControllerTest/mustReturnFalseForNonExistingEmail/http-request.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/http-request.adoc[]
 .Response
-include::{snippets}/RegistrationControllerTest/mustReturnFalseForNonExistingEmail/http-response.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/http-response.adoc[]
 
 == Authentication API
 
