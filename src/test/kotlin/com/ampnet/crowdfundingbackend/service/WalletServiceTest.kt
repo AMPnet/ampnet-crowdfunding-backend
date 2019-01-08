@@ -4,6 +4,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
@@ -55,6 +56,10 @@ class WalletServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustBeAbleToCreateWalletForUser() {
+        suppose("Blockchain service successfully adds wallet") {
+            Mockito.`when`(mockedBlockchainService.addWallet(defaultAddress)).thenReturn(true)
+        }
+
         verify("Service can create wallet for a user") {
             val wallet = walletService.createUserWallet(user, defaultAddress)
             assertThat(wallet.address).isEqualTo(defaultAddress)
@@ -139,6 +144,37 @@ class WalletServiceTest : JpaServiceTestBase() {
         verify("Service can return wallet balance") {
             val balance = walletService.getWalletBalance(user.wallet!!)
             assertThat(balance).isEqualTo(testContext.balance)
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionIfBlockchainServiceFailsToCreateWallet() {
+        suppose("gRPC service cannot create a wallet") {
+            Mockito.`when`(mockedBlockchainService.addWallet(defaultAddress)).thenReturn(false)
+        }
+
+        verify("Service will throw InternalException") {
+            val exception = assertThrows<InternalException> {
+                walletService.createUserWallet(user, defaultAddress)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.INT_WALLET_ADD)
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionIfBlockchainServiceToGetBalance() {
+        suppose("User has a wallet") {
+            createWalletForUser(user, defaultAddress)
+        }
+        suppose("gRPC service cannot get balance for wallet") {
+            Mockito.`when`(mockedBlockchainService.getBalance(defaultAddress)).thenReturn(null)
+        }
+
+        verify("Service will throw InternalException") {
+            val exception = assertThrows<InternalException> {
+                walletService.getWalletBalance(user.wallet!!)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.INT_WALLET_FUNDS)
         }
     }
 

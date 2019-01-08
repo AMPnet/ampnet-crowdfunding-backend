@@ -79,6 +79,10 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToCreateWallet() {
+        suppose("Blockchain service successfully adds wallet") {
+            Mockito.`when`(blockchainService.addWallet(testData.address)).thenReturn(true)
+        }
+
         verify("User can create a wallet") {
             val request = WalletCreateRequest(testData.address)
             val result = mockMvc.perform(
@@ -97,7 +101,6 @@ class WalletControllerTest : ControllerTestBase() {
 
             testData.walletId = walletResponse.id
         }
-
         verify("Wallet is created") {
             val userWithWallet = userRepository.findByEmailWithWallet(user.email)
             assertThat(userWithWallet).isPresent
@@ -159,6 +162,7 @@ class WalletControllerTest : ControllerTestBase() {
             val organization = createOrganization("Org test", user)
             testData.project = createProject("Test project", organization, user)
         }
+
         verify("User can create a wallet") {
             val request = WalletCreateRequest(testData.address)
             val result = mockMvc.perform(
@@ -177,7 +181,6 @@ class WalletControllerTest : ControllerTestBase() {
 
             testData.walletId = walletResponse.id
         }
-
         verify("Wallet is created") {
             val optionalProject = projectRepository.findByIdWithWallet(testData.project.id)
             assertThat(optionalProject).isPresent
@@ -218,6 +221,7 @@ class WalletControllerTest : ControllerTestBase() {
             val organization = createOrganization("Org test", user)
             testData.project = createProject("Test project", organization, user)
         }
+
         verify("Controller will return not found for missing user") {
             val response = mockMvc.perform(get(projectWalletPath + "/${testData.project.id}"))
                     .andExpect(status().isBadRequest)
@@ -233,6 +237,7 @@ class WalletControllerTest : ControllerTestBase() {
             val organization = createOrganization("Org test", user)
             testData.project = createProject("Test project", organization, user)
         }
+
         verify("User cannot create project wallet with invalid wallet address") {
             val request = WalletCreateRequest("0x00")
             mockMvc.perform(

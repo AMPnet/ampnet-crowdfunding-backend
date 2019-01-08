@@ -10,13 +10,22 @@ for example amount: 1550 is actually 15.50 EUR.
 //////// AMPnet contract messages ///////
 
 message GenerateAddWalletTxRequest {
-    string wallet = 1;
-    string from = 2;
+    string from = 1;
+    string wallet = 2;
 }
 
 message GenerateAddOrganizationTxRequest {
-    string name = 1;
-    string from = 2;
+    string from = 1;
+    string name = 2;
+}
+
+message OrganizationExistsRequest {
+    string from = 1;
+    string organization = 2;
+}
+
+message OrganizationExistsResponse {
+    bool exists = 1;
 }
 
 message GetAllOrganizationsRequest {
@@ -65,6 +74,18 @@ message GenerateApproveTxRequest {
     uint64 amount = 3;
 }
 
+message GenerateTransferTxRequest {
+    string from = 1;
+    string to = 2;
+    uint64 amount = 3;
+}
+
+message GenerateInvestTxRequest {
+    string from = 1;
+    string project = 2;
+    uint64 amount = 3;
+}
+
 
 ///////// Organization contract //////////
 
@@ -73,14 +94,149 @@ message GenerateActivateTxRequest {
     string organization = 2;
 }
 
+message GenerateWithdrawOrganizationFundsTxRequest {
+    string from = 1;
+    string organization = 2;
+    string tokenIssuer = 3;
+    uint64 amount = 4;
+}
+
+message GenerateAddMemberTxRequest {
+    string from = 1;
+    string organization = 2;
+    string member = 3;
+}
+
+message GenerateAddProjectTxRequest {
+    string from = 1;
+    string organization = 2;
+    string name = 3;
+    string description = 4;
+    uint64 maxInvestmentPerUser = 5;
+    uint64 minInvestmentPerUser = 6;
+    uint64 investmentCap = 7;
+}
+
+message OrganizationVerifiedRequest {
+    string organization = 1;
+}
+
+message OrganizationVerifiedResponse {
+    bool verified = 1;
+}
+
+message OrganizationProjectsRequest {
+    string organization = 1;
+}
+
+message OrganizationProjectsResponse {
+    repeated string projects = 1;
+}
+
+message OrganizationMembersRequest {
+    string organization = 1;
+}
+
+message OrganizationMembersResponse {
+    repeated string members = 1;
+}
+
+
+///////// Project contract ///////////////
+
+message GenerateWithdrawProjectFundsTx {
+    string from = 1;
+    string project = 2;
+    string tokenIssuer = 3;
+    uint64 amount = 4;
+}
+
+message GenerateTransferOwnershipTx {
+    string from = 1;
+    string project = 2;
+    string to = 3;
+    uint64 amount = 4;
+}
+
+message GenerateCancelInvestmentTx {
+    string from = 1;
+    string project = 2;
+    uint64 amount = 3;
+}
+
+message ProjectNameRequest {
+    string project = 1;
+}
+
+message ProjectNameResponse {
+    string name = 1;
+}
+
+message ProjectDescriptionRequest {
+    string project = 1;
+}
+
+message ProjectDescriptionResponse {
+    string description = 1;
+}
+
+message ProjectMaxInvestmentPerUserRequest {
+    string project = 1;
+}
+
+message ProjectMaxInvestmentPerUserResponse {
+    uint64 amount = 1;
+}
+
+message ProjectMinInvestmentPerUserRequest {
+    string project = 1;
+}
+
+message ProjectMinInvestmentPerUserResponse {
+    uint64 amount = 1;
+}
+
+message ProjectInvestmentCapRequest {
+    string project = 1;
+}
+
+message ProjectInvestmentCapResponse {
+    uint64 amount = 1;
+}
+
+message ProjectCurrentTotalInvestmentRequest {
+    string project = 1;
+}
+
+message ProjectCurrentTotalInvestmentResponse {
+    uint64 amount = 1;
+}
+
+message ProjectTotalInvestmentForUserRequest {
+    string project = 1;
+    string user = 2;
+}
+
+message ProjectTotalInvestmentForUserResponse {
+    uint64 amount = 1;
+}
+
+message ProjectLockedForInvestmentsRequest {
+    string project = 1;
+}
+
+message ProjectLockedForInvestmentsResponse {
+    bool locked = 1;
+}
+
 
 ////////// Transaction messages //////////
 
-message PostTransactionRequest {
+message PostTxRequest {
     string data = 1;
 }
 
-message PostTransactionResponse {
+message PostTxResponse {
     string txHash = 1;
 }
 
@@ -105,18 +261,53 @@ message Empty {
 
 service BlockchainService {
 
+    // AMPnet
+
     rpc generateAddWalletTx(GenerateAddWalletTxRequest) returns (RawTxResponse);
     rpc generateAddOrganizationTx(GenerateAddOrganizationTxRequest) returns (RawTxResponse);
     rpc getAllOrganizations(GetAllOrganizationsRequest) returns (GetAllOrganizationsResponse);
     rpc isWalletActive(WalletActiveRequest) returns (WalletActiveResponse);
+    rpc organizationExists(OrganizationExistsRequest) returns (OrganizationExistsResponse);
+
+
+    // EUR
 
     rpc generateMintTx(GenerateMintTxRequest) returns (RawTxResponse);
     rpc generateBurnFromTx(GenerateBurnFromTxRequest) returns (RawTxResponse);
     rpc generateApproveTx(GenerateApproveTxRequest) returns (RawTxResponse);
     rpc getBalance(BalanceRequest) returns (BalanceResponse);
+    rpc generateInvestTx(GenerateInvestTxRequest) returns (RawTxResponse);
+    rpc generateTransferTx(GenerateTransferTxRequest) returns (RawTxResponse);
 
-    rpc generateActivateTx(GenerateActivateTxRequest) returns (RawTxResponse);
 
-    rpc postTransaction(PostTransactionRequest) returns (PostTransactionResponse);
+    // Organization
+
+    rpc generateActivateOrganizationTx(GenerateActivateTxRequest) returns (RawTxResponse);
+    rpc generateWithdrawOrganizationFundsTx(GenerateWithdrawOrganizationFundsTxRequest) returns (RawTxResponse);
+    rpc generateAddOrganizationMemberTx(GenerateAddMemberTxRequest) returns (RawTxResponse);
+    rpc generateAddOrganizationProjectTx(GenerateAddProjectTxRequest) returns (RawTxResponse);
+    rpc isOrganizationVerified(OrganizationVerifiedRequest) returns (OrganizationVerifiedResponse);
+    rpc getAllOrganizationProjects(OrganizationProjectsRequest) returns (OrganizationProjectsResponse);
+    rpc getAllOrganizationMembers(OrganizationMembersRequest) returns (OrganizationMembersResponse);
+
+
+    // Project
+
+    rpc generateWithdrawProjectFundsTx(GenerateWithdrawProjectFundsTx) returns (RawTxResponse);
+    rpc generateTransferOwnershipTx(GenerateTransferOwnershipTx) returns (RawTxResponse);
+    rpc generateCancelInvestmentTx(GenerateCancelInvestmentTx) returns (RawTxResponse);
+    rpc getProjectName(ProjectNameRequest) returns (ProjectNameResponse);
+    rpc getProjectDescription(ProjectDescriptionRequest) returns (ProjectDescriptionResponse);
+    rpc getProjectMaxInvestmentPerUser(ProjectMaxInvestmentPerUserRequest) returns (ProjectMaxInvestmentPerUserResponse);
+    rpc getProjectMinInvestmentPerUser(ProjectMinInvestmentPerUserRequest) returns (ProjectMinInvestmentPerUserResponse);
+    rpc getProjectInvestmentCap(ProjectInvestmentCapRequest) returns (ProjectInvestmentCapResponse);
+    rpc getProjectCurrentTotalInvestment(ProjectCurrentTotalInvestmentRequest) returns (ProjectCurrentTotalInvestmentResponse);
+    rpc getProjectTotalInvestmentForUser(ProjectTotalInvestmentForUserRequest) returns (ProjectTotalInvestmentForUserResponse);
+    rpc isProjectLockedForInvestments(ProjectLockedForInvestmentsRequest) returns (ProjectLockedForInvestmentsResponse);
+
+
+    // Transactions
+
+    rpc postTransaction(PostTxRequest) returns (PostTxResponse);
 
 }

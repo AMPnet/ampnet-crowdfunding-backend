@@ -49,5 +49,6 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "09", "Max funding per user is too high"),
 
     // Internal: 08
-    INT_WALLET_FUNDS("08", "01", "Could not fetch founds from blockchain service.")
+    INT_WALLET_FUNDS("08", "01", "Could not fetch founds from blockchain service."),
+    INT_WALLET_ADD("08", "02", "Could not fetch add wallet to blockchain service.")
 }

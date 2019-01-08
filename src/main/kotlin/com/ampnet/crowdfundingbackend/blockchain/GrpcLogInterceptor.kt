@@ -12,8 +12,11 @@ class GrpcLogInterceptor : ClientInterceptor {
     companion object : KLogging()
 
     override fun <ReqT : Any?, RespT : Any?> interceptCall(
-            method: MethodDescriptor<ReqT, RespT>, callOptions: CallOptions?, next: Channel): ClientCall<ReqT, RespT> {
-        logger.info { method.fullMethodName }
+        method: MethodDescriptor<ReqT, RespT>,
+        callOptions: CallOptions?,
+        next: Channel
+    ): ClientCall<ReqT, RespT> {
+        logger.debug { method.fullMethodName }
         return next.newCall(method, callOptions)
     }
 }

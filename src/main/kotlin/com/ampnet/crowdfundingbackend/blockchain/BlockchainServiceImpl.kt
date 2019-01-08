@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.blockchain
 
 import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
+import com.ampnet.crowdfunding.proto.GenerateAddWalletTxRequest
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import io.grpc.StatusRuntimeException
 import mu.KLogging
@@ -34,6 +35,23 @@ class BlockchainServiceImpl(
         } catch (ex: StatusRuntimeException) {
             logger.error(ex) { "Could not get balance for wallet: $address" }
             null
+        }
+    }
+
+    override fun addWallet(address: String): Boolean {
+        logger.info { "Adding wallet: $address" }
+        return try {
+            val response = serviceBlockingStub.generateAddWalletTx(
+                    GenerateAddWalletTxRequest.newBuilder()
+                            .setWallet(address)
+                            .setFrom(applicationProperties.blockchainProperties.ampnetAddress)
+                            .build()
+            )
+            logger.info { "Successfully added wallet: $response" }
+            true
+        } catch (ex: StatusRuntimeException) {
+            logger.error(ex) { "Could not add wallet: $address" }
+            false
         }
     }
 }

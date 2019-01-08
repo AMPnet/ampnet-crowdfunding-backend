@@ -36,7 +36,7 @@ class WalletServiceImpl(
     }
 
     @Transactional
-    @Throws(ResourceAlreadyExistsException::class)
+    @Throws(ResourceAlreadyExistsException::class, InternalException::class)
     override fun createUserWallet(user: User, address: String): Wallet {
         user.wallet?.let {
             logger.info("Trying to create wallet for user: ${user.id} but user already has a wallet.")
@@ -46,6 +46,7 @@ class WalletServiceImpl(
         val wallet = createWallet(address, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
+        addWalletToBlockchain(wallet)
         return wallet
     }
 
@@ -70,5 +71,13 @@ class WalletServiceImpl(
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()
         return walletRepository.save(wallet)
+    }
+
+    private fun addWalletToBlockchain(wallet: Wallet) {
+        val walletSuccessfullyAdded = blockchainService.addWallet(wallet.address)
+        if (walletSuccessfullyAdded.not()) {
+            logger.error { "Failed to add wallet on blockchain: $wallet" }
+            throw InternalException(ErrorCode.INT_WALLET_ADD, "Failed to add wallet: ${wallet.address} on blockchain")
+        }
     }
 }
