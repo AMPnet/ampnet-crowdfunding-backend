@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
-import java.util.UUID
 
 class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
@@ -217,9 +216,9 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
             // TODO: invest to project
         }
         suppose("User invested in other project") {
-            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
-            val secondProject = createProject(
-                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = 10_000)
+//            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
+//            val secondProject = createProject(
+//                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = 10_000)
             // TODO: invest to second project
         }
         suppose("User has enough funds on wallet") {

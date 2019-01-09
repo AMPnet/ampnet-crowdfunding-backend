@@ -1,7 +1,9 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
+import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransaction
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
@@ -77,12 +79,9 @@ class WalletController(
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
-    @PostMapping("/wallet/project/{projectId}")
-    fun createProjectWallet(
-        @PathVariable projectId: Int,
-        @RequestBody @Valid request: WalletCreateRequest
-    ): ResponseEntity<WalletResponse> {
-        logger.debug { "Received request to create project($projectId) wallet: $request" }
+    @GetMapping("/wallet/project/{projectId}/transaction")
+    fun getTransactionToCreateProjectWallet(@PathVariable projectId: Int): ResponseEntity<TransactionResponse> {
+        logger.debug { "Received request to create project($projectId) wallet" }
 
         val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
         logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
@@ -92,7 +91,34 @@ class WalletController(
         val user = getUser(userPrincipal.email)
 
         if (project.createdBy.id == user.id) {
-            val wallet = walletService.createProjectWallet(project, request.address)
+            val transaction = walletService.generateTransactionToCreateProjectWallet(project)
+            // TODO: set link
+            val link = "some link"
+            val response = TransactionResponse(transaction, link)
+            return ResponseEntity.ok(response)
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
+    // TODO: rethink about this route, have to public, maybe get projectId from blockchain-service as response
+    // this also requires to change the route, maybe upper GET mapping change to post
+    // or make route for posting transaction more general
+    @PostMapping("/wallet/project/{projectId}/transaction")
+    fun createProjectWallet(
+        @PathVariable projectId: Int,
+        @RequestBody request: SignedTransaction
+    ): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to create project($projectId) wallet" }
+
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+
+        val project = projectService.getProjectByIdWithWallet(projectId)
+                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
+        val user = getUser(userPrincipal.email)
+
+        if (project.createdBy.id == user.id) {
+            val wallet = walletService.createProjectWallet(project, request.data)
             val balance = walletService.getWalletBalance(wallet)
             val response = WalletResponse(wallet, balance)
             return ResponseEntity.ok(response)

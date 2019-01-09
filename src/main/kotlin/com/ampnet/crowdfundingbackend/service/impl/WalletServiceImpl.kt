@@ -12,7 +12,10 @@ import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.exception.InternalException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.service.WalletService
+import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,7 +34,7 @@ class WalletServiceImpl(
     @Transactional(readOnly = true)
     @Throws(InternalException::class)
     override fun getWalletBalance(wallet: Wallet): Long {
-        return blockchainService.getBalance(wallet.address)
+        return blockchainService.getBalance(wallet.hash)
                 ?: throw InternalException(ErrorCode.INT_WALLET_FUNDS, "Could not fetch wallet funds from blockchain")
     }
 
@@ -43,41 +46,48 @@ class WalletServiceImpl(
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
                     "User: ${user.email} already has a wallet.")
         }
-        val wallet = createWallet(address, WalletType.USER)
+        val txHash = blockchainService.addWallet(address)
+                ?: throw InternalException(ErrorCode.INT_WALLET_ADD, "Could not store User wallet")
+        val wallet = createWallet(txHash, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
-        addWalletToBlockchain(wallet)
         return wallet
+    }
+
+    @Transactional(readOnly = true)
+    override fun generateTransactionToCreateProjectWallet(project: Project): TransactionData {
+        throwExceptionIfProjectHasWallet(project)
+        val walletHash = project.createdBy.wallet?.hash
+                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
+        val request = GenerateProjectWalletRequest(project, project.organization.name, walletHash)
+        return blockchainService.generateProjectWalletTransaction(request)
     }
 
     @Transactional
     @Throws(ResourceAlreadyExistsException::class)
-    override fun createProjectWallet(project: Project, address: String): Wallet {
-        project.wallet?.let {
-            logger.info("Trying to create wallet for user: ${project.id} but user already has a wallet.")
-            throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
-                    "Project: ${project.name} already has a wallet.")
-        }
-        val wallet = createWallet(address, WalletType.PROJECT)
+    override fun createProjectWallet(project: Project, signedTransaction: String): Wallet {
+        throwExceptionIfProjectHasWallet(project)
+        val txHash = blockchainService.postTransaction(signedTransaction)
+        val wallet = createWallet(txHash, WalletType.PROJECT)
         project.wallet = wallet
         projectRepository.save(project)
         return wallet
     }
 
-    private fun createWallet(address: String, type: WalletType): Wallet {
+    private fun createWallet(hash: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
-        wallet.address = address
+        wallet.hash = hash
         wallet.type = type
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()
         return walletRepository.save(wallet)
     }
 
-    private fun addWalletToBlockchain(wallet: Wallet) {
-        val walletSuccessfullyAdded = blockchainService.addWallet(wallet.address)
-        if (walletSuccessfullyAdded.not()) {
-            logger.error { "Failed to add wallet on blockchain: $wallet" }
-            throw InternalException(ErrorCode.INT_WALLET_ADD, "Failed to add wallet: ${wallet.address} on blockchain")
+    private fun throwExceptionIfProjectHasWallet(project: Project) {
+        project.wallet?.let {
+            logger.info("Trying to create wallet for user: ${project.id} but user already has a wallet.")
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
+                    "Project: ${project.name} already has a wallet.")
         }
     }
 }

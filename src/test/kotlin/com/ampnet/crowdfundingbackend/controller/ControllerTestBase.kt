@@ -101,8 +101,8 @@ abstract class ControllerTestBase : TestBase() {
         return userRepository.save(user)
     }
 
-    protected fun createWalletForUser(user: User, address: String): Wallet {
-        val wallet = createWallet(address, WalletType.USER)
+    protected fun createWalletForUser(user: User, hash: String): Wallet {
+        val wallet = createWallet(hash, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
         return wallet
@@ -115,9 +115,9 @@ abstract class ControllerTestBase : TestBase() {
         return wallet
     }
 
-    protected fun createWallet(address: String, type: WalletType): Wallet {
+    protected fun createWallet(hash: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
-        wallet.address = address
+        wallet.hash = hash
         wallet.type = type
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()

@@ -7,7 +7,7 @@ import java.time.ZonedDateTime
 
 data class WalletResponse(
     val id: Int,
-    val address: String,
+    val hash: String,
     val type: WalletType,
     val balance: Long,
     val currency: Currency,
@@ -15,7 +15,7 @@ data class WalletResponse(
 ) {
     constructor(wallet: Wallet, balance: Long) : this(
         wallet.id,
-        wallet.address,
+        wallet.hash,
         wallet.type,
         balance,
         wallet.currency,
