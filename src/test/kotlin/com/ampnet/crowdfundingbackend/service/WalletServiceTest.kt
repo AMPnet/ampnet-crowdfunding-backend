@@ -196,6 +196,7 @@ class WalletServiceTest : JpaServiceTestBase() {
             val exception = assertThrows<ResourceNotFoundException> {
                 walletService.generateTransactionToCreateProjectWallet(testContext.project)
             }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
     }
 

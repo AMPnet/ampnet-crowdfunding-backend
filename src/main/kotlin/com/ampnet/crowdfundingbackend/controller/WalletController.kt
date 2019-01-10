@@ -92,38 +92,25 @@ class WalletController(
 
         if (project.createdBy.id == user.id) {
             val transaction = walletService.generateTransactionToCreateProjectWallet(project)
-            // TODO: set link
-            val link = "some link"
+            val link = "/wallet/project/$projectId/transaction/signed"
             val response = TransactionResponse(transaction, link)
             return ResponseEntity.ok(response)
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
-    // TODO: rethink about this route, have to public, maybe get projectId from blockchain-service as response
-    // this also requires to change the route, maybe upper GET mapping change to post
-    // or make route for posting transaction more general
-    @PostMapping("/wallet/project/{projectId}/transaction")
+    @PostMapping("/wallet/project/{projectId}/transaction/signed")
     fun createProjectWallet(
         @PathVariable projectId: Int,
         @RequestBody request: SignedTransaction
     ): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to create project($projectId) wallet" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
-
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
-        val user = getUser(userPrincipal.email)
-
-        if (project.createdBy.id == user.id) {
-            val wallet = walletService.createProjectWallet(project, request.data)
-            val balance = walletService.getWalletBalance(wallet)
-            val response = WalletResponse(wallet, balance)
-            return ResponseEntity.ok(response)
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        val wallet = walletService.createProjectWallet(project, request.data)
+        val response = WalletResponse(wallet, 0)
+        return ResponseEntity.ok(response)
     }
 
     private fun getUserWithWallet(email: String): User {

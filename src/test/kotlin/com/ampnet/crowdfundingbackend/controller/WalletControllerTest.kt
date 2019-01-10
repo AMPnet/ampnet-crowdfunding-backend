@@ -177,6 +177,7 @@ class WalletControllerTest : ControllerTestBase() {
         }
 
         verify("User can get transaction to sign") {
+            val path = "$projectWalletPath/${testData.project.id}/transaction"
             val result = mockMvc.perform(
                     get("$projectWalletPath/${testData.project.id}/transaction"))
                     .andExpect(status().isOk)
@@ -184,7 +185,7 @@ class WalletControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isNotEmpty()
+            assertThat(transactionResponse.link).isEqualTo("$path/signed")
         }
     }
 
@@ -203,7 +204,7 @@ class WalletControllerTest : ControllerTestBase() {
         verify("User can create project wallet") {
             val request = SignedTransaction(testData.signedTransaction)
             val result = mockMvc.perform(
-                    post("$projectWalletPath/${testData.project.id}/transaction")
+                    post("$projectWalletPath/${testData.project.id}/transaction/signed")
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk)
@@ -262,7 +263,7 @@ class WalletControllerTest : ControllerTestBase() {
         verify("User cannot create a wallet") {
             val request = SignedTransaction(testData.signedTransaction)
             val response = mockMvc.perform(
-                    post("$projectWalletPath/${testData.project.id}/transaction")
+                    post("$projectWalletPath/${testData.project.id}/transaction/signed")
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest)
@@ -293,7 +294,7 @@ class WalletControllerTest : ControllerTestBase() {
         verify("User cannot create project wallet for non existing project") {
             val request = SignedTransaction(testData.signedTransaction)
             val response = mockMvc.perform(
-                    post("$projectWalletPath/0/transaction")
+                    post("$projectWalletPath/0/transaction/signed")
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest)
