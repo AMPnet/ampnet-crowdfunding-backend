@@ -1,8 +1,7 @@
-package com.ampnet.crowdfundingbackend.service
+package com.ampnet.crowdfundingbackend.ipfs
 
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
-import com.ampnet.crowdfundingbackend.service.impl.IpfsServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -44,8 +43,10 @@ class IpfsServiceTest : TestBase() {
     fun mustBeAbleToStoreData() {
         verify("Service can store data on IPFS") {
             val testData = "Some text to store".toByteArray()
-            val hash = ipfsService.storeData(testData, "Test")
-            assertThat(hash).isNotEmpty()
+            val ipfsFile = ipfsService.storeData(testData, "Test")
+            assertThat(ipfsFile.hash).isNotEmpty()
+            assertThat(ipfsFile.name).isNotEmpty()
+            assertThat(ipfsFile.size).isEqualTo(26)
         }
     }
 
@@ -53,11 +54,11 @@ class IpfsServiceTest : TestBase() {
     fun mustBeAbleToGetData() {
         suppose("Data is stored on IPFS") {
             testContext.data = "Test data to read".toByteArray()
-            testContext.hash = ipfsService.storeData(testContext.data, "Test")
+            testContext.ipfsFile = ipfsService.storeData(testContext.data, "Test")
         }
 
         verify("Service can get data from IPFS") {
-            val document = ipfsService.getData(testContext.hash)
+            val document = ipfsService.getData(testContext.ipfsFile.hash)
             assertThat(document).isEqualTo(testContext.data)
         }
     }
@@ -72,6 +73,6 @@ class IpfsServiceTest : TestBase() {
 
     private class TestContext {
         lateinit var data: ByteArray
-        lateinit var hash: String
+        lateinit var ipfsFile: IpfsFile
     }
 }

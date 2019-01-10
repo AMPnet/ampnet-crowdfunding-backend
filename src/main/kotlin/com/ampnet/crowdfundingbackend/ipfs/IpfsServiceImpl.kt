@@ -1,10 +1,10 @@
-package com.ampnet.crowdfundingbackend.service.impl
+package com.ampnet.crowdfundingbackend.ipfs
 
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.exception.IpfsException
-import com.ampnet.crowdfundingbackend.service.IpfsService
 import org.springframework.stereotype.Service
 import io.ipfs.api.IPFS
+import io.ipfs.api.MerkleNode
 import io.ipfs.multihash.Multihash
 import mu.KLogging
 import java.io.IOException
@@ -38,16 +38,36 @@ class IpfsServiceImpl(private val applicationProperties: ApplicationProperties) 
     }
 
     @Throws(IpfsException::class)
-    override fun storeData(data: ByteArray, name: String): String {
+    override fun storeData(data: ByteArray, name: String): IpfsFile {
         logger.debug { "Storing document: $name" }
         val file = NamedStreamable.ByteArrayWrapper(name, data)
         try {
             val addResult = ipfs.add(file)[0]
             logger.debug { "Successfully stored document: $name \n${addResult.toJSONString()}" }
-            return addResult.hash.toBase58()
+            val size = getSize(addResult)
+            val nodeName = getName(addResult) ?: name
+            val hash = addResult.hash.toBase58()
+            return IpfsFile(hash, nodeName, size)
         } catch (ex: IOException) {
             logger.error(ex) { "Failed to store document: $name" }
             throw IpfsException("Failed to store document: $name", ex)
         }
+    }
+
+    private fun getSize(merkleNode: MerkleNode): Int? {
+        if (merkleNode.size.isPresent) {
+            return merkleNode.size.get()
+        }
+        if (merkleNode.largeSize.isPresent) {
+            return merkleNode.largeSize.get().toIntOrNull()
+        }
+        return null
+    }
+
+    private fun getName(merkleNode: MerkleNode): String? {
+        if (merkleNode.name.isPresent) {
+            return merkleNode.name.get()
+        }
+        return null
     }
 }
