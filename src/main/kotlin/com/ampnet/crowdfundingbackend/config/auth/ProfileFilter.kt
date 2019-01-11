@@ -24,7 +24,7 @@ class ProfileFilter : OncePerRequestFilter() {
         val authentication = SecurityContextHolder.getContext().authentication
         if (authentication != null && authentication.isAuthenticated && authentication.principal is UserPrincipal) {
             val userPrincipal = authentication.principal as UserPrincipal
-            val path = request.pathInfo
+            val path = request.requestURI
             if (!userPrincipal.completeProfile && path != userProfilePath) {
                 logger.debug("User ${userPrincipal.email} with incomplete profile try to reach $path")
                 response.sendError(HttpServletResponse.SC_CONFLICT, incompleteProfileMessage)
