@@ -25,6 +25,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,6 +67,8 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var mailTokenRepository: MailTokenRepository
     @Autowired
     protected lateinit var projectRepository: ProjectRepository
+    @Autowired
+    protected lateinit var walletTokenRepository: WalletTokenRepository
 
     protected val mockedBlockchainService: BlockchainService = Mockito.mock(BlockchainService::class.java)
 

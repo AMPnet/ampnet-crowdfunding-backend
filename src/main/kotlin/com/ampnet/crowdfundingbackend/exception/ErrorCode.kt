@@ -28,6 +28,8 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     WALLET_MISSING("05", "01", "User does not have a wallet"),
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),
     WALLET_FUNDS("05", "03", "User does not have enough funds on wallet"),
+    WALLET_TOKEN_MISSING("05", "04", "Missing token"),
+    WALLET_TOKEN_EXPIRED("05", "04", "Wallet token has expired"),
 
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),

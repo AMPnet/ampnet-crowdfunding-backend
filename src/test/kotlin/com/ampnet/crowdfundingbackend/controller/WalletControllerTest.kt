@@ -12,6 +12,8 @@ import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransaction
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletTokenResponse
+import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -25,10 +27,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class WalletControllerTest : ControllerTestBase() {
 
     private val walletPath = "/wallet"
+    private val walletTokenPath = "/wallet/token"
     private val projectWalletPath = "/wallet/project"
 
     @Autowired
@@ -81,14 +85,16 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToCreateWallet() {
+        suppose("WalletToken exists") {
+            testData.walletToken = createWalletToken(user, UUID.randomUUID())
+        }
         suppose("Blockchain service successfully adds wallet") {
             Mockito.`when`(blockchainService.addWallet(testData.address)).thenReturn(testData.hash)
         }
 
         verify("User can create a wallet") {
-            val request = WalletCreateRequest(testData.address)
+            val request = WalletCreateRequest(testData.address, testData.walletToken.token.toString())
             val result = mockMvc.perform(
                     post(walletPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -117,14 +123,13 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustNotBeAbleToCreateAdditionalWallet() {
         suppose("User wallet exists") {
             testData.wallet = createWalletForUser(user, testData.address)
         }
 
         verify("User cannot create a wallet") {
-            val request = WalletCreateRequest(testData.address)
+            val request = WalletCreateRequest(testData.address, testData.token)
             mockMvc.perform(
                     post(walletPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -136,9 +141,93 @@ class WalletControllerTest : ControllerTestBase() {
 
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustGenerateWalletTokenToCreateWallet() {
+        verify("User can generate wallet token") {
+            val result = mockMvc.perform(
+                    get(walletTokenPath))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val tokenResponse: WalletTokenResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(tokenResponse.token).isNotEmpty()
+            assertThat(tokenResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+
+            testData.token = tokenResponse.token
+        }
+        verify("Wallet token is stored in database") {
+            val optionalToken = walletTokenRepository.findByUserId(user.id)
+            assertThat(optionalToken).isPresent
+            val token = optionalToken.get()
+            assertThat(token.user.id).isEqualTo(user.id)
+            assertThat(token.token.toString()).isEqualTo(testData.token)
+            assertThat(token.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustNotGenerateWalletTokenIfUserHasWallet() {
+        suppose("User wallet exists") {
+            testData.wallet = createWalletForUser(user, testData.address)
+        }
+
+        verify("User cannot generate wallet token for additional wallet") {
+            val response = mockMvc.perform(get(walletTokenPath))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.WALLET_EXISTS)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustBeAbleToGenerateTokenAndCreateWallet() {
+        suppose("Blockchain service successfully adds wallet") {
+            Mockito.`when`(blockchainService.addWallet(testData.address)).thenReturn(testData.hash)
+        }
+
+        verify("User can generate wallet token") {
+            val result = mockMvc.perform(
+                    get(walletTokenPath))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val tokenResponse: WalletTokenResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(tokenResponse.token).isNotEmpty()
+            assertThat(tokenResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+
+            testData.token = tokenResponse.token
+        }
+        verify("User can create wallet with generated token") {
+            val request = WalletCreateRequest(testData.address, testData.token)
+            val result = mockMvc.perform(
+                    post(walletPath)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(walletResponse.id).isNotNull()
+            assertThat(walletResponse.hash).isEqualTo(testData.hash)
+
+            testData.walletId = walletResponse.id
+        }
+        verify("Wallet is created") {
+            val userWithWallet = userRepository.findByEmailWithWallet(user.email)
+            assertThat(userWithWallet).isPresent
+            assertThat(userWithWallet.get().wallet).isNotNull
+
+            val wallet = userWithWallet.get().wallet!!
+            assertThat(wallet.id).isEqualTo(testData.walletId)
+            assertThat(wallet.hash).isEqualTo(testData.hash)
+        }
+    }
+
+    @Test
     fun mustNotBeAbleToCreateWalletWithInvalidAddress() {
         verify("User cannot create wallet with invalid wallet address") {
-            val request = WalletCreateRequest("0x00")
+            val request = WalletCreateRequest("0x00", testData.token)
             mockMvc.perform(
                     post(walletPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -185,12 +274,11 @@ class WalletControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("$path/signed")
+            assertThat(transactionResponse.link).isEqualTo(path)
         }
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToCreateProjectWalletWithTransaction() {
         suppose("Project exists") {
             val organization = createOrganization("Org test", user)
@@ -204,7 +292,7 @@ class WalletControllerTest : ControllerTestBase() {
         verify("User can create project wallet") {
             val request = SignedTransaction(testData.signedTransaction)
             val result = mockMvc.perform(
-                    post("$projectWalletPath/${testData.project.id}/transaction/signed")
+                    post("$projectWalletPath/${testData.project.id}/transaction")
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk)
@@ -250,7 +338,6 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustNotBeAbleToCreateAdditionalProjectWallet() {
         suppose("Project exists") {
             val organization = createOrganization("Org test", user)
@@ -263,7 +350,7 @@ class WalletControllerTest : ControllerTestBase() {
         verify("User cannot create a wallet") {
             val request = SignedTransaction(testData.signedTransaction)
             val response = mockMvc.perform(
-                    post("$projectWalletPath/${testData.project.id}/transaction/signed")
+                    post("$projectWalletPath/${testData.project.id}/transaction")
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest)
@@ -289,12 +376,11 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustNotBeAbleToCreateWalletForNonExistingProject() {
         verify("User cannot create project wallet for non existing project") {
             val request = SignedTransaction(testData.signedTransaction)
             val response = mockMvc.perform(
-                    post("$projectWalletPath/0/transaction/signed")
+                    post("$projectWalletPath/0/transaction")
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest)
@@ -401,14 +487,24 @@ class WalletControllerTest : ControllerTestBase() {
         return TransactionData(data, "to", 1, 1, 1, 1)
     }
 
+    private fun createWalletToken(user: User, uuid: UUID): WalletToken {
+        val token = WalletToken::class.java.newInstance()
+        token.user = user
+        token.token = uuid
+        token.createdAt = ZonedDateTime.now()
+        return walletTokenRepository.save(token)
+    }
+
     private class TestData {
         lateinit var wallet: Wallet
         lateinit var project: Project
         lateinit var transactionData: TransactionData
+        lateinit var walletToken: WalletToken
         var walletId = -1
         var address = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         var hash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
         var balance: Long = -1
         val signedTransaction = "SignedTransaction"
+        var token = UUID.randomUUID().toString()
     }
 }

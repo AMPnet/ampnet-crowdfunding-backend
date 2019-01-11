@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransaction
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletTokenResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -46,15 +47,18 @@ class WalletController(
     @PostMapping("/wallet")
     fun createWallet(@RequestBody @Valid request: WalletCreateRequest): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to create wallet: $request" }
-
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Wallet for user: ${userPrincipal.email}")
-        val user = getUserWithWallet(userPrincipal.email)
-        val wallet = walletService.createUserWallet(user, request.address)
-
-        val balance = walletService.getWalletBalance(wallet)
-        val response = WalletResponse(wallet, balance)
+        val wallet = walletService.createUserWallet(request)
+        val response = WalletResponse(wallet, 0)
         return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/wallet/token")
+    fun getTokenForWalletCreation(): ResponseEntity<WalletTokenResponse> {
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request for Wallet token from user: ${userPrincipal.email}")
+        val user = getUserWithWallet(userPrincipal.email)
+        val token = walletService.createWalletToken(user)
+        return ResponseEntity.ok(WalletTokenResponse(token))
     }
 
     @GetMapping("/wallet/project/{projectId}")
@@ -92,14 +96,14 @@ class WalletController(
 
         if (project.createdBy.id == user.id) {
             val transaction = walletService.generateTransactionToCreateProjectWallet(project)
-            val link = "/wallet/project/$projectId/transaction/signed"
+            val link = "/wallet/project/$projectId/transaction"
             val response = TransactionResponse(transaction, link)
             return ResponseEntity.ok(response)
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
-    @PostMapping("/wallet/project/{projectId}/transaction/signed")
+    @PostMapping("/wallet/project/{projectId}/transaction")
     fun createProjectWallet(
         @PathVariable projectId: Int,
         @RequestBody request: SignedTransaction

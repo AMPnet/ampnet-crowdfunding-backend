@@ -21,7 +21,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
     private val projectInvestmentService: ProjectInvestmentService by lazy {
         val walletService = WalletServiceImpl(
-                walletRepository, userRepository, projectRepository, mockedBlockchainService)
+                walletRepository, userRepository, projectRepository, walletTokenRepository, mockedBlockchainService)
         ProjectInvestmentServiceImpl(walletService)
     }
     private val user: User by lazy {
