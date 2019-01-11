@@ -9,7 +9,6 @@ class ApplicationProperties {
     var jwt: JwtProperties = JwtProperties()
     val mail: MailProperties = MailProperties()
     val web3j: Web3jProperties = Web3jProperties()
-    val blockchainProperties: BlockchainProperties = BlockchainProperties()
 }
 
 class JwtProperties {
@@ -26,8 +25,4 @@ class MailProperties {
 
 class Web3jProperties {
     lateinit var clientAddress: String
-}
-
-class BlockchainProperties {
-    lateinit var ampnetAddress: String
 }

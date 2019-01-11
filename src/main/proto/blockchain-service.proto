@@ -7,29 +7,38 @@ All amount (fiat) values in request and response messages are x100 format intege
 for example amount: 1550 is actually 15.50 EUR.
 ******************************************/
 
+enum TransactionType {
+    WALLET_CREATE = 0;
+    ORG_CREATE = 1;
+    DEPOSIT = 2;
+    PENDING_WITHDRAW = 3;
+    WITHDRAW = 4;
+    INVEST = 5;
+    TRANSFER = 6;
+    ORG_ADD_MEMBER = 7;
+    ORG_ADD_PROJECT = 8;
+    ORG_ACTIVATE = 9;
+    TRANSFER_OWNERSHIP = 10;
+    CANCEL_INVESTMENT = 11;
+}
+
 //////// AMPnet contract messages ///////
 
-message GenerateAddWalletTxRequest {
-    string from = 1;
-    string wallet = 2;
+message AddWalletRequest {
+    string wallet = 1;
 }
 
 message GenerateAddOrganizationTxRequest {
-    string from = 1;
+    string fromTxHash = 1;
     string name = 2;
 }
 
 message OrganizationExistsRequest {
-    string from = 1;
-    string organization = 2;
+    string organizationTxHash = 1;
 }
 
 message OrganizationExistsResponse {
     bool exists = 1;
-}
-
-message GetAllOrganizationsRequest {
-    string from = 1;
 }
 
 message GetAllOrganizationsResponse {
@@ -37,8 +46,7 @@ message GetAllOrganizationsResponse {
 }
 
 message WalletActiveRequest {
-    string from = 1;
-    string wallet = 2;
+    string walletTxHash = 1;
 }
 
 message WalletActiveResponse {
@@ -49,67 +57,69 @@ message WalletActiveResponse {
 ///////// EUR contract messages //////////
 
 message BalanceRequest {
-    string address = 1;
+    string walletTxHash = 1;
 }
 
 message BalanceResponse {
     uint64 balance = 1;
 }
 
+// Called by token issuing authority, not using txHash here
 message GenerateMintTxRequest {
     string from = 1;
     string to = 2;
     uint64 amount = 3;
 }
 
+// Called by token issuing authority, not using txHash here
 message GenerateBurnFromTxRequest {
     string from = 1;
     string burnFrom = 2;
     uint64 amount = 3;
 }
 
+// Approve address should always be address of token issuing authority (known upfront)
 message GenerateApproveTxRequest {
-    string from = 1;
+    string fromTxHash = 1;
     string approve = 2;
     uint64 amount = 3;
 }
 
 message GenerateTransferTxRequest {
-    string from = 1;
-    string to = 2;
+    string fromTxHash = 1;
+    string toTxHash = 2;
     uint64 amount = 3;
 }
 
 message GenerateInvestTxRequest {
-    string from = 1;
-    string project = 2;
+    string fromTxHash = 1;
+    string projectTxHash = 2;
     uint64 amount = 3;
 }
 
 
 ///////// Organization contract //////////
 
-message GenerateActivateTxRequest {
-    string from = 1;
-    string organization = 2;
+message ActivateOrganizationRequest {
+    string organizationTxHash = 1;
 }
 
 message GenerateWithdrawOrganizationFundsTxRequest {
-    string from = 1;
-    string organization = 2;
+    string fromTxHash = 1;
+    string organizationTxHash = 2;
     string tokenIssuer = 3;
     uint64 amount = 4;
 }
 
 message GenerateAddMemberTxRequest {
-    string from = 1;
-    string organization = 2;
+    string fromTxHash = 1;
+    string organizationTxHash = 2;
     string member = 3;
 }
 
 message GenerateAddProjectTxRequest {
-    string from = 1;
-    string organization = 2;
+    string fromTxHash = 1;
+    string organizationTxHash = 2;
     string name = 3;
     string description = 4;
     uint64 maxInvestmentPerUser = 5;
@@ -118,7 +128,7 @@ message GenerateAddProjectTxRequest {
 }
 
 message OrganizationVerifiedRequest {
-    string organization = 1;
+    string organizationTxHash = 1;
 }
 
 message OrganizationVerifiedResponse {
@@ -126,7 +136,7 @@ message OrganizationVerifiedResponse {
 }
 
 message OrganizationProjectsRequest {
-    string organization = 1;
+    string organizationTxHash = 1;
 }
 
 message OrganizationProjectsResponse {
@@ -134,7 +144,7 @@ message OrganizationProjectsResponse {
 }
 
 message OrganizationMembersRequest {
-    string organization = 1;
+    string organizationTxHash = 1;
 }
 
 message OrganizationMembersResponse {
@@ -145,27 +155,27 @@ message OrganizationMembersResponse {
 ///////// Project contract ///////////////
 
 message GenerateWithdrawProjectFundsTx {
-    string from = 1;
-    string project = 2;
+    string fromTxHash = 1;
+    string projectTxHash = 2;
     string tokenIssuer = 3;
     uint64 amount = 4;
 }
 
 message GenerateTransferOwnershipTx {
-    string from = 1;
-    string project = 2;
-    string to = 3;
+    string fromTxHash = 1;
+    string projectTxHash = 2;
+    string toTxHash = 3;
     uint64 amount = 4;
 }
 
 message GenerateCancelInvestmentTx {
-    string from = 1;
-    string project = 2;
+    string fromTxHash = 1;
+    string projectTxHash = 2;
     uint64 amount = 3;
 }
 
 message ProjectNameRequest {
-    string project = 1;
+    string projectTxHash = 1;
 }
 
 message ProjectNameResponse {
@@ -173,7 +183,7 @@ message ProjectNameResponse {
 }
 
 message ProjectDescriptionRequest {
-    string project = 1;
+    string projectTxHash = 1;
 }
 
 message ProjectDescriptionResponse {
@@ -181,7 +191,7 @@ message ProjectDescriptionResponse {
 }
 
 message ProjectMaxInvestmentPerUserRequest {
-    string project = 1;
+    string projectTxHash = 1;
 }
 
 message ProjectMaxInvestmentPerUserResponse {
@@ -189,7 +199,7 @@ message ProjectMaxInvestmentPerUserResponse {
 }
 
 message ProjectMinInvestmentPerUserRequest {
-    string project = 1;
+    string projectTxHash = 1;
 }
 
 message ProjectMinInvestmentPerUserResponse {
@@ -197,7 +207,7 @@ message ProjectMinInvestmentPerUserResponse {
 }
 
 message ProjectInvestmentCapRequest {
-    string project = 1;
+    string projectTxHash = 1;
 }
 
 message ProjectInvestmentCapResponse {
@@ -205,7 +215,7 @@ message ProjectInvestmentCapResponse {
 }
 
 message ProjectCurrentTotalInvestmentRequest {
-    string project = 1;
+    string projectTxHash = 1;
 }
 
 message ProjectCurrentTotalInvestmentResponse {
@@ -213,8 +223,8 @@ message ProjectCurrentTotalInvestmentResponse {
 }
 
 message ProjectTotalInvestmentForUserRequest {
-    string project = 1;
-    string user = 2;
+    string projectTxHash = 1;
+    string userTxHash = 2;
 }
 
 message ProjectTotalInvestmentForUserResponse {
@@ -222,7 +232,7 @@ message ProjectTotalInvestmentForUserResponse {
 }
 
 message ProjectLockedForInvestmentsRequest {
-    string project = 1;
+    string projectTxHash = 1;
 }
 
 message ProjectLockedForInvestmentsResponse {
@@ -238,6 +248,7 @@ message PostTxRequest {
 
 message PostTxResponse {
     string txHash = 1;
+    TransactionType txType = 2;
 }
 
 
@@ -263,9 +274,9 @@ service BlockchainService {
 
     // AMPnet
 
-    rpc generateAddWalletTx(GenerateAddWalletTxRequest) returns (RawTxResponse);
+    rpc addWallet(AddWalletRequest) returns (PostTxResponse);
     rpc generateAddOrganizationTx(GenerateAddOrganizationTxRequest) returns (RawTxResponse);
-    rpc getAllOrganizations(GetAllOrganizationsRequest) returns (GetAllOrganizationsResponse);
+    rpc getAllOrganizations(Empty) returns (GetAllOrganizationsResponse);
     rpc isWalletActive(WalletActiveRequest) returns (WalletActiveResponse);
     rpc organizationExists(OrganizationExistsRequest) returns (OrganizationExistsResponse);
 
@@ -282,7 +293,7 @@ service BlockchainService {
 
     // Organization
 
-    rpc generateActivateOrganizationTx(GenerateActivateTxRequest) returns (RawTxResponse);
+    rpc activateOrganization(ActivateOrganizationRequest) returns (PostTxResponse);
     rpc generateWithdrawOrganizationFundsTx(GenerateWithdrawOrganizationFundsTxRequest) returns (RawTxResponse);
     rpc generateAddOrganizationMemberTx(GenerateAddMemberTxRequest) returns (RawTxResponse);
     rpc generateAddOrganizationProjectTx(GenerateAddProjectTxRequest) returns (RawTxResponse);

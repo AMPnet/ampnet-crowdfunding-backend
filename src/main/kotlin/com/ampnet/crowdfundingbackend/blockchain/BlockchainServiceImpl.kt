@@ -1,11 +1,11 @@
 package com.ampnet.crowdfundingbackend.blockchain
 
+import com.ampnet.crowdfunding.proto.AddWalletRequest
 import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
+import com.ampnet.crowdfunding.proto.GenerateAddOrganizationTxRequest
 import com.ampnet.crowdfunding.proto.GenerateAddProjectTxRequest
-import com.ampnet.crowdfunding.proto.GenerateAddWalletTxRequest
 import com.ampnet.crowdfunding.proto.PostTxRequest
-import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class BlockchainServiceImpl(
-    private val applicationProperties: ApplicationProperties,
     private val grpcChannelFactory: GrpcChannelFactory
 ) : BlockchainService {
 
@@ -28,18 +27,18 @@ class BlockchainServiceImpl(
         BlockchainServiceGrpc.newBlockingStub(channel)
     }
 
-    override fun getBalance(address: String): Long? {
-        logger.info { "Fetching balance for address: $address" }
+    override fun getBalance(hash: String): Long? {
+        logger.info { "Fetching balance for hash: $hash" }
         return try {
             val response = serviceBlockingStub.getBalance(
                     BalanceRequest.newBuilder()
-                            .setAddress(address)
+                            .setWalletTxHash(hash)
                             .build()
             )
             logger.info { "Received response: $response" }
             response.balance
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not get balance for wallet: $address" }
+            logger.error(ex) { "Could not get balance for wallet: $hash" }
             null
         }
     }
@@ -47,18 +46,32 @@ class BlockchainServiceImpl(
     override fun addWallet(address: String): String? {
         logger.info { "Adding wallet: $address" }
         return try {
-            val response = serviceBlockingStub.generateAddWalletTx(
-                    GenerateAddWalletTxRequest.newBuilder()
+            val response = serviceBlockingStub.addWallet(
+                    AddWalletRequest.newBuilder()
                             .setWallet(address)
-                            .setFrom(applicationProperties.blockchainProperties.ampnetAddress)
                             .build()
             )
             logger.info { "Successfully added wallet: $response" }
-            // TODO: return hash
-            return response.data
+            return response.txHash
         } catch (ex: StatusRuntimeException) {
             logger.error(ex) { "Could not add wallet: $address" }
             null
+        }
+    }
+
+    override fun generateAddOrganizationTransaction(userWalletHash: String, name: String): TransactionData {
+        logger.info { "Generating add organization: $name" }
+        try {
+            val response = serviceBlockingStub.generateAddOrganizationTx(
+                    GenerateAddOrganizationTxRequest.newBuilder()
+                            .setFromTxHash(userWalletHash)
+                            .setName(name)
+                            .build()
+            )
+            return TransactionData(response)
+        } catch (ex: StatusRuntimeException) {
+            logger.error(ex) { "Could not generate Add Organization transaction" }
+            throw InternalException(ErrorCode.INT_ORG, "Failed to create Organization on blockchain")
         }
     }
 
@@ -67,8 +80,8 @@ class BlockchainServiceImpl(
         try {
             val response = serviceBlockingStub.generateAddOrganizationProjectTx(
                     GenerateAddProjectTxRequest.newBuilder()
-                            .setFrom(request.userWallet)
-                            .setOrganization(request.organization)
+                            .setFromTxHash(request.userWalletHash)
+                            .setOrganizationTxHash(request.organizationHash)
                             .setName(request.name)
                             .setDescription(request.description)
                             .setMaxInvestmentPerUser(request.maxPerUser)
@@ -90,6 +103,7 @@ class BlockchainServiceImpl(
                             .setData(transaction)
                             .build()
             )
+            response.txType
             return response.txHash
         } catch (ex: StatusRuntimeException) {
             logger.error(ex) { "Could not post transaction: $transaction" }

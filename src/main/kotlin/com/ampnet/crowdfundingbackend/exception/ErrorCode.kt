@@ -53,5 +53,6 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     // Internal: 08
     INT_WALLET_FUNDS("08", "01", "Could not fetch founds from blockchain service."),
     INT_WALLET_ADD("08", "02", "Could not fetch add wallet to blockchain service."),
-    INT_TRANSACTION("08", "03", "Could not post transaction on blockchain.")
+    INT_TRANSACTION("08", "03", "Could not post transaction on blockchain."),
+    INT_ORG("08", "03", "Could not create Organization on blockchain.")
 }
