@@ -162,8 +162,8 @@ class WalletController(
 
     @PostMapping("/wallet/organization/{organizationId}/transaction")
     fun createOrganizationWallet(
-            @PathVariable organizationId: Int,
-            @RequestBody request: SignedTransaction
+        @PathVariable organizationId: Int,
+        @RequestBody request: SignedTransaction
     ): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to create organization($organizationId) wallet" }
 
