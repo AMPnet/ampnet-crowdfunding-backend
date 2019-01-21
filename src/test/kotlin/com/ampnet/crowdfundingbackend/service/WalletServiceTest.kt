@@ -32,7 +32,8 @@ class WalletServiceTest : JpaServiceTestBase() {
                 mailService, passwordEncoder, applicationProperties)
     }
     private val walletService: WalletService by lazy {
-        WalletServiceImpl(walletRepository, userRepository, projectRepository, walletTokenRepository, mockedBlockchainService)
+        WalletServiceImpl(walletRepository, userRepository, projectRepository, organizationRepository,
+                walletTokenRepository, mockedBlockchainService)
     }
     private lateinit var user: User
     private lateinit var testContext: TestContext
@@ -341,6 +342,50 @@ class WalletServiceTest : JpaServiceTestBase() {
         verify("Service can generate transaction") {
             val transaction = walletService.generateTransactionToCreateOrganizationWallet(testContext.organization)
             assertThat(transaction).isEqualTo(defaultTransactionData)
+        }
+    }
+
+    @Test
+    fun mustBeAbleToCreateOrganizationWallet() {
+        suppose("Organization exists") {
+            testContext.organization = createOrganization("Org", user)
+        }
+        suppose("Blockchain service successfully adds wallet") {
+            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction))
+                    .thenReturn(defaultAddressHash)
+        }
+
+        verify("Service can create wallet for organization") {
+            val wallet = walletService.createOrganizationWallet(testContext.organization, defaultSignedTransaction)
+            assertThat(wallet.hash).isEqualTo(defaultAddressHash)
+            assertThat(wallet.currency).isEqualTo(Currency.EUR)
+            assertThat(wallet.type).isEqualTo(WalletType.ORG)
+            assertThat(wallet.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+        verify("Wallet is assigned to the organization") {
+            val optionalOrganization = organizationRepository.findById(testContext.organization.id)
+            assertThat(optionalOrganization).isPresent
+
+            val organization = optionalOrganization.get()
+            assertThat(organization.wallet).isNotNull
+            assertThat(organization.wallet!!.hash).isEqualTo(defaultAddressHash)
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionForCreateOrganizationWalletIfOrganizationAlreadyHasWallet() {
+        suppose("Organization exists") {
+            testContext.organization = createOrganization("Org", user)
+        }
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(testContext.organization, defaultAddressHash)
+        }
+
+        verify("Service cannot create additional organization account") {
+            val exception = assertThrows<ResourceAlreadyExistsException> {
+                walletService.createOrganizationWallet(testContext.organization, defaultSignedTransaction)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
         }
     }
 

@@ -17,6 +17,7 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
@@ -32,6 +33,7 @@ class WalletServiceImpl(
     private val walletRepository: WalletRepository,
     private val userRepository: UserRepository,
     private val projectRepository: ProjectRepository,
+    private val organizationRepository: OrganizationRepository,
     private val walletTokenRepository: WalletTokenRepository,
     private val blockchainService: BlockchainService
 ) : WalletService {
@@ -110,6 +112,16 @@ class WalletServiceImpl(
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
 
         return blockchainService.generateAddOrganizationTransaction(walletHash, organization.name)
+    }
+
+    @Transactional
+    override fun createOrganizationWallet(organization: Organization, signedTransaction: String): Wallet {
+        throwExceptionIfOrganizationAlreadyHasWallet(organization)
+        val txHash = blockchainService.postTransaction(signedTransaction)
+        val wallet = createWallet(txHash, WalletType.ORG)
+        organization.wallet = wallet
+        organizationRepository.save(organization)
+        return wallet
     }
 
     private fun createWallet(hash: String, type: WalletType): Wallet {

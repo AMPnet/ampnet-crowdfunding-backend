@@ -160,6 +160,20 @@ class WalletController(
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
+    @PostMapping("/wallet/organization/{organizationId}/transaction")
+    fun createOrganizationWallet(
+            @PathVariable organizationId: Int,
+            @RequestBody request: SignedTransaction
+    ): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to create organization($organizationId) wallet" }
+
+        val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
+                ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id $organizationId")
+        val wallet = walletService.createOrganizationWallet(organization, request.data)
+        val response = WalletResponse(wallet, 0)
+        return ResponseEntity.ok(response)
+    }
+
     private fun getUserWithWallet(email: String): User {
         return userService.findWithWallet(email)
                 ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")

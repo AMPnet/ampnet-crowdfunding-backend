@@ -595,6 +595,58 @@ class WalletControllerTest : ControllerTestBase() {
         return TransactionData(data, "to", 1, 1, 1, 1)
     }
 
+    @Test
+    fun mustBeAbleToCreateOrganizationWallet() {
+        suppose("Organization exists") {
+            testData.organization = createOrganization("Turk org", user)
+        }
+        suppose("Blockchain service successfully generates transaction to create organization wallet") {
+            Mockito.`when`(blockchainService.postTransaction(testData.signedTransaction))
+                    .thenReturn(testData.hash)
+        }
+
+        verify("User can create organization wallet") {
+            val request = SignedTransaction(testData.signedTransaction)
+            val result = mockMvc.perform(
+                    post("$organizationWalletPath/${testData.organization.id}/transaction")
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(walletResponse.id).isNotNull()
+            assertThat(walletResponse.hash).isEqualTo(testData.hash)
+            assertThat(walletResponse.currency).isEqualTo(Currency.EUR)
+            assertThat(walletResponse.type).isEqualTo(WalletType.ORG)
+            assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+
+            testData.walletId = walletResponse.id
+        }
+        verify("Organization wallet is created") {
+            val optionalOrganization = organizationRepository.findById(testData.organization.id)
+            assertThat(optionalOrganization).isPresent
+            assertThat(optionalOrganization.get().wallet).isNotNull
+            val organization = optionalOrganization.get().wallet!!
+            assertThat(organization.id).isEqualTo(testData.walletId)
+            assertThat(organization.hash).isEqualTo(testData.hash)
+        }
+    }
+
+    @Test
+    fun mustThrowErrorIfOrganizationIsMissingForCreatingWallet() {
+        verify("User cannot create organization wallet for non existing organization") {
+            val request = SignedTransaction(testData.signedTransaction)
+            val result = mockMvc.perform(
+                    post("$organizationWalletPath/0/transaction")
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(result, ErrorCode.ORG_MISSING)
+        }
+    }
+
     private fun createWalletToken(user: User, uuid: UUID): WalletToken {
         val token = WalletToken::class.java.newInstance()
         token.user = user

@@ -79,6 +79,7 @@ class WebSecurityConfig(
                 .antMatchers("/mail-check").permitAll()
                 .antMatchers(HttpMethod.POST, "/wallet").permitAll()
                 .antMatchers(HttpMethod.POST, "/wallet/project/*/transaction").permitAll()
+                .antMatchers(HttpMethod.POST, "/wallet/organization/*/transaction").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()

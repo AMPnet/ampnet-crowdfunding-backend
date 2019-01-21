@@ -15,4 +15,5 @@ interface WalletService {
     fun generateTransactionToCreateProjectWallet(project: Project): TransactionData
     fun createProjectWallet(project: Project, signedTransaction: String): Wallet
     fun generateTransactionToCreateOrganizationWallet(organization: Organization): TransactionData
+    fun createOrganizationWallet(organization: Organization, signedTransaction: String): Wallet
 }
