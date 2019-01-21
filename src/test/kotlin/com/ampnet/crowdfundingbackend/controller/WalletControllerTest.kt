@@ -254,15 +254,22 @@ class WalletControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToGetCreateProjectWalletTransaction() {
         suppose("Project exists") {
-            val organization = createOrganization("Org test", user)
-            testData.project = createProject("Test project", organization, user)
+            testData.organization = createOrganization("Org test", user)
+            testData.project = createProject("Test project", testData.organization, user)
         }
         suppose("User has a wallet") {
-            user.wallet = createWalletForUser(user, testData.hash)
+            user.wallet = createWalletForUser(user, testData.address)
+        }
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(testData.organization, testData.hash)
         }
         suppose("Blockchain service successfully generates transaction to create project wallet") {
             testData.transactionData = generateTransactionData(testData.signedTransaction)
-            val request = GenerateProjectWalletRequest(testData.project, testData.project.organization.name, user.wallet!!.hash)
+            val request = GenerateProjectWalletRequest(
+                    testData.project,
+                    testData.project.organization.wallet!!.hash,
+                    user.wallet!!.hash
+            )
             Mockito.`when`(blockchainService.generateProjectWalletTransaction(request))
                     .thenReturn(testData.transactionData)
         }

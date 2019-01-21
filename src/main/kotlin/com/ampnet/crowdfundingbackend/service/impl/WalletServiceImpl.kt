@@ -85,9 +85,8 @@ class WalletServiceImpl(
         throwExceptionIfProjectHasWallet(project)
         val walletHash = project.createdBy.wallet?.hash
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
-
-        // TODO: get organization wallet!
-        val organizationWalletHash = project.organization.name
+        val organizationWalletHash = project.organization.wallet?.hash
+            ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "Organization wallet is missing")
 
         val request = GenerateProjectWalletRequest(project, organizationWalletHash, walletHash)
         return blockchainService.generateProjectWalletTransaction(request)
