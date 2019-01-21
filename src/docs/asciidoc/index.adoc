@@ -361,6 +361,39 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateProjectWalletWithI
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateProjectWalletWithInvalidAddress/http-response.adoc[]
 
+=== Organization Wallet
+Collection of endpoints for managing Organization wallet
+
+==== Get Organization wallet
+
+===== Successfully get wallet
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToGetOrganizationWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToGetOrganizationWallet/http-response.adoc[]
+
+===== Missing organization
+.Request
+include::{snippets}/WalletControllerTest/mustThrowExceptionIfOrganizationIsMissing/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustThrowExceptionIfOrganizationIsMissing/http-response.adoc[]
+
+===== Missing user wallet
+.Request
+include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-response.adoc[]
+response.adoc[]
+
+==== Create Organization wallet
+
+===== Successfully get transaction for creating organization wallet
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateOrganizationWallet/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateOrganizationWallet/http-response.adoc[]
+
+
 == Organization API
 Collection of endpoints for managing organization
 
