@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateReques
 import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import com.ampnet.crowdfundingbackend.service.WalletService
@@ -103,6 +104,15 @@ class WalletServiceImpl(
         return wallet
     }
 
+    @Transactional(readOnly = true)
+    override fun generateTransactionToCreateOrganizationWallet(organization: Organization): TransactionData {
+        throwExceptionIfOrganizationAlreadyHasWallet(organization)
+        val walletHash = organization.createdByUser.wallet?.hash
+                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
+
+        return blockchainService.generateAddOrganizationTransaction(walletHash, organization.name)
+    }
+
     private fun createWallet(hash: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.hash = hash
@@ -124,6 +134,14 @@ class WalletServiceImpl(
         user.wallet?.let {
             logger.info("User: ${user.id} already has a wallet.")
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS, "User: ${user.email} already has a wallet.")
+        }
+    }
+
+    private fun throwExceptionIfOrganizationAlreadyHasWallet(organization: Organization) {
+        organization.wallet?.let {
+            logger.info("Organization: ${organization.id} already has a wallet.")
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
+                    "Organization: ${organization.name} already has a wallet.")
         }
     }
 }

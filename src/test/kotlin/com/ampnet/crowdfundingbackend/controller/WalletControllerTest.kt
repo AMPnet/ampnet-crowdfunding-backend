@@ -13,6 +13,7 @@ import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransaction
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletTokenResponse
+import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
@@ -34,6 +35,7 @@ class WalletControllerTest : ControllerTestBase() {
     private val walletPath = "/wallet"
     private val walletTokenPath = "/wallet/token"
     private val projectWalletPath = "/wallet/project"
+    private val organizationWalletPath = "/wallet/organization"
 
     @Autowired
     private lateinit var blockchainService: BlockchainService
@@ -466,21 +468,120 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustThrowExceptionIfUserTriesToGenerateProjectWalletForNonExistingProject() {
-        val response = mockMvc.perform(
-                get("$projectWalletPath/0/transaction"))
-                .andExpect(status().isBadRequest)
-                .andReturn()
-        verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
+        verify("System will throw error for missing project") {
+            val response = mockMvc.perform(
+                    get("$projectWalletPath/0/transaction"))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
+        }
     }
 
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject() {
-        val response = mockMvc.perform(
-                get("$projectWalletPath/0"))
-                .andExpect(status().isBadRequest)
-                .andReturn()
-        verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
+        verify("System will throw error for missing project") {
+            val response = mockMvc.perform(
+                    get("$projectWalletPath/0"))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
+        }
+    }
+
+    // *** Organization tests ***
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustBeAbleToGetOrganizationWallet() {
+        suppose("Organization exists") {
+            testData.organization = createOrganization("Org test", user)
+        }
+        suppose("Organization has a wallet") {
+            testData.wallet = createWalletForOrganization(testData.organization, testData.hash)
+        }
+
+        verify("User can fetch organization wallet") {
+            val result = mockMvc.perform(
+                    get("$organizationWalletPath/${testData.organization.id}"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(walletResponse.id).isEqualTo(testData.wallet.id)
+            assertThat(walletResponse.hash).isEqualTo(testData.hash)
+            assertThat(walletResponse.currency).isEqualTo(testData.wallet.currency)
+            assertThat(walletResponse.type).isEqualTo(testData.wallet.type)
+            assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustThrowExceptionIfOrganizationIsMissing() {
+        verify("System will throw error for missing organization") {
+            val response = mockMvc.perform(
+                    get("$organizationWalletPath/0"))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.ORG_MISSING)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustThrowExceptionIfUserWalletIsMissing() {
+        suppose("Organization exists") {
+            testData.organization = createOrganization("Turk org", user)
+        }
+
+        verify("System will throw error for missing user wallet") {
+            val response = mockMvc.perform(
+                    get("$organizationWalletPath/${testData.organization.id}"))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustBeAbleToGetCreateOrganizationWallet() {
+        suppose("User wallet exists") {
+            testData.wallet = createWalletForUser(user, testData.address)
+        }
+        suppose("Organization exists") {
+            testData.organization = createOrganization("Turk org", user)
+        }
+        suppose("Blockchain service successfully creates organization") {
+            testData.transactionData = generateTransactionData(testData.signedTransaction)
+            Mockito.`when`(blockchainService.generateAddOrganizationTransaction(
+                    testData.wallet.hash, testData.organization.name)
+            ).thenReturn(testData.transactionData)
+        }
+
+        verify("User can get transaction create organization wallet") {
+            val path = "$organizationWalletPath/${testData.organization.id}/transaction"
+            val result = mockMvc.perform(
+                    get(path))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
+            assertThat(transactionResponse.link).isEqualTo(path)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "test@test.com")
+    fun mustThrowErrorIfOrganizationIsMissingForCreateOrganizationWallet() {
+        verify("System will throw error for missing organization") {
+            val response = mockMvc.perform(
+                    get("$organizationWalletPath/0/transaction"))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.ORG_MISSING)
+        }
     }
 
     private fun generateTransactionData(data: String): TransactionData {
@@ -500,6 +601,7 @@ class WalletControllerTest : ControllerTestBase() {
         lateinit var project: Project
         lateinit var transactionData: TransactionData
         lateinit var walletToken: WalletToken
+        lateinit var organization: Organization
         var walletId = -1
         var address = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         var hash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"

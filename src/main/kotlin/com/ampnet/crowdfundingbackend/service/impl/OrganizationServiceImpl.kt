@@ -67,6 +67,13 @@ class OrganizationServiceImpl(
         return ServiceUtils.wrapOptional(organizationRepository.findById(id))
     }
 
+    @Transactional(readOnly = true)
+    override fun findOrganizationByIdWithWallet(id: Int): Organization? {
+        val organization = ServiceUtils.wrapOptional(organizationRepository.findById(id))
+        organization?.wallet
+        return organization
+    }
+
     @Transactional
     override fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: User): Organization {
         findOrganizationById(organizationId)?.let {

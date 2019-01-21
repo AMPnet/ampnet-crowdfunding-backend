@@ -116,6 +116,13 @@ abstract class JpaServiceTestBase : TestBase() {
         return wallet
     }
 
+    protected fun createWalletForOrganization(organization: Organization, hash: String): Wallet {
+        val wallet = createWallet(hash, WalletType.ORG)
+        organization.wallet = wallet
+        organizationRepository.save(organization)
+        return wallet
+    }
+
     protected fun createWallet(hash: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.hash = hash

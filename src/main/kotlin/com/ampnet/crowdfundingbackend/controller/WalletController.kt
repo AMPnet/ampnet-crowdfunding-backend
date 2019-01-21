@@ -9,6 +9,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletTokenRespon
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
@@ -27,7 +28,8 @@ import javax.validation.Valid
 class WalletController(
     private val walletService: WalletService,
     private val userService: UserService,
-    private val projectService: ProjectService
+    private val projectService: ProjectService,
+    private val organizationService: OrganizationService
 ) {
 
     companion object : KLogging()
@@ -72,6 +74,7 @@ class WalletController(
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
         val user = getUser(userPrincipal.email)
 
+        // TODO: rethink about who can get Project wallet
         if (project.createdBy.id == user.id) {
             project.wallet?.let {
                 val balance = walletService.getWalletBalance(it)
@@ -115,6 +118,46 @@ class WalletController(
         val wallet = walletService.createProjectWallet(project, request.data)
         val response = WalletResponse(wallet, 0)
         return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("wallet/organization/{organizationId}")
+    fun getOrganizationWallet(@PathVariable organizationId: Int): ResponseEntity<WalletResponse> {
+        logger.debug { "Received request to get organization wallet: $organizationId" }
+
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+        val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
+                ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization: $organizationId")
+
+        // TODO: rethink about who can get Organization wallet
+        val wallet = organization.wallet
+                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
+                        "Missing wallet for organization: $organizationId")
+        val balance = walletService.getWalletBalance(wallet)
+
+        return ResponseEntity.ok(WalletResponse(wallet, balance))
+    }
+
+    @GetMapping("wallet/organization/{organizationId}/transaction")
+    fun getTransactionToCreateOrganizationWallet(@PathVariable organizationId: Int): ResponseEntity<TransactionResponse> {
+        logger.debug { "Received request to create organization wallet: $organizationId" }
+
+        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        logger.debug("Received request to create a Organization wallet by user: ${userPrincipal.email}")
+
+        val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
+                ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization: $organizationId")
+        val user = getUser(userPrincipal.email)
+
+        // TODO: rethink about define who can create organization wallet
+        if (organization.createdByUser.id == user.id) {
+            val transaction = walletService.generateTransactionToCreateOrganizationWallet(organization)
+            // TODO: check the link value
+            val link = "/wallet/organization/$organizationId/transaction"
+            val response = TransactionResponse(transaction, link)
+            return ResponseEntity.ok(response)
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
     private fun getUserWithWallet(email: String): User {

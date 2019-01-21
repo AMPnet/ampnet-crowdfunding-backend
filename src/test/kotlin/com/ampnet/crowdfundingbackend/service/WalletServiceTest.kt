@@ -8,11 +8,14 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
+import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,6 +40,7 @@ class WalletServiceTest : JpaServiceTestBase() {
     private val defaultAddress = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
     private val defaultAddressHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
     private val defaultSignedTransaction = "SignedTransaction"
+    private val defaultTransactionData = TransactionData("data", "to", 1, 1, 1, 1)
 
     @BeforeEach
     fun init() {
@@ -261,7 +265,7 @@ class WalletServiceTest : JpaServiceTestBase() {
         suppose("User has a wallet") {
             createWalletForUser(user, defaultAddress)
         }
-        suppose("gRPC service cannot get balance for wallet") {
+        suppose("Blockchain service cannot get balance for wallet") {
             Mockito.`when`(mockedBlockchainService.getBalance(defaultAddress)).thenReturn(null)
         }
 
@@ -288,9 +292,63 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustThrowExceptionWhenGenerateTransactionToCreateOrganizationWalletWithoutUserWallet() {
+        suppose("Organization exists") {
+            testContext.organization = createOrganization("Org", user)
+        }
+
+        verify("Service can generate create organization transaction") {
+            val exception = assertThrows<ResourceNotFoundException> {
+                walletService.generateTransactionToCreateOrganizationWallet(testContext.organization)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionIfOrganizationAlreadyHasWallet() {
+        suppose("Organization exists") {
+            testContext.organization = createOrganization("Org", user)
+        }
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(testContext.organization, defaultAddressHash)
+        }
+
+        verify("Service will throw exception that organization already has a wallet") {
+            val exception = assertThrows<ResourceAlreadyExistsException> {
+                walletService.generateTransactionToCreateOrganizationWallet(testContext.organization)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
+        }
+    }
+
+    @Test
+    fun mustGenerateTransactionToCreateOrganizationWallet() {
+        suppose("User has a wallet") {
+            testContext.wallet = createWalletForUser(user, defaultAddress)
+        }
+        suppose("Organization exists") {
+            testContext.organization = createOrganization("Org", user)
+        }
+        suppose("Blockchain service will generate transaction") {
+            Mockito.`when`(
+                    mockedBlockchainService.generateAddOrganizationTransaction(
+                            testContext.wallet.hash, testContext.organization.name)
+            ).thenReturn(defaultTransactionData)
+        }
+
+        verify("Service can generate transaction") {
+            val transaction = walletService.generateTransactionToCreateOrganizationWallet(testContext.organization)
+            assertThat(transaction).isEqualTo(defaultTransactionData)
+        }
+    }
+
     private class TestContext {
+        lateinit var organization: Organization
         lateinit var project: Project
         lateinit var walletToken: WalletToken
+        lateinit var wallet: Wallet
         var balance: Long = -1
     }
 }

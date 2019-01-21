@@ -7,3 +7,5 @@ CREATE TABLE wallet_token (
     token UUID NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
+
+ALTER TABLE organization ADD COLUMN wallet_id INT REFERENCES wallet(id);

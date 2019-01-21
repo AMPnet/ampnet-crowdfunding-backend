@@ -5,12 +5,14 @@ import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Convert
 import javax.persistence.Entity
+import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 import javax.persistence.OneToMany
+import javax.persistence.OneToOne
 import javax.persistence.Table
 
 @Entity
@@ -26,7 +28,7 @@ data class Organization(
     @Column                         // set nullable false
     var legalInfo: String,          // TODO: change legal info, try to use @Embeddable and @Embedded
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     var createdByUser: User,
 
@@ -39,7 +41,7 @@ data class Organization(
     @Column(nullable = false)
     var approved: Boolean,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
     var approvedBy: User?,
 
@@ -48,7 +50,11 @@ data class Organization(
     @Convert(converter = HashArrayToStringConverter::class)
     var documents: List<String>?,
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "organizationId")
-    var memberships: List<OrganizationMembership>?
+    var memberships: List<OrganizationMembership>?,
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id")
+    var wallet: Wallet?
 )
