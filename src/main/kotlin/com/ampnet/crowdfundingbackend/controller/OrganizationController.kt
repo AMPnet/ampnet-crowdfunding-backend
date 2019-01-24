@@ -43,6 +43,14 @@ class OrganizationController(
         return ResponseEntity.ok(OrganizationListResponse(organizations))
     }
 
+    @GetMapping("/organization/personal")
+    fun getPersonalOrganizations(): ResponseEntity<OrganizationListResponse> {
+        logger.debug { "Received request for personal organizations" }
+        val user = getUserFromSecurityContext()
+        val organizations = organizationService.findAllOrganizationsForUser(user.id).map { OrganizationResponse(it) }
+        return ResponseEntity.ok(OrganizationListResponse(organizations))
+    }
+
     @GetMapping("/organization/{id}")
     fun getOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationResponse> {
         logger.debug { "Received request for organization with id: $id" }

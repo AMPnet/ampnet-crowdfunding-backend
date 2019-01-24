@@ -346,6 +346,31 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetPersonalOrganizations() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", user)
+        }
+        suppose("User is a member of organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+        suppose("Another organization exists") {
+            createOrganization("new organization", user)
+        }
+
+        verify("User will organization that he is a member") {
+            val result = mockMvc.perform(get("$organizationPath/personal"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val organizationResponse: OrganizationListResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(organizationResponse.organizations).hasSize(1)
+            assertThat(organizationResponse.organizations.map { it.name }).contains(testContext.organization.name)
+        }
+    }
+
     private fun inviteUserToOrganization(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType) {
         val invitation = OrganizationInvite::class.java.getConstructor().newInstance()
         invitation.userId = userId

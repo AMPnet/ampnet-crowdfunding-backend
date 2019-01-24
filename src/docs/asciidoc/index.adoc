@@ -382,6 +382,12 @@ include::{snippets}/OrganizationControllerTest/mustReturnListOfOrganizations/htt
 .Response
 include::{snippets}/OrganizationControllerTest/mustReturnListOfOrganizations/http-response.adoc[]
 
+=== Get personal organizations
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetPersonalOrganizations/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetPersonalOrganizations/http-response.adoc[]
+
 === Approve organization
 To approve organization user must have privilege: PWA_ORG
 
