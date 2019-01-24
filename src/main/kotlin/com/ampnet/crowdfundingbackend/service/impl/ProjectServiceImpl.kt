@@ -77,7 +77,7 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
         project.description = request.description
         project.location = request.location
         project.locationText = request.locationText
-        project.returnToInvestment = request.returnToInvestment
+        project.returnOnInvestment = request.returnOnInvestment
         project.startDate = request.startDate
         project.endDate = request.endDate
         project.expectedFunding = request.expectedFunding
