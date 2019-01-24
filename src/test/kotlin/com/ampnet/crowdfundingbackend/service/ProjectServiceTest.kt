@@ -53,7 +53,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(project.description).isEqualTo(request.description)
             assertThat(project.location).isEqualTo(request.location)
             assertThat(project.locationText).isEqualTo(request.locationText)
-            assertThat(project.returnToInvestment).isEqualTo(request.returnToInvestment)
+            assertThat(project.returnOnInvestment).isEqualTo(request.returnOnInvestment)
             assertThat(project.startDate).isEqualTo(request.startDate)
             assertThat(project.endDate).isEqualTo(request.endDate)
             assertThat(project.expectedFunding).isEqualTo(request.expectedFunding)

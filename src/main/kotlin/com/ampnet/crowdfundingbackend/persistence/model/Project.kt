@@ -43,7 +43,7 @@ data class Project(
     var locationText: String,
 
     @Column(nullable = false, length = 16)
-    var returnToInvestment: String,
+    var returnOnInvestment: String,
 
     @Column(nullable = false)
     var startDate: ZonedDateTime,

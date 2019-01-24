@@ -150,7 +150,7 @@ abstract class JpaServiceTestBase : TestBase() {
         project.description = "description"
         project.location = "location"
         project.locationText = "locationText"
-        project.returnToInvestment = "0-1%"
+        project.returnOnInvestment = "0-1%"
         project.startDate = startDate
         project.endDate = endDate
         project.expectedFunding = expectedFunding
