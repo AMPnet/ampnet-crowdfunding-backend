@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.blockchain
 
+import com.ampnet.crowdfunding.proto.ActivateOrganizationRequest
 import com.ampnet.crowdfunding.proto.AddWalletRequest
 import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
@@ -103,11 +104,26 @@ class BlockchainServiceImpl(
                             .setData(transaction)
                             .build()
             )
-            response.txType
             return response.txHash
         } catch (ex: StatusRuntimeException) {
             logger.error(ex) { "Could not post transaction: $transaction" }
             throw InternalException(ErrorCode.INT_TRANSACTION, "Could not post transaction")
+        }
+    }
+
+    override fun activateOrganization(organizationWalletHash: String): String {
+        logger.info { "Activating organization with wallet hash: $organizationWalletHash" }
+        try {
+            val response = serviceBlockingStub.activateOrganization(
+                    ActivateOrganizationRequest.newBuilder()
+                            .setOrganizationTxHash(organizationWalletHash)
+                            .build()
+            )
+            return response.txHash
+        } catch (ex: StatusRuntimeException) {
+            logger.error(ex) { "Could not activate organization: $organizationWalletHash" }
+            throw InternalException(ErrorCode.INT_ORG_ACTIVATE,
+                    "Could not activate organization: $organizationWalletHash")
         }
     }
 }

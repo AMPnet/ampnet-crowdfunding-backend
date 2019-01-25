@@ -9,7 +9,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransaction
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletTokenResponse
@@ -22,7 +21,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -36,9 +34,6 @@ class WalletControllerTest : ControllerTestBase() {
     private val walletTokenPath = "/wallet/token"
     private val projectWalletPath = "/wallet/project"
     private val organizationWalletPath = "/wallet/organization"
-
-    @Autowired
-    private lateinit var blockchainService: BlockchainService
 
     private lateinit var testData: TestData
     private lateinit var user: User

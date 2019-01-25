@@ -18,6 +18,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
@@ -157,6 +158,13 @@ class OrganizationControllerTest : ControllerTestBase() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
             testContext.organization = createOrganization("Approve organization", user)
+        }
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(testContext.organization, "0x0000")
+        }
+        suppose("Blockchain service will successfully approve organization") {
+            Mockito.`when`(blockchainService.activateOrganization(testContext.organization.wallet!!.hash))
+                    .thenReturn("return")
         }
 
         verify("Admin can approve organization") {

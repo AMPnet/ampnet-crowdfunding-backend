@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
@@ -66,6 +67,8 @@ abstract class ControllerTestBase : TestBase() {
     private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     protected lateinit var walletTokenRepository: WalletTokenRepository
+    @Autowired
+    protected lateinit var blockchainService: BlockchainService
 
     protected lateinit var mockMvc: MockMvc
 

@@ -9,4 +9,5 @@ interface BlockchainService {
     fun generateAddOrganizationTransaction(userWalletHash: String, name: String): TransactionData
     fun generateProjectWalletTransaction(request: GenerateProjectWalletRequest): TransactionData
     fun postTransaction(transaction: String): String
+    fun activateOrganization(organizationWalletHash: String): String
 }
