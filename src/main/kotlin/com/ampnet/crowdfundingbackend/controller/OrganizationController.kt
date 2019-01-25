@@ -37,9 +37,18 @@ class OrganizationController(
     companion object : KLogging()
 
     @GetMapping("/organization")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_ORG)")
     fun getOrganizations(): ResponseEntity<OrganizationListResponse> {
         logger.debug { "Received request for all organizations" }
         val organizations = organizationService.getAllOrganizations().map { OrganizationResponse(it) }
+        return ResponseEntity.ok(OrganizationListResponse(organizations))
+    }
+
+    @GetMapping("/organization/personal")
+    fun getPersonalOrganizations(): ResponseEntity<OrganizationListResponse> {
+        logger.debug { "Received request for personal organizations" }
+        val user = getUserFromSecurityContext()
+        val organizations = organizationService.findAllOrganizationsForUser(user.id).map { OrganizationResponse(it) }
         return ResponseEntity.ok(OrganizationListResponse(organizations))
     }
 

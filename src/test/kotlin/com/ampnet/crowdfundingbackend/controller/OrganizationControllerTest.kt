@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserR
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -131,7 +132,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_ORG])
     fun mustReturnListOfOrganizations() {
         suppose("Multiple organizations exists") {
             databaseCleanerService.deleteAllOrganizations()
@@ -148,6 +149,15 @@ class OrganizationControllerTest : ControllerTestBase() {
             val organizationResponse: OrganizationListResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(organizationResponse.organizations).hasSize(3)
             assertThat(organizationResponse.organizations.map { it.name }).contains(testContext.organization.name)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(role = UserRoleType.USER)
+    fun mustNotGetListOfAllOrganizationsWithoutPrivilege() {
+        verify("User cannot get a list of all organizations with privilege PRA_ORG") {
+            mockMvc.perform(get(organizationPath))
+                    .andExpect(status().isForbidden)
         }
     }
 
@@ -343,6 +353,31 @@ class OrganizationControllerTest : ControllerTestBase() {
             mockMvc.perform(
                     post("$organizationPath/${testContext.organization.id}/invite/${testContext.user2.id}/revoke"))
                     .andExpect(status().isOk)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetPersonalOrganizations() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", user)
+        }
+        suppose("User is a member of organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+        suppose("Another organization exists") {
+            createOrganization("new organization", user)
+        }
+
+        verify("User will organization that he is a member") {
+            val result = mockMvc.perform(get("$organizationPath/personal"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val organizationResponse: OrganizationListResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(organizationResponse.organizations).hasSize(1)
+            assertThat(organizationResponse.organizations.map { it.name }).contains(testContext.organization.name)
         }
     }
 
