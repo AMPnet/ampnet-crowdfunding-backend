@@ -9,6 +9,26 @@ data class OrganizationResponse(
     val createdByUser: String,
     val createdAt: ZonedDateTime,
     val approved: Boolean,
+    val legalInfo: String
+) {
+    constructor(organization: Organization): this(
+            organization.id,
+            organization.name,
+            organization.createdByUser.getFullName(),
+            organization.createdAt,
+            organization.approved,
+            organization.legalInfo
+    )
+}
+
+data class OrganizationListResponse(val organizations: List<OrganizationResponse>)
+
+data class OrganizationWithDocumentResponse(
+    val id: Int,
+    val name: String,
+    val createdByUser: String,
+    val createdAt: ZonedDateTime,
+    val approved: Boolean,
     val legalInfo: String,
     val documents: List<DocumentResponse>
 ) {
@@ -21,12 +41,4 @@ data class OrganizationResponse(
             organization.legalInfo,
             organization.documents?.map { DocumentResponse(it) }.orEmpty()
     )
-}
-
-// TODO: think about defining OrganizationListResponse without documents, legalInfo...
-// also change the query for fetch list of organizations
-data class OrganizationListResponse(val organizations: List<OrganizationResponse>)
-
-data class OrganizationSmallResponse(val id: Int, val name: String) {
-    constructor(organization: Organization): this(organization.id, organization.name)
 }

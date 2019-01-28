@@ -58,7 +58,7 @@ class OrganizationServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getAllOrganizations(): List<Organization> {
-        return organizationRepository.findAllWithDocuments()
+        return organizationRepository.findAll()
     }
 
     @Transactional(readOnly = true)

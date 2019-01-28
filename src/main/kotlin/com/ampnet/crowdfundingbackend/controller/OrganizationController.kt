@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInvite
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
@@ -53,32 +54,32 @@ class OrganizationController(
     }
 
     @GetMapping("/organization/{id}")
-    fun getOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationResponse> {
+    fun getOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationWithDocumentResponse> {
         logger.debug { "Received request for organization with id: $id" }
         organizationService.findOrganizationById(id)?.let {
-            return ResponseEntity.ok(OrganizationResponse(it))
+            return ResponseEntity.ok(OrganizationWithDocumentResponse(it))
         }
         return ResponseEntity.notFound().build()
     }
 
     @PostMapping("/organization")
-    fun createOrganization(@RequestBody @Valid request: OrganizationRequest): ResponseEntity<OrganizationResponse> {
+    fun createOrganization(@RequestBody @Valid request: OrganizationRequest): ResponseEntity<OrganizationWithDocumentResponse> {
         logger.debug { "Received request to create organization: $request" }
         val user = getUserFromSecurityContext()
 
         val serviceRequest = OrganizationServiceRequest(request, user)
         val organization = organizationService.createOrganization(serviceRequest)
-        return ResponseEntity.ok(OrganizationResponse(organization))
+        return ResponseEntity.ok(OrganizationWithDocumentResponse(organization))
     }
 
     @PostMapping("/organization/{id}/approve")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_ORG_APPROVE)")
-    fun approveOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationResponse> {
+    fun approveOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationWithDocumentResponse> {
         val user = getUserFromSecurityContext()
         logger.debug { "Received request to approve organization with id: $id by user: ${user.email}" }
 
         val organization = organizationService.approveOrganization(id, true, user)
-        return ResponseEntity.ok(OrganizationResponse(organization))
+        return ResponseEntity.ok(OrganizationWithDocumentResponse(organization))
     }
 
     @GetMapping("/organization/{id}/users")

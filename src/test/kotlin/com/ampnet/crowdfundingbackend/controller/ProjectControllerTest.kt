@@ -76,6 +76,10 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.createByUser).isEqualTo(testContext.project.createdBy.getFullName())
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
+                it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
+                it.assertThat(projectResponse.organization.approved).isEqualTo(organization.approved)
+                it.assertThat(projectResponse.organization.createdByUser)
+                        .isEqualTo(organization.createdByUser.getFullName())
             }
 
             assertThat(projectResponse.currentFunding).isEqualTo(0)
@@ -193,7 +197,12 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.createByUser).isEqualTo(user.getFullName())
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
+                it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
+                it.assertThat(projectResponse.organization.approved).isEqualTo(organization.approved)
+                it.assertThat(projectResponse.organization.createdByUser)
+                        .isEqualTo(organization.createdByUser.getFullName())
             }
+
             testContext.projectId = projectResponse.id
         }
         verify("Project is stored in database") {

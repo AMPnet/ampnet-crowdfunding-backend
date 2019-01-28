@@ -7,9 +7,6 @@ import java.util.Optional
 
 interface OrganizationRepository : JpaRepository<Organization, Int> {
 
-    @Query("SELECT org FROM Organization org LEFT JOIN FETCH org.documents")
-    fun findAllWithDocuments(): List<Organization>
-
     @Query("SELECT org FROM Organization org LEFT JOIN FETCH org.documents WHERE org.id = ?1")
     fun findByIdWithDocuments(organizationId: Int): Optional<Organization>
 

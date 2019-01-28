@@ -20,7 +20,7 @@ data class ProjectWithFundingResponse(
     val mainImage: String?,
     val gallery: List<String>,
     val active: Boolean,
-    val organization: OrganizationSmallResponse,
+    val organization: OrganizationResponse,
     val createByUser: String,
     val currentFunding: Long
 ) {
@@ -40,7 +40,7 @@ data class ProjectWithFundingResponse(
             project.mainImage,
             project.gallery.orEmpty(),
             project.active,
-            OrganizationSmallResponse(project.organization),
+            OrganizationResponse(project.organization),
             project.createdBy.getFullName(),
             currentFunding
     )

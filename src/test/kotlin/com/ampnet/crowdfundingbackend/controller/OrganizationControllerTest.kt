@@ -3,7 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
@@ -67,16 +67,17 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val organizationResponse: OrganizationResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(organizationResponse.name).isEqualTo(testContext.organizationRequest.name)
-            assertThat(organizationResponse.legalInfo).isEqualTo(testContext.organizationRequest.legalInfo)
-            assertThat(organizationResponse.createdByUser).isEqualTo(user.getFullName())
-            assertThat(organizationResponse.id).isNotNull()
-            assertThat(organizationResponse.approved).isFalse()
-            assertThat(organizationResponse.documents).isEmpty()
-            assertThat(organizationResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+            val organizationWithDocumentResponse: OrganizationWithDocumentResponse
+                    = objectMapper.readValue(result.response.contentAsString)
+            assertThat(organizationWithDocumentResponse.name).isEqualTo(testContext.organizationRequest.name)
+            assertThat(organizationWithDocumentResponse.legalInfo).isEqualTo(testContext.organizationRequest.legalInfo)
+            assertThat(organizationWithDocumentResponse.createdByUser).isEqualTo(user.getFullName())
+            assertThat(organizationWithDocumentResponse.id).isNotNull()
+            assertThat(organizationWithDocumentResponse.approved).isFalse()
+            assertThat(organizationWithDocumentResponse.documents).isEmpty()
+            assertThat(organizationWithDocumentResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
 
-            testContext.organizationId = organizationResponse.id
+            testContext.organizationId = organizationWithDocumentResponse.id
         }
         verify("Organization is stored in database") {
             val organization = organizationService.findOrganizationById(testContext.organizationId)
@@ -119,14 +120,15 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val organizationResponse: OrganizationResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(organizationResponse.name).isEqualTo(testContext.organization.name)
-            assertThat(organizationResponse.legalInfo).isEqualTo(testContext.organization.legalInfo)
-            assertThat(organizationResponse.id).isEqualTo(testContext.organization.id)
-            assertThat(organizationResponse.approved).isEqualTo(testContext.organization.approved)
-            assertThat(organizationResponse.documents).isEqualTo(testContext.organization.documents)
-            assertThat(organizationResponse.createdAt).isEqualTo(testContext.organization.createdAt)
-            assertThat(organizationResponse.createdByUser)
+            val organizationWithDocumentResponse: OrganizationWithDocumentResponse
+                    = objectMapper.readValue(result.response.contentAsString)
+            assertThat(organizationWithDocumentResponse.name).isEqualTo(testContext.organization.name)
+            assertThat(organizationWithDocumentResponse.legalInfo).isEqualTo(testContext.organization.legalInfo)
+            assertThat(organizationWithDocumentResponse.id).isEqualTo(testContext.organization.id)
+            assertThat(organizationWithDocumentResponse.approved).isEqualTo(testContext.organization.approved)
+            assertThat(organizationWithDocumentResponse.documents).isEqualTo(testContext.organization.documents)
+            assertThat(organizationWithDocumentResponse.createdAt).isEqualTo(testContext.organization.createdAt)
+            assertThat(organizationWithDocumentResponse.createdByUser)
                     .isEqualTo(testContext.organization.createdByUser.getFullName())
         }
     }
@@ -176,8 +178,9 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val organizationResponse: OrganizationResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(organizationResponse.approved).isTrue()
+            val organizationWithDocumentResponse: OrganizationWithDocumentResponse
+                    = objectMapper.readValue(result.response.contentAsString)
+            assertThat(organizationWithDocumentResponse.approved).isTrue()
         }
         verify("Organization is approved") {
             val organization = organizationService.findOrganizationById(testContext.organization.id)
@@ -242,7 +245,8 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(response.users).contains(
                     OrganizationUserResponse(user.getFullName(), user.email, OrganizationRoleType.ORG_ADMIN))
             assertThat(response.users).contains(
-                    OrganizationUserResponse(testContext.user2.getFullName(), testContext.user2.email, OrganizationRoleType.ORG_MEMBER))
+                    OrganizationUserResponse(testContext.user2.getFullName(), testContext.user2.email,
+                            OrganizationRoleType.ORG_MEMBER))
         }
     }
 
