@@ -92,7 +92,7 @@ dependencies {
     compile('org.flywaydb:flyway-core:5.2.4')
     compile('org.postgresql:postgresql:42.2.5')
     compile('io.github.microutils:kotlin-logging:1.6.22')
-    compile('com.github.ipfs:java-ipfs-http-client:1.2.2')
+    compile('com.github.ipfs:java-ipfs-http-client:v1.2.3')
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
