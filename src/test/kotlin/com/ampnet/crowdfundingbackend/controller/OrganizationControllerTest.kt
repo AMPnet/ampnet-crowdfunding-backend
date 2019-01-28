@@ -67,8 +67,8 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val organizationWithDocumentResponse: OrganizationWithDocumentResponse
-                    = objectMapper.readValue(result.response.contentAsString)
+            val organizationWithDocumentResponse: OrganizationWithDocumentResponse =
+                    objectMapper.readValue(result.response.contentAsString)
             assertThat(organizationWithDocumentResponse.name).isEqualTo(testContext.organizationRequest.name)
             assertThat(organizationWithDocumentResponse.legalInfo).isEqualTo(testContext.organizationRequest.legalInfo)
             assertThat(organizationWithDocumentResponse.createdByUser).isEqualTo(user.getFullName())
@@ -120,8 +120,8 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val organizationWithDocumentResponse: OrganizationWithDocumentResponse
-                    = objectMapper.readValue(result.response.contentAsString)
+            val organizationWithDocumentResponse: OrganizationWithDocumentResponse =
+                    objectMapper.readValue(result.response.contentAsString)
             assertThat(organizationWithDocumentResponse.name).isEqualTo(testContext.organization.name)
             assertThat(organizationWithDocumentResponse.legalInfo).isEqualTo(testContext.organization.legalInfo)
             assertThat(organizationWithDocumentResponse.id).isEqualTo(testContext.organization.id)
@@ -178,8 +178,8 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val organizationWithDocumentResponse: OrganizationWithDocumentResponse
-                    = objectMapper.readValue(result.response.contentAsString)
+            val organizationWithDocumentResponse: OrganizationWithDocumentResponse =
+                    objectMapper.readValue(result.response.contentAsString)
             assertThat(organizationWithDocumentResponse.approved).isTrue()
         }
         verify("Organization is approved") {
