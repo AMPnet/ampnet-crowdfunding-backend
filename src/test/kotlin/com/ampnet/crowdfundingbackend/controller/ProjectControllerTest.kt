@@ -1,7 +1,9 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
@@ -54,7 +56,7 @@ class ProjectControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val projectResponse: ProjectResponse = objectMapper.readValue(result.response.contentAsString)
+            val projectResponse: ProjectWithFundingResponse = objectMapper.readValue(result.response.contentAsString)
             assertSoftly {
                 it.assertThat(projectResponse.id).isEqualTo(testContext.project.id)
                 it.assertThat(projectResponse.name).isEqualTo(testContext.project.name)
@@ -167,7 +169,7 @@ class ProjectControllerTest : ControllerTestBase() {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andReturn()
 
-            val projectResponse: ProjectResponse = objectMapper.readValue(result.response.contentAsString)
+            val projectResponse: ProjectWithFundingResponse = objectMapper.readValue(result.response.contentAsString)
             assertSoftly {
                 it.assertThat(projectResponse.id).isNotNull
                 it.assertThat(projectResponse.name).isEqualTo(testContext.projectRequest.name)
@@ -200,6 +202,49 @@ class ProjectControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetListOfProjectForOrganization() {
+        suppose("Organization has 3 projects") {
+            testContext.project = createProject("Project 1", organization, user)
+            createProject("Project 2", organization, user)
+            createProject("Project 3", organization, user)
+        }
+        suppose("Second organization has project") {
+            val secondOrganization = createOrganization("Second organization", user)
+            testContext.secondProject = createProject("Second project", secondOrganization, user)
+        }
+
+        verify("Controller will return all projects for specified organization") {
+            val result = mockMvc.perform(get("$projectPath/organization/${organization.id}"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val projectListResponse: ProjectListResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(projectListResponse.projects).hasSize(3)
+            assertThat(projectListResponse.projects.map { it.id }).doesNotContain(testContext.secondProject.id)
+
+            val filterResponse = projectListResponse.projects.filter { it.id == testContext.project.id }
+            assertThat(filterResponse).hasSize(1)
+            testContext.projectResponse = filterResponse.first()
+        }
+        verify("Project response is correct") {
+            assertThat(testContext.projectResponse.name).isEqualTo(testContext.project.name)
+            assertThat(testContext.projectResponse.description).isEqualTo(testContext.project.description)
+            assertThat(testContext.projectResponse.location).isEqualTo(testContext.project.location)
+            assertThat(testContext.projectResponse.locationText).isEqualTo(testContext.project.locationText)
+            assertThat(testContext.projectResponse.returnOnInvestment).isEqualTo(testContext.project.returnOnInvestment)
+            assertThat(testContext.projectResponse.startDate).isEqualTo(testContext.project.startDate)
+            assertThat(testContext.projectResponse.endDate).isEqualTo(testContext.project.endDate)
+            assertThat(testContext.projectResponse.expectedFunding).isEqualTo(testContext.project.expectedFunding)
+            assertThat(testContext.projectResponse.currency).isEqualTo(testContext.project.currency)
+            assertThat(testContext.projectResponse.minPerUser).isEqualTo(testContext.project.minPerUser)
+            assertThat(testContext.projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
+            assertThat(testContext.projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
+            assertThat(testContext.projectResponse.active).isEqualTo(testContext.project.active)
+        }
+    }
+
     private fun createProjectRequest(organizationId: Int, name: String): ProjectRequest {
         val time = ZonedDateTime.now()
         return ProjectRequest(
@@ -221,7 +266,9 @@ class ProjectControllerTest : ControllerTestBase() {
 
     private class TestContext {
         lateinit var project: Project
+        lateinit var secondProject: Project
         lateinit var projectRequest: ProjectRequest
+        lateinit var projectResponse: ProjectResponse
         var projectId: Int = -1
     }
 }

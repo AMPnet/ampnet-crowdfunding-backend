@@ -473,3 +473,9 @@ User cannot create project without admin role in organization, privilege: `Organ
 include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-response.adoc[]
+
+=== Get all projects for organization
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]

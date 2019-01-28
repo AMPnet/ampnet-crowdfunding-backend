@@ -2,7 +2,9 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -35,7 +37,7 @@ class ProjectController(
     companion object : KLogging()
 
     @GetMapping("/project/{id}")
-    fun getProject(@PathVariable id: Int): ResponseEntity<ProjectResponse> {
+    fun getProject(@PathVariable id: Int): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to get project with id: $id" }
         projectService.getProjectById(id)?.let { project ->
             logger.debug { "Project found: ${project.id}" }
@@ -49,7 +51,7 @@ class ProjectController(
             }
             logger.debug { "Project $id current funding is: $currentFunding" }
 
-            val response = ProjectResponse(project, currentFunding)
+            val response = ProjectWithFundingResponse(project, currentFunding)
             return ResponseEntity.ok(response)
         }
         logger.info { "Project with id: $id not found" }
@@ -57,7 +59,7 @@ class ProjectController(
     }
 
     @PostMapping("/project")
-    fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectResponse> {
+    fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to create project: $request" }
         val user = getUserFromSecurityContext()
 
@@ -74,14 +76,21 @@ class ProjectController(
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
-    private fun createProject(request: ProjectRequest, user: User): ProjectResponse {
+    @GetMapping("/project/organization/{organizationId}")
+    fun getAllProjectForOrganization(@PathVariable organizationId: Int): ResponseEntity<ProjectListResponse> {
+        logger.debug { "Received request to get all projects for organization: $organizationId" }
+        val projects = projectService.getAllProjectsForOrganization(organizationId).map { ProjectResponse(it) }
+        return ResponseEntity.ok(ProjectListResponse(projects))
+    }
+
+    private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {
         val organization = getOrganization(request.organizationId)
         val serviceRequest = CreateProjectServiceRequest(request, organization, user)
         val project = projectService.createProject(serviceRequest)
 
         // TODO: is it safe to return zero?
         val funding: Long = 0
-        return ProjectResponse(project, funding)
+        return ProjectWithFundingResponse(project, funding)
     }
 
     private fun getUserFromSecurityContext(): User {

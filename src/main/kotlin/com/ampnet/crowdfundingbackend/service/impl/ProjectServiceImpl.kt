@@ -35,6 +35,11 @@ class ProjectServiceImpl(private val projectRepository: ProjectRepository) : Pro
         return ServiceUtils.wrapOptional(projectRepository.findByIdWithWallet(id))
     }
 
+    @Transactional(readOnly = true)
+    override fun getAllProjectsForOrganization(organizationId: Int): List<Project> {
+        return projectRepository.findAllByOrganizationId(organizationId)
+    }
+
     @Transactional
     override fun addMainImage(project: Project, mainImage: String) {
         project.mainImage = mainImage
