@@ -98,7 +98,6 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-    testCompile('org.mockito:mockito-core:2.23.4')
     testCompile('org.subethamail:subethasmtp:3.1.7')
 
     ktlint "com.github.shyiko:ktlint:0.29.0"

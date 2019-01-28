@@ -131,7 +131,7 @@ abstract class ControllerTestBase : TestBase() {
         organization.createdAt = ZonedDateTime.now()
         organization.approved = true
         organization.createdByUser = user
-        organization.documents = listOf("hash1", "hash2", "hash3")
+        organization.documents = emptyList()
         return organizationRepository.save(organization)
     }
 

@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
@@ -64,6 +65,8 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var mailTokenRepository: MailTokenRepository
     @Autowired
     protected lateinit var projectRepository: ProjectRepository
+    @Autowired
+    protected lateinit var documentRepository: DocumentRepository
 
     protected val applicationProperties: ApplicationProperties by lazy {
         // add additional properties as needed
@@ -91,7 +94,7 @@ abstract class JpaServiceTestBase : TestBase() {
         organization.createdAt = ZonedDateTime.now()
         organization.approved = true
         organization.createdByUser = createdBy
-        organization.documents = listOf("hash1", "hash2", "hash3")
+        organization.documents = emptyList()
         return organizationRepository.save(organization)
     }
 

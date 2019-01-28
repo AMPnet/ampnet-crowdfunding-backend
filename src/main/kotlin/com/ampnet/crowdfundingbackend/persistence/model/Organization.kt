@@ -1,14 +1,14 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
-import com.ampnet.crowdfundingbackend.persistence.HashArrayToStringConverter
 import java.time.ZonedDateTime
 import javax.persistence.Column
-import javax.persistence.Convert
 import javax.persistence.Entity
+import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
+import javax.persistence.JoinTable
 import javax.persistence.ManyToOne
 import javax.persistence.OneToMany
 import javax.persistence.Table
@@ -26,7 +26,7 @@ data class Organization(
     @Column                         // set nullable false
     var legalInfo: String,          // TODO: change legal info, try to use @Embeddable and @Embedded
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     var createdByUser: User,
 
@@ -39,14 +39,16 @@ data class Organization(
     @Column(nullable = false)
     var approved: Boolean,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
     var approvedBy: User?,
 
-    // TODO: change to use document model, @ManyToOne
-    @Column(nullable = true)
-    @Convert(converter = HashArrayToStringConverter::class)
-    var documents: List<String>?,
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "organization_document",
+            joinColumns = [JoinColumn(name = "organization_id")],
+            inverseJoinColumns = [JoinColumn(name = "document_id")]
+    )
+    var documents: List<Document>?,
 
     @OneToMany
     @JoinColumn(name = "organizationId")

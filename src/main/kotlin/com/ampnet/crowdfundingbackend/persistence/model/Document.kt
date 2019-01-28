@@ -6,6 +6,7 @@ import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
+import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
@@ -33,9 +34,9 @@ data class Document(
     @Column(nullable = false)
     var size: Int,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    var createdBy: User?,
+    var createdBy: User,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime
