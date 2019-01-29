@@ -1,12 +1,15 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
+import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -16,7 +19,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -254,6 +260,51 @@ class ProjectControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToAddDocumentForProject() {
+        suppose("Project exists") {
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("IPFS will store document") {
+            testContext.multipartFile = MockMultipartFile("file", "test.txt",
+                    "text/plain", "Some document data".toByteArray())
+            Mockito.`when`(ipfsService.storeData(testContext.multipartFile.bytes, testContext.multipartFile.name))
+                    .thenReturn(IpfsFile(testContext.documentHash, testContext.multipartFile.name, null))
+        }
+
+        verify("User can add document") {
+            val result = mockMvc.perform(
+                    RestDocumentationRequestBuilders.fileUpload("$projectPath/${testContext.project.id}/document")
+                            .file(testContext.multipartFile))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val documentResponse: DocumentResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(documentResponse.id).isNotNull()
+            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
+            assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
+            assertThat(documentResponse.hash).isEqualTo(testContext.documentHash)
+        }
+        verify("Document is stored in database and connected to project") {
+            val optionalProject = projectRepository.findByIdWithDocuments(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            val projectWithDocument = optionalProject.get()
+            assertThat(projectWithDocument.documents).hasSize(1)
+
+            val document = projectWithDocument.documents!![0]
+            assertThat(document.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(document.size).isEqualTo(testContext.multipartFile.size)
+            assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
+            assertThat(document.hash).isEqualTo(testContext.documentHash)
+        }
+    }
+
     private fun createProjectRequest(organizationId: Int, name: String): ProjectRequest {
         val time = ZonedDateTime.now()
         return ProjectRequest(
@@ -278,6 +329,8 @@ class ProjectControllerTest : ControllerTestBase() {
         lateinit var secondProject: Project
         lateinit var projectRequest: ProjectRequest
         lateinit var projectResponse: ProjectResponse
+        lateinit var multipartFile: MockMultipartFile
+        val documentHash = "hashos"
         var projectId: Int = -1
     }
 }
