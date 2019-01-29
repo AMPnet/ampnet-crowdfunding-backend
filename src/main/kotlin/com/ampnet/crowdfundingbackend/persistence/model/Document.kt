@@ -1,11 +1,8 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
-import com.ampnet.crowdfundingbackend.enums.DocumentType
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
 import javax.persistence.FetchType
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
@@ -27,9 +24,8 @@ data class Document(
     @Column(nullable = false)
     var name: String,
 
-    @Enumerated(EnumType.STRING)
     @Column(length = 16)
-    var type: DocumentType,
+    var type: String,
 
     @Column(nullable = false)
     var size: Int,

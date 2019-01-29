@@ -437,6 +437,13 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
 
+=== Add document to organization
+
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrganization/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrganization/http-response.adoc[]
+
 == Project API
 Collection of endpoints for managing project
 
@@ -455,10 +462,6 @@ include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/ht
 include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
 
 === Create project
-.Request
-include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-request.adoc[]
-.Response
-include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
 
 ==== Successfully create
 .Request

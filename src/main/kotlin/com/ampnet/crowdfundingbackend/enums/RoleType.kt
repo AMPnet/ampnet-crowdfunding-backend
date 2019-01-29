@@ -41,6 +41,7 @@ enum class OrganizationRoleType(val id: Int) {
             return listOf(
                     OrganizationPrivilegeType.PR_USERS,
                     OrganizationPrivilegeType.PW_USERS,
+                    OrganizationPrivilegeType.PW_ORG,
                     OrganizationPrivilegeType.PW_PROJECT)
         }
     },

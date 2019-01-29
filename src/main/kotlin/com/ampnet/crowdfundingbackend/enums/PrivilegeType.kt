@@ -34,5 +34,8 @@ enum class OrganizationPrivilegeType {
     PR_USERS,
     PW_USERS,
 
+    // Organization
+    PW_ORG,
+
     PW_PROJECT
 }

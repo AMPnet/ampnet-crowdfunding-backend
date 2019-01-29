@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.response
 
-import com.ampnet.crowdfundingbackend.enums.DocumentType
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import java.time.ZonedDateTime
 
@@ -8,7 +7,7 @@ data class DocumentResponse(
     val id: Int,
     val hash: String,
     val name: String,
-    val type: DocumentType,
+    val type: String,
     val size: Int,
     val createdAt: ZonedDateTime
 ) {
