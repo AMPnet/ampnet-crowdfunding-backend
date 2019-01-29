@@ -145,7 +145,7 @@ class OrganizationController(
         organizationService.getOrganizationMemberships(organizationId).find { it.userId == user.id }?.let {
             if (hasPrivilegeToWriteOrganization(it)) {
                 val documentSaveRequest = DocumentSaveRequest(file, user)
-                val document = organizationService.addDocumentForOrganization(it.organizationId, documentSaveRequest)
+                val document = organizationService.addDocument(it.organizationId, documentSaveRequest)
                 return ResponseEntity.ok(DocumentResponse(document))
             }
             logger.info { "User missing privilege 'OrganizationPrivilegeType.PW_ORG'! Membership: $it" }

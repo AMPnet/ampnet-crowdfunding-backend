@@ -26,5 +26,5 @@ interface OrganizationService {
     fun answerToOrganizationInvitation(userId: Int, join: Boolean, organizationId: Int)
     fun followOrganization(userId: Int, organizationId: Int): OrganizationFollower
     fun unfollowOrganization(userId: Int, organizationId: Int)
-    fun addDocumentForOrganization(organizationId: Int, request: DocumentSaveRequest): Document
+    fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document
 }

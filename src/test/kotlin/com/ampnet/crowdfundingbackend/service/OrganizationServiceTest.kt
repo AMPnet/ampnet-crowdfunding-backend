@@ -242,7 +242,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         verify("Service will throw an exception that organization is missing") {
             val request = DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
             val exception = assertThrows<ResourceNotFoundException> {
-                organizationService.addDocumentForOrganization(0, request)
+                organizationService.addDocument(0, request)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.ORG_MISSING)
         }
@@ -262,7 +262,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service will append new document") {
-            val document = organizationService.addDocumentForOrganization(organization.id, testContext.documentSaveRequest)
+            val document = organizationService.addDocument(organization.id, testContext.documentSaveRequest)
             assertThat(document.id).isNotNull()
             assertThat(document.name).isEqualTo(testContext.documentSaveRequest.name)
             assertThat(document.size).isEqualTo(testContext.documentSaveRequest.size)

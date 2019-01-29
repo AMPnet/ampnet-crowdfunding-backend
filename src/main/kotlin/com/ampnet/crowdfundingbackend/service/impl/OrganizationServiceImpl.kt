@@ -182,7 +182,7 @@ class OrganizationServiceImpl(
     }
 
     @Transactional
-    override fun addDocumentForOrganization(organizationId: Int, request: DocumentSaveRequest): Document {
+    override fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document {
         val organization = organizationRepository.findByIdWithDocuments(organizationId).orElseThrow {
             throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
         }
