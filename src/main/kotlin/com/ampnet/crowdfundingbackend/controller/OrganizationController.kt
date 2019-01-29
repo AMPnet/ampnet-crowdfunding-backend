@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
@@ -15,6 +16,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
+import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging
@@ -26,7 +28,9 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import javax.validation.Valid
 
 @RestController
@@ -130,6 +134,25 @@ class OrganizationController(
         }
     }
 
+    @PostMapping("/organization/{organizationId}/document")
+    fun addDocument(
+        @PathVariable("organizationId") organizationId: Int,
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<DocumentResponse> {
+        logger.debug { "Received request to add document: ${file.name} to organization: $organizationId" }
+        val user = getUserFromSecurityContext()
+
+        organizationService.getOrganizationMemberships(organizationId).find { it.userId == user.id }?.let {
+            if (hasPrivilegeToWriteOrganization(it)) {
+                val documentSaveRequest = DocumentSaveRequest(file, user)
+                val document = organizationService.addDocument(it.organizationId, documentSaveRequest)
+                return ResponseEntity.ok(DocumentResponse(document))
+            }
+            logger.info { "User missing privilege 'OrganizationPrivilegeType.PW_ORG'! Membership: $it" }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
     private fun ifUserHasPrivilegeWriteUserInOrganizationThenDo(
         userId: Int,
         organizationId: Int,
@@ -160,4 +183,7 @@ class OrganizationController(
 
     private fun hasPrivilegeToWriteOrganizationUsers(membership: OrganizationMembership): Boolean =
             membership.getPrivileges().contains(OrganizationPrivilegeType.PW_USERS)
+
+    private fun hasPrivilegeToWriteOrganization(membership: OrganizationMembership): Boolean =
+            membership.getPrivileges().contains(OrganizationPrivilegeType.PW_ORG)
 }

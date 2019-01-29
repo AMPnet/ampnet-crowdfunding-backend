@@ -1,14 +1,18 @@
 package com.ampnet.crowdfundingbackend.service
 
-import com.ampnet.crowdfundingbackend.enums.DocumentType
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
+import com.ampnet.crowdfundingbackend.ipfs.IpfsServiceImpl
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.service.impl.DocumentServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
+import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -20,10 +24,12 @@ import java.time.ZonedDateTime
 class OrganizationServiceTest : JpaServiceTestBase() {
 
     private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
+    private val ipfsService: IpfsServiceImpl = Mockito.mock(IpfsServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
+        val documentServiceImpl = DocumentServiceImpl(documentRepository, ipfsService)
         OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, inviteRepository,
-                roleRepository, userRepository, mailService)
+                roleRepository, userRepository, mailService, documentServiceImpl)
     }
 
     private val user: User by lazy {
@@ -231,6 +237,48 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustNotBeAbleDocumentToNonExistingOrganization() {
+        verify("Service will throw an exception that organization is missing") {
+            val request = DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
+            val exception = assertThrows<ResourceNotFoundException> {
+                organizationService.addDocument(0, request)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.ORG_MISSING)
+        }
+    }
+
+    @Test
+    fun mustAppendNewDocumentToCurrentListOfDocuments() {
+        suppose("Organization has 2 documents") {
+            createOrganizationDocument(organization, user, "Doc 1", "0x01")
+            createOrganizationDocument(organization, user, "Doc 2", "0x02")
+        }
+        suppose("IPFS service will successfully store document") {
+            testContext.documentSaveRequest =
+                    DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
+            Mockito.`when`(ipfsService.storeData(testContext.documentSaveRequest.data, testContext.documentSaveRequest.name))
+                    .thenReturn(IpfsFile(testContext.documentHash, testContext.documentSaveRequest.name, null))
+        }
+
+        verify("Service will append new document") {
+            val document = organizationService.addDocument(organization.id, testContext.documentSaveRequest)
+            assertThat(document.id).isNotNull()
+            assertThat(document.name).isEqualTo(testContext.documentSaveRequest.name)
+            assertThat(document.size).isEqualTo(testContext.documentSaveRequest.size)
+            assertThat(document.type).isEqualTo(testContext.documentSaveRequest.type)
+            assertThat(document.hash).isEqualTo(testContext.documentHash)
+            assertThat(document.createdBy.id).isEqualTo(user.id)
+            assertThat(document.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+        }
+        verify("Organization has 3 documents") {
+            val organizationWithDocuments = organizationService.findOrganizationById(organization.id)
+            assertThat(organizationWithDocuments).isNotNull
+            assertThat(organizationWithDocuments!!.documents).hasSize(3)
+            assertThat(organizationWithDocuments.documents!!.map { it.hash }).contains(testContext.documentHash)
+        }
+    }
+
     private fun verifyDocument(receivedDocument: Document, savedDocument: Document) {
         assertThat(receivedDocument.id).isEqualTo(savedDocument.id)
         assertThat(receivedDocument.hash).isEqualTo(savedDocument.hash)
@@ -251,12 +299,12 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         assertThat(membership.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
     }
 
-    protected fun createOrganizationDocument(
+    private fun createOrganizationDocument(
         organization: Organization,
         createdBy: User,
         name: String,
         hash: String,
-        type: DocumentType = DocumentType.DOC,
+        type: String = "document/type",
         size: Int = 100
     ): Document {
         val document = Document::class.java.newInstance()
@@ -280,5 +328,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         lateinit var invitedUser: User
         lateinit var secondOrganization: Organization
         lateinit var document: Document
+        lateinit var documentSaveRequest: DocumentSaveRequest
+        val documentHash = "hashos"
     }
 }
