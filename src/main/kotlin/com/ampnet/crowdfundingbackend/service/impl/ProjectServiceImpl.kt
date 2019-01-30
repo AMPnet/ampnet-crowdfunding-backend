@@ -43,6 +43,11 @@ class ProjectServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun getProjectByIdWithAllData(id: Int): Project? {
+        return ServiceUtils.wrapOptional(projectRepository.findByIdWithAllData(id))
+    }
+
+    @Transactional(readOnly = true)
     override fun getAllProjectsForOrganization(organizationId: Int): List<Project> {
         return projectRepository.findAllByOrganizationId(organizationId)
     }

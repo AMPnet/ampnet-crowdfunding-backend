@@ -47,7 +47,7 @@ class ProjectController(
         logger.debug { "Received request to get project with id: $id" }
 
         // TODO: add document to response
-        projectService.getProjectById(id)?.let { project ->
+        projectService.getProjectByIdWithAllData(id)?.let { project ->
             logger.debug { "Project found: ${project.id}" }
 
             val currentFunding = getCurrentFundingForProject(project)

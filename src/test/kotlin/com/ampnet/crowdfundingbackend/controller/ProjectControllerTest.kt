@@ -9,9 +9,11 @@ import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
+import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -91,8 +93,40 @@ class ProjectControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
     fun mustReturnProjectWithDocumentsAndFunding() {
-        // TODO: implement
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("My project", organization, user)
+        }
+        suppose("Project has a document") {
+            testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentHash)
+        }
+        suppose("Project has a wallet") {
+            testContext.wallet = createWalletForProject(testContext.project, testContext.walletHash)
+        }
+        suppose("Blockchain service will return current funding") {
+            // TODO: Mock blockchain service!
+        }
+
+        verify("Project response contains all data") {
+            val result = mockMvc.perform(get("$projectPath/${testContext.project.id}"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val projectResponse: ProjectWithFundingResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(projectResponse.documents).hasSize(1)
+            val documentResponse = projectResponse.documents[0]
+            assertThat(documentResponse.id).isEqualTo(testContext.document.id)
+            assertThat(documentResponse.hash).isEqualTo(testContext.document.hash)
+            assertThat(documentResponse.type).isEqualTo(testContext.document.type)
+            assertThat(documentResponse.size).isEqualTo(testContext.document.size)
+            assertThat(documentResponse.name).isEqualTo(testContext.document.name)
+            assertThat(documentResponse.createdAt).isEqualTo(testContext.document.createdAt)
+
+            assertThat(projectResponse.currentFunding).isEqualTo(0)
+        }
     }
 
     @Test
@@ -295,7 +329,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(documentResponse.hash).isEqualTo(testContext.documentHash)
         }
         verify("Document is stored in database and connected to project") {
-            val optionalProject = projectRepository.findByIdWithDocuments(testContext.project.id)
+            val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
             assertThat(optionalProject).isPresent
             val projectWithDocument = optionalProject.get()
             assertThat(projectWithDocument.documents).hasSize(1)
@@ -327,13 +361,32 @@ class ProjectControllerTest : ControllerTestBase() {
         )
     }
 
+    private fun createProjectDocument(
+        project: Project,
+        createdBy: User,
+        name: String,
+        hash: String,
+        type: String = "document/type",
+        size: Int = 100
+    ): Document {
+        val savedDocument = saveDocument(name, hash, type, size, createdBy)
+        val documents = project.documents.orEmpty().toMutableList()
+        documents.add(savedDocument)
+        project.documents = documents
+        projectRepository.save(project)
+        return savedDocument
+    }
+
     private class TestContext {
         lateinit var project: Project
         lateinit var secondProject: Project
         lateinit var projectRequest: ProjectRequest
         lateinit var projectResponse: ProjectResponse
         lateinit var multipartFile: MockMultipartFile
+        lateinit var document: Document
+        lateinit var wallet: Wallet
         val documentHash = "hashos"
         var projectId: Int = -1
+        val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
     }
 }
