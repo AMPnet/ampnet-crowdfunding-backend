@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
@@ -10,10 +9,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithD
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
-import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -23,7 +19,6 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -52,7 +47,7 @@ class OrganizationController(
     @GetMapping("/organization/personal")
     fun getPersonalOrganizations(): ResponseEntity<OrganizationListResponse> {
         logger.debug { "Received request for personal organizations" }
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
         val organizations = organizationService.findAllOrganizationsForUser(user.id).map { OrganizationResponse(it) }
         return ResponseEntity.ok(OrganizationListResponse(organizations))
     }
@@ -69,7 +64,7 @@ class OrganizationController(
     @PostMapping("/organization")
     fun createOrganization(@RequestBody @Valid request: OrganizationRequest): ResponseEntity<OrganizationWithDocumentResponse> {
         logger.debug { "Received request to create organization: $request" }
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
 
         val serviceRequest = OrganizationServiceRequest(request, user)
         val organization = organizationService.createOrganization(serviceRequest)
@@ -79,7 +74,7 @@ class OrganizationController(
     @PostMapping("/organization/{id}/approve")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_ORG_APPROVE)")
     fun approveOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationWithDocumentResponse> {
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
         logger.debug { "Received request to approve organization with id: $id by user: ${user.email}" }
 
         val organization = organizationService.approveOrganization(id, true, user)
@@ -89,7 +84,7 @@ class OrganizationController(
     @GetMapping("/organization/{id}/users")
     fun getOrganizationUsers(@PathVariable("id") id: Int): ResponseEntity<OrganizationUsersListResponse> {
         logger.debug { "Received request to get all users for organization: $id" }
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
 
         organizationService.getOrganizationMemberships(id).find { it.userId == user.id }?.let {
             return if (hasPrivilegeToSeeOrganizationUsers(it)) {
@@ -112,7 +107,7 @@ class OrganizationController(
         @PathVariable("id") id: Int,
         @RequestBody @Valid request: OrganizationInviteRequest
     ): ResponseEntity<Unit> {
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
         logger.debug { "Received request to invited user to organization $id by user: ${user.email}" }
 
         return ifUserHasPrivilegeWriteUserInOrganizationThenDo(user.id, id) {
@@ -126,7 +121,7 @@ class OrganizationController(
         @PathVariable("organizationId") organizationId: Int,
         @PathVariable("revokeUserId") revokeUserId: Int
     ): ResponseEntity<Unit> {
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
         logger.debug { "Received request to invited user to organization $organizationId by user: ${user.email}" }
 
         return ifUserHasPrivilegeWriteUserInOrganizationThenDo(user.id, organizationId) {
@@ -140,7 +135,7 @@ class OrganizationController(
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document: ${file.name} to organization: $organizationId" }
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
 
         organizationService.getOrganizationMemberships(organizationId).find { it.userId == user.id }?.let {
             if (hasPrivilegeToWriteOrganization(it)) {
@@ -169,13 +164,6 @@ class OrganizationController(
         }
         logger.info { "User $userId is not a member of organization $organizationId" }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-    }
-
-    private fun getUserFromSecurityContext(): User {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        return userService.find(userPrincipal.email)
-                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING,
-                        "Missing user with email: ${userPrincipal.email}")
     }
 
     private fun hasPrivilegeToSeeOrganizationUsers(membership: OrganizationMembership): Boolean =

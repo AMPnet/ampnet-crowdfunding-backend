@@ -1,18 +1,15 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,9 +28,9 @@ class WalletController(
 
     @GetMapping("/wallet")
     fun getMyWallet(): ResponseEntity<WalletResponse> {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request for Wallet from user: ${userPrincipal.email}")
-        val user = getUserWithWallet(userPrincipal.email)
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request for Wallet from user: ${user.email}")
+
         val wallet = user.wallet ?: return ResponseEntity.notFound().build()
 
         val balance = walletService.getWalletBalance(wallet)
@@ -45,9 +42,8 @@ class WalletController(
     fun createWallet(@RequestBody @Valid request: WalletCreateRequest): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to create wallet: $request" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Wallet for user: ${userPrincipal.email}")
-        val user = getUserWithWallet(userPrincipal.email)
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request to create a Wallet for user: ${user.email}")
         val wallet = walletService.createUserWallet(user, request.address)
 
         val balance = walletService.getWalletBalance(wallet)
@@ -59,12 +55,11 @@ class WalletController(
     fun getProjectWallet(@PathVariable projectId: Int): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to get project($projectId) wallet" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request to create a Wallet project by user: ${user.email}")
 
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
-        val user = getUser(userPrincipal.email)
 
         if (project.createdBy.id == user.id) {
             project.wallet?.let {
@@ -84,12 +79,11 @@ class WalletController(
     ): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to create project($projectId) wallet: $request" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request to create a Wallet project by user: ${user.email}")
 
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
-        val user = getUser(userPrincipal.email)
 
         if (project.createdBy.id == user.id) {
             val wallet = walletService.createProjectWallet(project, request.address)
@@ -98,15 +92,5 @@ class WalletController(
             return ResponseEntity.ok(response)
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-    }
-
-    private fun getUserWithWallet(email: String): User {
-        return userService.findWithWallet(email)
-                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
-    }
-
-    private fun getUser(email: String): User {
-        return userService.find(email)
-                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
     }
 }
