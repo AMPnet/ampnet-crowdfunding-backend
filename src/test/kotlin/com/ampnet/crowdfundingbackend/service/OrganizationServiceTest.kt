@@ -14,6 +14,7 @@ import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
+import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -276,6 +277,17 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             assertThat(organizationWithDocuments).isNotNull
             assertThat(organizationWithDocuments!!.documents).hasSize(3)
             assertThat(organizationWithDocuments.documents!!.map { it.hash }).contains(testContext.documentHash)
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToCreateOrganizationWithSameName() {
+        verify("Service will throw an exception for same name exception") {
+            val exception = assertThrows<ResourceAlreadyExistsException> {
+                val request = OrganizationServiceRequest(organization.name, "legal", user)
+                organizationService.createOrganization(request)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.ORG_DUPLICATE_NAME)
         }
     }
 

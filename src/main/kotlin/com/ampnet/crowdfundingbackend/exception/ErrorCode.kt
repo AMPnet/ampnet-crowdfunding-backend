@@ -35,6 +35,7 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     ORG_PRIVILEGE_PW("06", "03", "Failed invite user to organization without organization user role, privilege PW_USERS"),
     ORG_DUPLICATE_USER("06", "04", "User is already a member of this organization"),
     ORG_DUPLICATE_INVITE("06", "05", "User is already invited"),
+    ORG_DUPLICATE_NAME("06", "06", "Organization with this name alrady exists"),
 
     // Project: 07
     PRJ_MISSING("07", "01", "Non existing project"),
