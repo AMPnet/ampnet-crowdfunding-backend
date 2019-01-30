@@ -22,7 +22,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
 
     private val ipfsService: IpfsServiceImpl = Mockito.mock(IpfsServiceImpl::class.java)
 
-    private val projectService: ProjectService by lazy {
+    private val projectService: ProjectServiceImpl by lazy {
         val documentServiceImpl = DocumentServiceImpl(documentRepository, ipfsService)
         ProjectServiceImpl(projectRepository, documentServiceImpl)
     }
@@ -245,7 +245,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     10_000_000_000_000,
                     Currency.EUR,
                     1,
-                    1_000_000_000_000,
+                    projectService.maxPerUserInvestment + 1,
                     false,
                     user
             )
@@ -272,7 +272,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     "1-2%",
                     currentTime,
                     currentTime.plusDays(30),
-                    100_000_000_000_000,
+                    projectService.maxProjectInvestment + 1,
                     Currency.EUR,
                     1,
                     1_000_000_000,

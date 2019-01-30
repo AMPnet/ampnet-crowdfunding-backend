@@ -87,8 +87,12 @@ class ProjectControllerTest : ControllerTestBase() {
                         .isEqualTo(organization.createdByUser.getFullName())
             }
 
-            assertThat(projectResponse.currentFunding).isEqualTo(0)
+            assertThat(projectResponse.currentFunding).isNull()
         }
+    }
+
+    fun mustReturnProjectWithDocumentsAndFunding() {
+        // TODO: implement
     }
 
     @Test

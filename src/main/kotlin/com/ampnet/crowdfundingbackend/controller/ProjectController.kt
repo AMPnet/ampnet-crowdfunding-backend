@@ -115,18 +115,15 @@ class ProjectController(
         val serviceRequest = CreateProjectServiceRequest(request, organization, user)
         val project = projectService.createProject(serviceRequest)
 
-        // TODO: is it safe to return zero?
-        val funding: Long = 0
-        return ProjectWithFundingResponse(project, funding)
+        return ProjectWithFundingResponse(project, null)
     }
 
-    private fun getCurrentFundingForProject(project: Project): Long {
+    private fun getCurrentFundingForProject(project: Project): Long? {
         project.wallet?.let {
             return walletService.getWalletBalance(it)
         }
         logger.info { "Project ${project.id} does not have a wallet" }
-        // TODO: rethink what to return if the wallet is missing
-        return 0
+        return null
     }
 
     private fun getUserFromSecurityContext(): User {

@@ -20,9 +20,8 @@ class ProjectServiceImpl(
     private val documentService: DocumentService
 ) : ProjectService {
 
-    // TODO: add decimal zero
-    private val maxProjectInvestment: Long = 100_000_000_000_000
-    private val maxPerUserInvestment: Long = 1_000_000_000_000
+    val maxProjectInvestment: Long = 100_000_000_000_000_00
+    val maxPerUserInvestment: Long = 1_000_000_000_000_00
 
     @Transactional
     override fun createProject(request: CreateProjectServiceRequest): Project {

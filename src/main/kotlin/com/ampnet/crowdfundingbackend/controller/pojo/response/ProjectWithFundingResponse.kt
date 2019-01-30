@@ -22,9 +22,9 @@ data class ProjectWithFundingResponse(
     val active: Boolean,
     val organization: OrganizationResponse,
     val createByUser: String,
-    val currentFunding: Long
+    val currentFunding: Long?
 ) {
-    constructor(project: Project, currentFunding: Long): this(
+    constructor(project: Project, currentFunding: Long?): this(
             project.id,
             project.name,
             project.description,
