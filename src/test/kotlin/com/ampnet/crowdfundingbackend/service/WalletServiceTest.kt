@@ -127,6 +127,24 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustNotBeAbleToCreateWalletWithTheSameAddress() {
+        suppose("User has a wallet") {
+            createWalletForUser(user, defaultAddress)
+        }
+        suppose("Project exists") {
+            val organization = createOrganization("Org", user)
+            testContext.project = createProject("Das project", organization, user)
+        }
+
+        verify("User will not be able to create organization wallet with same address") {
+            val exception = assertThrows<ResourceAlreadyExistsException> {
+                walletService.createProjectWallet(testContext.project, defaultAddress)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_ADDRESS_EXISTS)
+        }
+    }
+
     private class TestContext {
         lateinit var project: Project
     }

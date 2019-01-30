@@ -60,6 +60,11 @@ class WalletServiceImpl(
     }
 
     private fun createWallet(address: String, type: WalletType): Wallet {
+        if (walletRepository.findByAddress(address).isPresent) {
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_ADDRESS_EXISTS,
+                    "Wallet with address: $address already exists")
+        }
+
         val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.address = address
         wallet.type = type
