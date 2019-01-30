@@ -19,12 +19,13 @@ data class ProjectWithFundingResponse(
     val maxPerUser: Long,
     val mainImage: String?,
     val gallery: List<String>,
+    val documents: List<DocumentResponse>,
     val active: Boolean,
     val organization: OrganizationResponse,
     val createByUser: String,
-    val currentFunding: Long
+    val currentFunding: Long?
 ) {
-    constructor(project: Project, currentFunding: Long): this(
+    constructor(project: Project, currentFunding: Long?): this(
             project.id,
             project.name,
             project.description,
@@ -39,6 +40,7 @@ data class ProjectWithFundingResponse(
             project.maxPerUser,
             project.mainImage,
             project.gallery.orEmpty(),
+            project.documents?.map { DocumentResponse(it) } ?: emptyList(),
             project.active,
             OrganizationResponse(project.organization),
             project.createdBy.getFullName(),
