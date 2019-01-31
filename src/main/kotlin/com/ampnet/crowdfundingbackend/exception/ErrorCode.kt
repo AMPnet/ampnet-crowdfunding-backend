@@ -28,6 +28,7 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     WALLET_MISSING("05", "01", "User does not have a wallet"),
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),
     WALLET_FUNDS("05", "03", "User does not have enough funds on wallet"),
+    WALLET_ADDRESS_EXISTS("05", "04", "Wallet with this address already exists"),
 
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),
@@ -35,6 +36,7 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     ORG_PRIVILEGE_PW("06", "03", "Failed invite user to organization without organization user role, privilege PW_USERS"),
     ORG_DUPLICATE_USER("06", "04", "User is already a member of this organization"),
     ORG_DUPLICATE_INVITE("06", "05", "User is already invited"),
+    ORG_DUPLICATE_NAME("06", "06", "Organization with this name alrady exists"),
 
     // Project: 07
     PRJ_MISSING("07", "01", "Non existing project"),

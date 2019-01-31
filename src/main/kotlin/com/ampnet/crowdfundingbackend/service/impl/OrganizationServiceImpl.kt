@@ -47,6 +47,11 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun createOrganization(serviceRequest: OrganizationServiceRequest): Organization {
+        if (organizationRepository.findByName(serviceRequest.name).isPresent) {
+            throw ResourceAlreadyExistsException(ErrorCode.ORG_DUPLICATE_NAME,
+                    "Organization with name: ${serviceRequest.name} already exists")
+        }
+
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = serviceRequest.name
         organization.createdByUser = serviceRequest.owner
