@@ -110,6 +110,8 @@ dependencies {
 }
 compileJava.dependsOn(processResources)
 
+jib.container.useCurrentTimestamp = true
+
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
     main = "com.github.shyiko.ktlint.Main"
