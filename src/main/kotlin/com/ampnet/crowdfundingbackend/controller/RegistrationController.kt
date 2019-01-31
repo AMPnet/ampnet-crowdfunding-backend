@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.MailCheckRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocialInfo
@@ -18,7 +17,6 @@ import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KLogging
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -65,7 +63,7 @@ class RegistrationController(
 
     @GetMapping("/mail-confirmation/resend")
     fun resendMailConfirmation(): ResponseEntity<Any> {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "User ${userPrincipal.email} requested to resend mail confirmation link" }
         userService.find(userPrincipal.email)?.let {
             userService.resendConfirmationMail(it)

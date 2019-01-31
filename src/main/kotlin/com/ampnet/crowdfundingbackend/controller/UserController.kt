@@ -1,20 +1,16 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInviteResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
-import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,7 +27,7 @@ class UserController(private val userService: UserService, private val organizat
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRO_PROFILE)")
     fun me(): ResponseEntity<UserResponse> {
         logger.debug { "Received request for my profile" }
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         userService.find(userPrincipal.email)?.let {
             return ResponseEntity.ok(UserResponse(it))
         }
@@ -44,7 +40,7 @@ class UserController(private val userService: UserService, private val organizat
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWO_PROFILE)")
     fun updateMyProfile(@RequestBody @Valid request: UserUpdateRequest): ResponseEntity<UserResponse> {
         logger.debug { "User send request to update his profile" }
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         return if (userPrincipal.email != request.email) {
             logger.info("User trying to update others profile")
             ResponseEntity.status(HttpStatus.FORBIDDEN).build()
@@ -97,10 +93,5 @@ class UserController(private val userService: UserService, private val organizat
                 ?: ResponseEntity.notFound().build()
     }
 
-    private fun getUserId(): Int {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        return userService.find(userPrincipal.email)?.id
-                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING,
-                        "Missing user with email: ${userPrincipal.email}")
-    }
+    private fun getUserId(): Int = ControllerUtils.getUserFromSecurityContext(userService).id
 }

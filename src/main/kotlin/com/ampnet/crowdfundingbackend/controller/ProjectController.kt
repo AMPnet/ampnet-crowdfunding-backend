@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
@@ -22,7 +21,6 @@ import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -63,7 +61,7 @@ class ProjectController(
     @PostMapping("/project")
     fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to create project: $request" }
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
 
         getUserMembershipInOrganization(user.id, request.organizationId)?.let {
             return if (hasPrivilegeToWriteProject(it)) {
@@ -91,7 +89,7 @@ class ProjectController(
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document to project: $projectId" }
-        val user = getUserFromSecurityContext()
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
 
         val project = projectService.getProjectById(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
@@ -124,13 +122,6 @@ class ProjectController(
         }
         logger.info { "Project ${project.id} does not have a wallet" }
         return null
-    }
-
-    private fun getUserFromSecurityContext(): User {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        return userService.find(userPrincipal.email)
-                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING,
-                        "Missing user with email: ${userPrincipal.email}")
     }
 
     private fun getOrganization(organizationId: Int): Organization =
