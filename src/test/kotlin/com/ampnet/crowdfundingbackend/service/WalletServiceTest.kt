@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
+import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -40,8 +41,9 @@ class WalletServiceTest : JpaServiceTestBase() {
 
     private val defaultAddress = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
     private val defaultAddressHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
+    private val defaultPublicKey = "0xC2D7CF95645D33006175B78989035C7c9061d3F9"
     private val defaultSignedTransaction = "SignedTransaction"
-    private val defaultTransactionData = TransactionData("data", "to", 1, 1, 1, 1)
+    private val defaultTransactionData = TransactionData("data", "to", 1, 1, 1, 1, "public_key")
 
     @BeforeEach
     fun init() {
@@ -69,7 +71,8 @@ class WalletServiceTest : JpaServiceTestBase() {
     @Test
     fun mustBeAbleToCreateWalletForUser() {
         suppose("Blockchain service successfully adds wallet") {
-            Mockito.`when`(mockedBlockchainService.addWallet(defaultAddress)).thenReturn(defaultAddressHash)
+            Mockito.`when`(mockedBlockchainService.addWallet(defaultAddress, defaultPublicKey))
+                    .thenReturn(defaultAddressHash)
         }
 
         verify("Service can generate wallet token") {
@@ -77,7 +80,7 @@ class WalletServiceTest : JpaServiceTestBase() {
             testContext.walletToken = walletService.createWalletToken(user)
         }
         verify("Service can create wallet for a user") {
-            val request = WalletCreateRequest(defaultAddress, testContext.walletToken.token.toString())
+            val request = WalletCreateRequest(defaultAddress, defaultPublicKey, testContext.walletToken.token.toString())
             val wallet = walletService.createUserWallet(request)
             assertThat(wallet.hash).isEqualTo(defaultAddressHash)
             assertThat(wallet.currency).isEqualTo(Currency.EUR)
@@ -99,7 +102,7 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service will throw exception that wallet token is missing") {
-            val request = WalletCreateRequest(defaultAddress, UUID.randomUUID().toString())
+            val request = WalletCreateRequest(defaultAddress, defaultPublicKey, UUID.randomUUID().toString())
             val exception = assertThrows<ResourceNotFoundException> {
                 walletService.createUserWallet(request)
             }
@@ -119,7 +122,7 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service throws exception Wallet token has expired") {
-            val request = WalletCreateRequest(defaultAddress, testContext.walletToken.token.toString())
+            val request = WalletCreateRequest(defaultAddress, defaultPublicKey, testContext.walletToken.token.toString())
             val exception = assertThrows<InvalidRequestException> {
                 walletService.createUserWallet(request)
             }
@@ -154,7 +157,7 @@ class WalletServiceTest : JpaServiceTestBase() {
             testContext.project = createProject("Das project", organization, user)
         }
         suppose("Blockchain service successfully adds wallet") {
-            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction))
+            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.PRJ_CREATE))
                     .thenReturn(defaultAddressHash)
         }
 
@@ -190,7 +193,7 @@ class WalletServiceTest : JpaServiceTestBase() {
 
         verify("Service cannot create additional account") {
             val exception = assertThrows<ResourceAlreadyExistsException> {
-                val request = WalletCreateRequest(defaultAddress, testContext.walletToken.token.toString())
+                val request = WalletCreateRequest(defaultAddress, defaultPublicKey, testContext.walletToken.token.toString())
                 walletService.createUserWallet(request)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
@@ -248,12 +251,12 @@ class WalletServiceTest : JpaServiceTestBase() {
     @Test
     fun mustThrowExceptionIfBlockchainServiceFailsToCreateWallet() {
         suppose("gRPC service cannot create a wallet") {
-            Mockito.`when`(mockedBlockchainService.addWallet(defaultAddress)).thenReturn(null)
+            Mockito.`when`(mockedBlockchainService.addWallet(defaultAddress, defaultPublicKey)).thenReturn(null)
         }
 
         verify("Service will throw InternalException") {
             val walletToken = walletService.createWalletToken(user).token.toString()
-            val request = WalletCreateRequest(defaultAddress, walletToken)
+            val request = WalletCreateRequest(defaultAddress, defaultPublicKey, walletToken)
             val exception = assertThrows<InternalException> {
                 walletService.createUserWallet(request)
             }
@@ -351,7 +354,7 @@ class WalletServiceTest : JpaServiceTestBase() {
             testContext.organization = createOrganization("Org", user)
         }
         suppose("Blockchain service successfully adds wallet") {
-            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction))
+            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.ORG_CREATE))
                     .thenReturn(defaultAddressHash)
         }
 
@@ -398,8 +401,8 @@ class WalletServiceTest : JpaServiceTestBase() {
             val organization = createOrganization("Org", user)
             testContext.project = createProject("Das project", organization, user)
         }
-        suppose("Blockchain service will return same hash for new wallet transaction") {
-            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction))
+        suppose("Blockchain service will return same hash for new project wallet transaction") {
+            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.PRJ_CREATE))
                     .thenReturn(defaultAddressHash)
         }
 

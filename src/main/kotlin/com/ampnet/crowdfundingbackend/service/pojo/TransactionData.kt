@@ -8,7 +8,8 @@ data class TransactionData(
     val nonce: Long,
     val gasLimit: Long,
     val gasPrice: Long,
-    val value: Long
+    val value: Long,
+    val publicKey: String
 ) {
     constructor(rawTxResponse: RawTxResponse): this(
             rawTxResponse.data,
@@ -16,6 +17,7 @@ data class TransactionData(
             rawTxResponse.nonce,
             rawTxResponse.gasLimit,
             rawTxResponse.gasPrice,
-            rawTxResponse.value
+            rawTxResponse.value,
+            rawTxResponse.publicKey
     )
 }

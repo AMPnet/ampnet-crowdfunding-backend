@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletTokenRespon
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -87,11 +88,13 @@ class WalletControllerTest : ControllerTestBase() {
             testData.walletToken = createWalletToken(user, UUID.randomUUID())
         }
         suppose("Blockchain service successfully adds wallet") {
-            Mockito.`when`(blockchainService.addWallet(testData.address)).thenReturn(testData.hash)
+            Mockito.`when`(blockchainService.addWallet(testData.address, testData.publicKey))
+                    .thenReturn(testData.hash)
         }
 
         verify("User can create a wallet") {
-            val request = WalletCreateRequest(testData.address, testData.walletToken.token.toString())
+            val request = WalletCreateRequest(testData.address, testData.publicKey,
+                    testData.walletToken.token.toString())
             val result = mockMvc.perform(
                     post(walletPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -126,7 +129,7 @@ class WalletControllerTest : ControllerTestBase() {
         }
 
         verify("User cannot create a wallet") {
-            val request = WalletCreateRequest(testData.address, testData.token)
+            val request = WalletCreateRequest(testData.address, testData.publicKey, testData.token)
             mockMvc.perform(
                     post(walletPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -180,7 +183,7 @@ class WalletControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToGenerateTokenAndCreateWallet() {
         suppose("Blockchain service successfully adds wallet") {
-            Mockito.`when`(blockchainService.addWallet(testData.address)).thenReturn(testData.hash)
+            Mockito.`when`(blockchainService.addWallet(testData.address, testData.publicKey)).thenReturn(testData.hash)
         }
 
         verify("User can generate wallet token") {
@@ -196,7 +199,7 @@ class WalletControllerTest : ControllerTestBase() {
             testData.token = tokenResponse.token
         }
         verify("User can create wallet with generated token") {
-            val request = WalletCreateRequest(testData.address, testData.token)
+            val request = WalletCreateRequest(testData.address, testData.publicKey, testData.token)
             val result = mockMvc.perform(
                     post(walletPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -224,7 +227,7 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     fun mustNotBeAbleToCreateWalletWithInvalidAddress() {
         verify("User cannot create wallet with invalid wallet address") {
-            val request = WalletCreateRequest("0x00", testData.token)
+            val request = WalletCreateRequest("0x00", testData.publicKey, testData.token)
             mockMvc.perform(
                     post(walletPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -289,7 +292,7 @@ class WalletControllerTest : ControllerTestBase() {
             testData.project = createProject("Test project", organization, user)
         }
         suppose("Blockchain service successfully adds project wallet") {
-            Mockito.`when`(blockchainService.postTransaction(testData.signedTransaction))
+            Mockito.`when`(blockchainService.postTransaction(testData.signedTransaction, PostTransactionType.PRJ_CREATE))
                     .thenReturn(testData.hash)
         }
 
@@ -587,7 +590,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     private fun generateTransactionData(data: String): TransactionData {
-        return TransactionData(data, "to", 1, 1, 1, 1)
+        return TransactionData(data, "to", 1, 1, 1, 1, "public_key")
     }
 
     @Test
@@ -596,7 +599,7 @@ class WalletControllerTest : ControllerTestBase() {
             testData.organization = createOrganization("Turk org", user)
         }
         suppose("Blockchain service successfully generates transaction to create organization wallet") {
-            Mockito.`when`(blockchainService.postTransaction(testData.signedTransaction))
+            Mockito.`when`(blockchainService.postTransaction(testData.signedTransaction, PostTransactionType.ORG_CREATE))
                     .thenReturn(testData.hash)
         }
 
@@ -659,6 +662,7 @@ class WalletControllerTest : ControllerTestBase() {
         var walletId = -1
         var address = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         var hash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
+        val publicKey = "0xC2D7CF95645D33006175B78989035C7c9061d3F9"
         var balance: Long = -1
         val signedTransaction = "SignedTransaction"
         var token = UUID.randomUUID().toString()

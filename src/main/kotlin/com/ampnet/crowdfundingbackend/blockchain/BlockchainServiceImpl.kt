@@ -10,6 +10,7 @@ import com.ampnet.crowdfunding.proto.PostTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import io.grpc.StatusRuntimeException
 import mu.KLogging
@@ -44,12 +45,13 @@ class BlockchainServiceImpl(
         }
     }
 
-    override fun addWallet(address: String): String? {
+    override fun addWallet(address: String, publicKey: String): String? {
         logger.info { "Adding wallet: $address" }
         return try {
             val response = serviceBlockingStub.addWallet(
                     AddWalletRequest.newBuilder()
-                            .setWallet(address)
+                            .setAddress(address)
+                            .setPublicKey(publicKey)
                             .build()
             )
             logger.info { "Successfully added wallet: $response" }
@@ -97,16 +99,17 @@ class BlockchainServiceImpl(
         }
     }
 
-    override fun postTransaction(transaction: String): String {
+    override fun postTransaction(transaction: String, type: PostTransactionType): String {
         try {
             val response = serviceBlockingStub.postTransaction(
                     PostTxRequest.newBuilder()
                             .setData(transaction)
+                            .setTxType(type.type)
                             .build()
             )
             return response.txHash
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not post transaction: $transaction" }
+            logger.error(ex) { "Could not post type: $type transaction: $transaction" }
             throw InternalException(ErrorCode.INT_TRANSACTION, "Could not post transaction")
         }
     }

@@ -21,6 +21,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationReposit
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -59,7 +60,7 @@ class WalletServiceImpl(
         val user = token.user
         throwExceptionIfUserAlreadyHasWallet(user)
 
-        val txHash = blockchainService.addWallet(request.address)
+        val txHash = blockchainService.addWallet(request.address, request.publicKey)
                 ?: throw InternalException(ErrorCode.INT_WALLET_ADD, "Could not store User wallet")
         val wallet = createWallet(txHash, WalletType.USER)
         user.wallet = wallet
@@ -98,7 +99,7 @@ class WalletServiceImpl(
     @Throws(ResourceAlreadyExistsException::class)
     override fun createProjectWallet(project: Project, signedTransaction: String): Wallet {
         throwExceptionIfProjectHasWallet(project)
-        val txHash = blockchainService.postTransaction(signedTransaction)
+        val txHash = blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_CREATE)
         val wallet = createWallet(txHash, WalletType.PROJECT)
         project.wallet = wallet
         projectRepository.save(project)
@@ -117,7 +118,7 @@ class WalletServiceImpl(
     @Transactional
     override fun createOrganizationWallet(organization: Organization, signedTransaction: String): Wallet {
         throwExceptionIfOrganizationAlreadyHasWallet(organization)
-        val txHash = blockchainService.postTransaction(signedTransaction)
+        val txHash = blockchainService.postTransaction(signedTransaction, PostTransactionType.ORG_CREATE)
         val wallet = createWallet(txHash, WalletType.ORG)
         organization.wallet = wallet
         organizationRepository.save(organization)

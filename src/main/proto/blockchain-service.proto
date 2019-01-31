@@ -25,7 +25,8 @@ enum TransactionType {
 //////// AMPnet contract messages ///////
 
 message AddWalletRequest {
-    string wallet = 1;
+    string publicKey = 1;
+    string address = 2;
 }
 
 message GenerateAddOrganizationTxRequest {
@@ -244,11 +245,11 @@ message ProjectLockedForInvestmentsResponse {
 
 message PostTxRequest {
     string data = 1;
+    TransactionType txType = 2;
 }
 
 message PostTxResponse {
     string txHash = 1;
-    TransactionType txType = 2;
 }
 
 
@@ -261,6 +262,7 @@ message RawTxResponse {
     uint64 gasLimit = 4;
     uint64 gasPrice = 5;
     uint64 value = 6;
+    string publicKey = 7;
 }
 
 message Empty {

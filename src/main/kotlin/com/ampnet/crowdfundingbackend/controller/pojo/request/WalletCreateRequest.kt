@@ -6,5 +6,7 @@ data class WalletCreateRequest(
     @WalletAddressConstraint
     val address: String,
 
+    val publicKey: String,
+
     val token: String
 )
