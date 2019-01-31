@@ -16,3 +16,5 @@ class TokenException(exceptionMessage: String, throwable: Throwable? = null) : E
 
 class InternalException(val errorCode: ErrorCode, exceptionMessage: String, throwable: Throwable? = null)
     : Exception(exceptionMessage, throwable)
+
+class IpfsException(exceptionMessage: String, throwable: Throwable? = null) : Exception(exceptionMessage, throwable)

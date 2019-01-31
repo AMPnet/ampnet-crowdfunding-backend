@@ -389,6 +389,28 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustNotBeAbleToCreateWalletWithTheSameHash() {
+        suppose("User has a wallet") {
+            createWalletForUser(user, defaultAddressHash)
+        }
+        suppose("Project exists") {
+            val organization = createOrganization("Org", user)
+            testContext.project = createProject("Das project", organization, user)
+        }
+        suppose("Blockchain service will return same hash for new wallet transaction") {
+            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction))
+                    .thenReturn(defaultAddressHash)
+        }
+
+        verify("User will not be able to create organization wallet with the same hash") {
+            val exception = assertThrows<ResourceAlreadyExistsException> {
+                walletService.createProjectWallet(testContext.project, defaultSignedTransaction)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_HASH_EXISTS)
+        }
+    }
+
     private class TestContext {
         lateinit var organization: Organization
         lateinit var project: Project

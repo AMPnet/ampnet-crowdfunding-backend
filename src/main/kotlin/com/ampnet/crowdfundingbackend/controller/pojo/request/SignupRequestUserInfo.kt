@@ -7,4 +7,9 @@ data class SignupRequestUserInfo(
     val lastName: String,
     val countryId: Int,
     val phoneNumber: String
-)
+) {
+    override fun toString(): String {
+        return "email: $email, firstName: $firstName, lastName: $lastName, " +
+                "countryId: $countryId, phoneNumber: $phoneNumber"
+    }
+}

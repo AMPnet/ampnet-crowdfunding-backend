@@ -47,6 +47,7 @@ bootJar {
 repositories {
     mavenCentral()
     jcenter()
+    maven { url 'https://jitpack.io' }
 }
 
 sourceCompatibility = 1.8
@@ -95,6 +96,7 @@ dependencies {
     compile('org.flywaydb:flyway-core:5.2.4')
     compile('org.postgresql:postgresql:42.2.5')
     compile('io.github.microutils:kotlin-logging:1.6.22')
+    compile('com.github.ipfs:java-ipfs-http-client:v1.2.3')
 
     compile('net.devh:grpc-client-spring-boot-starter:2.2.0.RELEASE')
 
@@ -104,7 +106,6 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-    testCompile('org.mockito:mockito-core:2.23.4')
     testCompile('org.subethamail:subethasmtp:3.1.7')
 
     ktlint "com.github.shyiko:ktlint:0.29.0"
@@ -148,7 +149,7 @@ jacocoTestReport {
         html.destination file("${buildDir}/reports/jacoco/html")
     }
     sourceDirectories = files(["${project.projectDir}/src/main/kotlin"])
-    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**', 'blockchain/**'])
+    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**', 'blockchain/**', '**/ipfs/**'])
 }
 
 jacocoTestCoverageVerification {

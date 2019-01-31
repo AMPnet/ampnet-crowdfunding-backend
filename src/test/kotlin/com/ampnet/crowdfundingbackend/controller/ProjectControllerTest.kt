@@ -1,20 +1,29 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
+import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -54,14 +63,14 @@ class ProjectControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
                     .andReturn()
 
-            val projectResponse: ProjectResponse = objectMapper.readValue(result.response.contentAsString)
+            val projectResponse: ProjectWithFundingResponse = objectMapper.readValue(result.response.contentAsString)
             assertSoftly {
                 it.assertThat(projectResponse.id).isEqualTo(testContext.project.id)
                 it.assertThat(projectResponse.name).isEqualTo(testContext.project.name)
                 it.assertThat(projectResponse.description).isEqualTo(testContext.project.description)
                 it.assertThat(projectResponse.location).isEqualTo(testContext.project.location)
                 it.assertThat(projectResponse.locationText).isEqualTo(testContext.project.locationText)
-                it.assertThat(projectResponse.returnToInvestment).isEqualTo(testContext.project.returnToInvestment)
+                it.assertThat(projectResponse.returnOnInvestment).isEqualTo(testContext.project.returnOnInvestment)
                 it.assertThat(projectResponse.startDate).isEqualTo(testContext.project.startDate)
                 it.assertThat(projectResponse.endDate).isEqualTo(testContext.project.endDate)
                 it.assertThat(projectResponse.expectedFunding).isEqualTo(testContext.project.expectedFunding)
@@ -74,7 +83,47 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.createByUser).isEqualTo(testContext.project.createdBy.getFullName())
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
+                it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
+                it.assertThat(projectResponse.organization.approved).isEqualTo(organization.approved)
+                it.assertThat(projectResponse.organization.createdByUser)
+                        .isEqualTo(organization.createdByUser.getFullName())
             }
+
+            assertThat(projectResponse.currentFunding).isNull()
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustReturnProjectWithDocumentsAndFunding() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("My project", organization, user)
+        }
+        suppose("Project has a document") {
+            testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentHash)
+        }
+        suppose("Project has a wallet") {
+            testContext.wallet = createWalletForProject(testContext.project, testContext.walletHash)
+        }
+        suppose("Blockchain service will return current funding") {
+            // TODO: Mock blockchain service!
+        }
+
+        verify("Project response contains all data") {
+            val result = mockMvc.perform(get("$projectPath/${testContext.project.id}"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val projectResponse: ProjectWithFundingResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(projectResponse.documents).hasSize(1)
+            val documentResponse = projectResponse.documents[0]
+            assertThat(documentResponse.id).isEqualTo(testContext.document.id)
+            assertThat(documentResponse.hash).isEqualTo(testContext.document.hash)
+            assertThat(documentResponse.type).isEqualTo(testContext.document.type)
+            assertThat(documentResponse.size).isEqualTo(testContext.document.size)
+            assertThat(documentResponse.name).isEqualTo(testContext.document.name)
+            assertThat(documentResponse.createdAt).isEqualTo(testContext.document.createdAt)
 
             assertThat(projectResponse.currentFunding).isEqualTo(0)
         }
@@ -167,15 +216,15 @@ class ProjectControllerTest : ControllerTestBase() {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andReturn()
 
-            val projectResponse: ProjectResponse = objectMapper.readValue(result.response.contentAsString)
+            val projectResponse: ProjectWithFundingResponse = objectMapper.readValue(result.response.contentAsString)
             assertSoftly {
                 it.assertThat(projectResponse.id).isNotNull
                 it.assertThat(projectResponse.name).isEqualTo(testContext.projectRequest.name)
                 it.assertThat(projectResponse.description).isEqualTo(testContext.projectRequest.description)
                 it.assertThat(projectResponse.location).isEqualTo(testContext.projectRequest.location)
                 it.assertThat(projectResponse.locationText).isEqualTo(testContext.projectRequest.locationText)
-                it.assertThat(projectResponse.returnToInvestment)
-                        .isEqualTo(testContext.projectRequest.returnToInvestment)
+                it.assertThat(projectResponse.returnOnInvestment)
+                        .isEqualTo(testContext.projectRequest.returnOnInvestment)
 
                 it.assertThat(projectResponse.startDate).isEqualTo(testContext.projectRequest.startDate)
                 it.assertThat(projectResponse.endDate).isEqualTo(testContext.projectRequest.endDate)
@@ -191,12 +240,105 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.createByUser).isEqualTo(user.getFullName())
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
+                it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
+                it.assertThat(projectResponse.organization.approved).isEqualTo(organization.approved)
+                it.assertThat(projectResponse.organization.createdByUser)
+                        .isEqualTo(organization.createdByUser.getFullName())
             }
+
             testContext.projectId = projectResponse.id
         }
         verify("Project is stored in database") {
             val optionalProject = projectRepository.findByIdWithOrganizationAndCreator(testContext.projectId)
             assertThat(optionalProject).isPresent
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetListOfProjectForOrganization() {
+        suppose("Organization has 3 projects") {
+            testContext.project = createProject("Project 1", organization, user)
+            createProject("Project 2", organization, user)
+            createProject("Project 3", organization, user)
+        }
+        suppose("Second organization has project") {
+            val secondOrganization = createOrganization("Second organization", user)
+            testContext.secondProject = createProject("Second project", secondOrganization, user)
+        }
+
+        verify("Controller will return all projects for specified organization") {
+            val result = mockMvc.perform(get("$projectPath/organization/${organization.id}"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val projectListResponse: ProjectListResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(projectListResponse.projects).hasSize(3)
+            assertThat(projectListResponse.projects.map { it.id }).doesNotContain(testContext.secondProject.id)
+
+            val filterResponse = projectListResponse.projects.filter { it.id == testContext.project.id }
+            assertThat(filterResponse).hasSize(1)
+            testContext.projectResponse = filterResponse.first()
+        }
+        verify("Project response is correct") {
+            assertThat(testContext.projectResponse.name).isEqualTo(testContext.project.name)
+            assertThat(testContext.projectResponse.description).isEqualTo(testContext.project.description)
+            assertThat(testContext.projectResponse.location).isEqualTo(testContext.project.location)
+            assertThat(testContext.projectResponse.locationText).isEqualTo(testContext.project.locationText)
+            assertThat(testContext.projectResponse.returnOnInvestment).isEqualTo(testContext.project.returnOnInvestment)
+            assertThat(testContext.projectResponse.startDate).isEqualTo(testContext.project.startDate)
+            assertThat(testContext.projectResponse.endDate).isEqualTo(testContext.project.endDate)
+            assertThat(testContext.projectResponse.expectedFunding).isEqualTo(testContext.project.expectedFunding)
+            assertThat(testContext.projectResponse.currency).isEqualTo(testContext.project.currency)
+            assertThat(testContext.projectResponse.minPerUser).isEqualTo(testContext.project.minPerUser)
+            assertThat(testContext.projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
+            assertThat(testContext.projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
+            assertThat(testContext.projectResponse.active).isEqualTo(testContext.project.active)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToAddDocumentForProject() {
+        suppose("Project exists") {
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("IPFS will store document") {
+            testContext.multipartFile = MockMultipartFile("file", "test.txt",
+                    "text/plain", "Some document data".toByteArray())
+            Mockito.`when`(ipfsService.storeData(testContext.multipartFile.bytes, testContext.multipartFile.name))
+                    .thenReturn(IpfsFile(testContext.documentHash, testContext.multipartFile.name, null))
+        }
+
+        verify("User can add document") {
+            val result = mockMvc.perform(
+                    RestDocumentationRequestBuilders.fileUpload("$projectPath/${testContext.project.id}/document")
+                            .file(testContext.multipartFile))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val documentResponse: DocumentResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(documentResponse.id).isNotNull()
+            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
+            assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
+            assertThat(documentResponse.hash).isEqualTo(testContext.documentHash)
+        }
+        verify("Document is stored in database and connected to project") {
+            val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            val projectWithDocument = optionalProject.get()
+            assertThat(projectWithDocument.documents).hasSize(1)
+
+            val document = projectWithDocument.documents!![0]
+            assertThat(document.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(document.size).isEqualTo(testContext.multipartFile.size)
+            assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
+            assertThat(document.hash).isEqualTo(testContext.documentHash)
         }
     }
 
@@ -219,9 +361,32 @@ class ProjectControllerTest : ControllerTestBase() {
         )
     }
 
+    private fun createProjectDocument(
+        project: Project,
+        createdBy: User,
+        name: String,
+        hash: String,
+        type: String = "document/type",
+        size: Int = 100
+    ): Document {
+        val savedDocument = saveDocument(name, hash, type, size, createdBy)
+        val documents = project.documents.orEmpty().toMutableList()
+        documents.add(savedDocument)
+        project.documents = documents
+        projectRepository.save(project)
+        return savedDocument
+    }
+
     private class TestContext {
         lateinit var project: Project
+        lateinit var secondProject: Project
         lateinit var projectRequest: ProjectRequest
+        lateinit var projectResponse: ProjectResponse
+        lateinit var multipartFile: MockMultipartFile
+        lateinit var document: Document
+        lateinit var wallet: Wallet
+        val documentHash = "hashos"
         var projectId: Int = -1
+        val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
     }
 }

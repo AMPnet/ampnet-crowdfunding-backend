@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransaction
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
@@ -16,7 +15,6 @@ import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -36,9 +34,9 @@ class WalletController(
 
     @GetMapping("/wallet")
     fun getMyWallet(): ResponseEntity<WalletResponse> {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request for Wallet from user: ${userPrincipal.email}")
-        val user = getUserWithWallet(userPrincipal.email)
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request for Wallet from user: ${user.email}")
+
         val wallet = user.wallet ?: return ResponseEntity.notFound().build()
 
         val balance = walletService.getWalletBalance(wallet)
@@ -56,9 +54,8 @@ class WalletController(
 
     @GetMapping("/wallet/token")
     fun getTokenForWalletCreation(): ResponseEntity<WalletTokenResponse> {
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request for Wallet token from user: ${userPrincipal.email}")
-        val user = getUserWithWallet(userPrincipal.email)
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request for Wallet token from user: ${user.email}")
         val token = walletService.createWalletToken(user)
         return ResponseEntity.ok(WalletTokenResponse(token))
     }
@@ -67,12 +64,11 @@ class WalletController(
     fun getProjectWallet(@PathVariable projectId: Int): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to get project($projectId) wallet" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request to create a Wallet project by user: ${user.email}")
 
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
-        val user = getUser(userPrincipal.email)
 
         // TODO: rethink about who can get Project wallet
         if (project.createdBy.id == user.id) {
@@ -90,12 +86,11 @@ class WalletController(
     fun getTransactionToCreateProjectWallet(@PathVariable projectId: Int): ResponseEntity<TransactionResponse> {
         logger.debug { "Received request to create project($projectId) wallet" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request to create a Wallet project by user: ${user.email}")
 
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
-        val user = getUser(userPrincipal.email)
 
         if (project.createdBy.id == user.id) {
             val transaction = walletService.generateTransactionToCreateProjectWallet(project)
@@ -124,7 +119,7 @@ class WalletController(
     fun getOrganizationWallet(@PathVariable organizationId: Int): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to get organization wallet: $organizationId" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+        val userPrincipal = ControllerUtils.getUserFromSecurityContext(userService)
         logger.debug("Received request to create a Wallet project by user: ${userPrincipal.email}")
         val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
                 ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization: $organizationId")
@@ -142,12 +137,11 @@ class WalletController(
     fun getTransactionToCreateOrganizationWallet(@PathVariable organizationId: Int): ResponseEntity<TransactionResponse> {
         logger.debug { "Received request to create organization wallet: $organizationId" }
 
-        val userPrincipal = SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-        logger.debug("Received request to create a Organization wallet by user: ${userPrincipal.email}")
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug("Received request to create a Organization wallet by user: ${user.email}")
 
         val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
                 ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization: $organizationId")
-        val user = getUser(userPrincipal.email)
 
         // TODO: rethink about define who can create organization wallet
         if (organization.createdByUser.id == user.id) {
@@ -176,11 +170,6 @@ class WalletController(
 
     private fun getUserWithWallet(email: String): User {
         return userService.findWithWallet(email)
-                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
-    }
-
-    private fun getUser(email: String): User {
-        return userService.find(email)
                 ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
     }
 }

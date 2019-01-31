@@ -4,7 +4,7 @@ import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import java.time.ZonedDateTime
 
-data class ProjectResponse(
+data class ProjectWithFundingResponse(
     val id: Int,
     val name: String,
     val description: String,
@@ -19,9 +19,13 @@ data class ProjectResponse(
     val maxPerUser: Long,
     val mainImage: String?,
     val gallery: List<String>,
-    val active: Boolean
+    val documents: List<DocumentResponse>,
+    val active: Boolean,
+    val organization: OrganizationResponse,
+    val createByUser: String,
+    val currentFunding: Long?
 ) {
-    constructor(project: Project): this(
+    constructor(project: Project, currentFunding: Long?): this(
             project.id,
             project.name,
             project.description,
@@ -35,9 +39,11 @@ data class ProjectResponse(
             project.minPerUser,
             project.maxPerUser,
             project.mainImage,
-            project.gallery ?: emptyList(),
-            project.active
+            project.gallery.orEmpty(),
+            project.documents?.map { DocumentResponse(it) } ?: emptyList(),
+            project.active,
+            OrganizationResponse(project.organization),
+            project.createdBy.getFullName(),
+            currentFunding
     )
 }
-
-data class ProjectListResponse(val projects: List<ProjectResponse>)

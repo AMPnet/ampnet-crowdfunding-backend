@@ -29,7 +29,8 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),
     WALLET_FUNDS("05", "03", "User does not have enough funds on wallet"),
     WALLET_TOKEN_MISSING("05", "04", "Missing token"),
-    WALLET_TOKEN_EXPIRED("05", "04", "Wallet token has expired"),
+    WALLET_TOKEN_EXPIRED("05", "05", "Wallet token has expired"),
+    WALLET_HASH_EXISTS("05", "06", "Wallet with this hash already exists"),
 
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),
@@ -37,6 +38,7 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     ORG_PRIVILEGE_PW("06", "03", "Failed invite user to organization without organization user role, privilege PW_USERS"),
     ORG_DUPLICATE_USER("06", "04", "User is already a member of this organization"),
     ORG_DUPLICATE_INVITE("06", "05", "User is already invited"),
+    ORG_DUPLICATE_NAME("06", "06", "Organization with this name alrady exists"),
 
     // Project: 07
     PRJ_MISSING("07", "01", "Non existing project"),
@@ -55,5 +57,6 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     INT_WALLET_ADD("08", "02", "Could not fetch add wallet to blockchain service."),
     INT_TRANSACTION("08", "03", "Could not post transaction on blockchain."),
     INT_ORG("08", "03", "Could not create Organization on blockchain."),
-    INT_ORG_ACTIVATE("08", "04", "Could not activate organization on blockchain")
+    INT_ORG_ACTIVATE("08", "04", "Could not activate organization on blockchain"),
+    INT_IPFS("08", "5", "Could not upload document to IPFS")
 }

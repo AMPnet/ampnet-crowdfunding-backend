@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationFollower
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
@@ -17,8 +18,10 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteR
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.service.DocumentService
 import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.OrganizationService
+import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging
@@ -35,7 +38,8 @@ class OrganizationServiceImpl(
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
     private val mailService: MailService,
-    private val blockchainService: BlockchainService
+    private val blockchainService: BlockchainService,
+    private val documentService: DocumentService
 ) : OrganizationService {
 
     companion object : KLogging()
@@ -45,11 +49,15 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun createOrganization(serviceRequest: OrganizationServiceRequest): Organization {
+        if (organizationRepository.findByName(serviceRequest.name).isPresent) {
+            throw ResourceAlreadyExistsException(ErrorCode.ORG_DUPLICATE_NAME,
+                    "Organization with name: ${serviceRequest.name} already exists")
+        }
+
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = serviceRequest.name
         organization.createdByUser = serviceRequest.owner
         organization.legalInfo = serviceRequest.legalInfo
-        organization.documents = serviceRequest.documentHashes
         organization.approved = false
         organization.createdAt = ZonedDateTime.now()
 
@@ -66,7 +74,7 @@ class OrganizationServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findOrganizationById(id: Int): Organization? {
-        return ServiceUtils.wrapOptional(organizationRepository.findById(id))
+        return ServiceUtils.wrapOptional(organizationRepository.findByIdWithDocuments(id))
     }
 
     @Transactional(readOnly = true)
@@ -189,6 +197,23 @@ class OrganizationServiceImpl(
         ServiceUtils.wrapOptional(followerRepository.findByUserIdAndOrganizationId(userId, organizationId))?.let {
             followerRepository.delete(it)
         }
+    }
+
+    @Transactional
+    override fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document {
+        val organization = organizationRepository.findByIdWithDocuments(organizationId).orElseThrow {
+            throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
+        }
+        val document = documentService.saveDocument(request)
+        addDocumentToOrganization(organization, document)
+        return document
+    }
+
+    private fun addDocumentToOrganization(organization: Organization, document: Document) {
+        val documents = organization.documents.orEmpty().toMutableList()
+        documents += document
+        organization.documents = documents
+        organizationRepository.save(organization)
     }
 
     private fun sendMailInvitationToJoinOrganization(to: String, invitedBy: User, invitedTo: Int) {

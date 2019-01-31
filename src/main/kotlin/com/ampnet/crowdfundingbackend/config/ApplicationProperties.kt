@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration
 class ApplicationProperties {
     var jwt: JwtProperties = JwtProperties()
     val mail: MailProperties = MailProperties()
-    val web3j: Web3jProperties = Web3jProperties()
+    val ipfs: IpfsProperties = IpfsProperties()
 }
 
 class JwtProperties {
@@ -23,6 +23,7 @@ class MailProperties {
     var enabled: Boolean = false
 }
 
-class Web3jProperties {
-    lateinit var clientAddress: String
+class IpfsProperties {
+    lateinit var address: String
+    var timeout: Long = 1000
 }

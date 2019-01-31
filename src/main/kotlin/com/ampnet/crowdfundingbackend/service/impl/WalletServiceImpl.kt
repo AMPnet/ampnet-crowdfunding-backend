@@ -125,6 +125,11 @@ class WalletServiceImpl(
     }
 
     private fun createWallet(hash: String, type: WalletType): Wallet {
+        if (walletRepository.findByHash(hash).isPresent) {
+            logger.error { "SAME HASH! Trying to create wallet: $type with existing hash: $hash" }
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_HASH_EXISTS, "Wallet with hash: $hash already exists")
+        }
+
         val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.hash = hash
         wallet.type = type

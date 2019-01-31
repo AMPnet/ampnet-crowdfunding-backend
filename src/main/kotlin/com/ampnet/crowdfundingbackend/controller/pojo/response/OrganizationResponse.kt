@@ -9,8 +9,28 @@ data class OrganizationResponse(
     val createdByUser: String,
     val createdAt: ZonedDateTime,
     val approved: Boolean,
+    val legalInfo: String
+) {
+    constructor(organization: Organization): this(
+            organization.id,
+            organization.name,
+            organization.createdByUser.getFullName(),
+            organization.createdAt,
+            organization.approved,
+            organization.legalInfo
+    )
+}
+
+data class OrganizationListResponse(val organizations: List<OrganizationResponse>)
+
+data class OrganizationWithDocumentResponse(
+    val id: Int,
+    val name: String,
+    val createdByUser: String,
+    val createdAt: ZonedDateTime,
+    val approved: Boolean,
     val legalInfo: String,
-    val documents: List<String>
+    val documents: List<DocumentResponse>
 ) {
     constructor(organization: Organization): this(
             organization.id,
@@ -19,12 +39,6 @@ data class OrganizationResponse(
             organization.createdAt,
             organization.approved,
             organization.legalInfo,
-            organization.documents ?: emptyList()
+            organization.documents?.map { DocumentResponse(it) }.orEmpty()
     )
-}
-
-data class OrganizationListResponse(val organizations: List<OrganizationResponse>)
-
-data class OrganizationSmallResponse(val id: Int, val name: String) {
-    constructor(organization: Organization): this(organization.id, organization.name)
 }

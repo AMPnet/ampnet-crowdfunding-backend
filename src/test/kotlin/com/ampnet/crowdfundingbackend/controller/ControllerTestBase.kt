@@ -10,11 +10,14 @@ import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
+import com.ampnet.crowdfundingbackend.ipfs.IpfsService
+import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
@@ -44,7 +47,7 @@ import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
-@ActiveProfiles("MailMockConfig", "BlockchainServiceMockConfig")
+@ActiveProfiles("MailMockConfig, IpfsMockConfig, BlockchainServiceMockConfig")
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
@@ -64,11 +67,15 @@ abstract class ControllerTestBase : TestBase() {
     @Autowired
     protected lateinit var organizationRepository: OrganizationRepository
     @Autowired
+    protected lateinit var ipfsService: IpfsService
+    @Autowired
     private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     protected lateinit var walletTokenRepository: WalletTokenRepository
     @Autowired
     protected lateinit var blockchainService: BlockchainService
+    @Autowired
+    private lateinit var documentRepository: DocumentRepository
 
     protected lateinit var mockMvc: MockMvc
 
@@ -144,7 +151,7 @@ abstract class ControllerTestBase : TestBase() {
         organization.createdAt = ZonedDateTime.now()
         organization.approved = true
         organization.createdByUser = user
-        organization.documents = listOf("hash1", "hash2", "hash3")
+        organization.documents = emptyList()
         return organizationRepository.save(organization)
     }
 
@@ -174,7 +181,7 @@ abstract class ControllerTestBase : TestBase() {
         project.description = "description"
         project.location = "location"
         project.locationText = "locationText"
-        project.returnToInvestment = "0-1%"
+        project.returnOnInvestment = "0-1%"
         project.startDate = startDate
         project.endDate = endDate
         project.expectedFunding = expectedFunding
@@ -185,5 +192,22 @@ abstract class ControllerTestBase : TestBase() {
         project.active = active
         project.createdAt = startDate.minusMinutes(1)
         return projectRepository.save(project)
+    }
+
+    protected fun saveDocument(
+        name: String,
+        hash: String,
+        type: String,
+        size: Int,
+        createdBy: User
+    ): Document {
+        val document = Document::class.java.getDeclaredConstructor().newInstance()
+        document.name = name
+        document.hash = hash
+        document.type = type
+        document.size = size
+        document.createdBy = createdBy
+        document.createdAt = ZonedDateTime.now()
+        return documentRepository.save(document)
     }
 }

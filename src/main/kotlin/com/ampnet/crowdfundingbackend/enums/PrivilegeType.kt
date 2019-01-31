@@ -23,6 +23,7 @@ enum class PrivilegeType {
     PRA_PROFILE,
 
     // Organization
+    PRA_ORG,
     PWA_ORG_APPROVE,
     PRO_ORG_INVITE,
     PWO_ORG_INVITE
@@ -32,6 +33,9 @@ enum class OrganizationPrivilegeType {
     // Administration
     PR_USERS,
     PW_USERS,
+
+    // Organization
+    PW_ORG,
 
     PW_PROJECT
 }

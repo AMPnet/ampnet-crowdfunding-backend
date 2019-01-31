@@ -110,15 +110,15 @@ include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithEx
 
 ===== Email used
 .Request
-include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailExists/http-request.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailIsUsed/http-request.adoc[]
 .Response
-include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailExists/http-response.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailIsUsed/http-response.adoc[]
 
 ===== Email not used
 .Request
-include::{snippets}/RegistrationControllerTest/mustReturnFalseForNonExistingEmail/http-request.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/http-request.adoc[]
 .Response
-include::{snippets}/RegistrationControllerTest/mustReturnFalseForNonExistingEmail/http-response.adoc[]
+include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/http-response.adoc[]
 
 == Authentication API
 
@@ -410,13 +410,21 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganization/http-
 include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganization/http-response.adoc[]
 
 === Get all organizations
+To get a list of all organization user must have a privilege: `PrivilegeType.PRA_ORG`
+
 .Request
 include::{snippets}/OrganizationControllerTest/mustReturnListOfOrganizations/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustReturnListOfOrganizations/http-response.adoc[]
 
+=== Get personal organizations
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetPersonalOrganizations/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetPersonalOrganizations/http-response.adoc[]
+
 === Approve organization
-To approve organization user must have privilege: PWA_ORG
+To approve organization user must have a privilege: `PrivilegeType.PWA_ORG_APPROVE`
 
 ==== Approve organization with Admin role
 .Request
@@ -438,13 +446,17 @@ include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganizatio
 
 === Invite user to organization
 
-==== Successfully invite user to organization with organization admin role, privilege PW_USERS
+==== Successfully invite user to organization with organization admin role
+User must have a privilege: `OrganizationPrivilegeType.PW_USERS`
+
 .Request
 include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-response.adoc[]
 
-==== Failed invite user to organization without organization user role, privilege PW_USERS
+==== Failed invite user to organization without organization admin role
+User missing a privilege: `OrganizationPrivilegeType.PW_USERS`
+
 .Request
 include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-request.adoc[]
 .Response
@@ -457,6 +469,13 @@ include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrgani
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
+
+=== Add document to organization
+
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrganization/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrganization/http-response.adoc[]
 
 == Project API
 Collection of endpoints for managing project
@@ -476,10 +495,6 @@ include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/ht
 include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
 
 === Create project
-.Request
-include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-request.adoc[]
-.Response
-include::{snippets}/ProjectControllerTest/mustReturnNotFoundForMissingProject/http-response.adoc[]
 
 ==== Successfully create
 .Request
@@ -488,9 +503,15 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToCreateProject/http-request
 include::{snippets}/ProjectControllerTest/mustBeAbleToCreateProject/http-response.adoc[]
 
 ==== Cannot create project without privilege
-User cannot create project without admin role in organization, privilege: PW_PROJECT
+User cannot create project without admin role in organization, privilege: `OrganizationPrivilegeType.PW_PROJECT`
 
 .Request
 include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizationMembership/http-response.adoc[]
+
+=== Get all projects for organization
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]

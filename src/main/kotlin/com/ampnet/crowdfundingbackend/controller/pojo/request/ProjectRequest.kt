@@ -21,7 +21,7 @@ data class ProjectRequest(
     val locationText: String,
 
     @Size(max = 16)
-    val returnToInvestment: String,
+    val returnOnInvestment: String,
 
     val startDate: ZonedDateTime,
 
