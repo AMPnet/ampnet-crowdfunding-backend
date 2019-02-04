@@ -68,7 +68,6 @@ class BlockchainServiceImpl(
             val response = serviceBlockingStub.generateAddOrganizationTx(
                     GenerateAddOrganizationTxRequest.newBuilder()
                             .setFromTxHash(userWalletHash)
-                            .setName(name)
                             .build()
             )
             return TransactionData(response)
@@ -85,8 +84,6 @@ class BlockchainServiceImpl(
                     GenerateAddProjectTxRequest.newBuilder()
                             .setFromTxHash(request.userWalletHash)
                             .setOrganizationTxHash(request.organizationHash)
-                            .setName(request.name)
-                            .setDescription(request.description)
                             .setMaxInvestmentPerUser(request.maxPerUser)
                             .setMinInvestmentPerUser(request.minPerUser)
                             .setInvestmentCap(request.investmentCap)
@@ -95,7 +92,7 @@ class BlockchainServiceImpl(
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {
             logger.error(ex) { "Could not generate Project wallet transaction: $request" }
-            throw InternalException(ErrorCode.INT_WALLET_ADD, "Could not create wallet for project: ${request.name}")
+            throw InternalException(ErrorCode.INT_WALLET_ADD, "Could not create wallet for project")
         }
     }
 

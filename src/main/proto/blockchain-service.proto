@@ -12,14 +12,15 @@ enum TransactionType {
     ORG_CREATE = 1;
     DEPOSIT = 2;
     PENDING_WITHDRAW = 3;
-    WITHDRAW = 4;
-    INVEST = 5;
-    TRANSFER = 6;
-    ORG_ADD_MEMBER = 7;
-    ORG_ADD_PROJECT = 8;
-    ORG_ACTIVATE = 9;
-    TRANSFER_OWNERSHIP = 10;
-    CANCEL_INVESTMENT = 11;
+    PENDING_ORG_WITHDRAW = 4;
+    WITHDRAW = 5;
+    INVEST = 6;
+    TRANSFER = 7;
+    ORG_ADD_MEMBER = 8;
+    ORG_ADD_PROJECT = 9;
+    ORG_ACTIVATE = 10;
+    TRANSFER_OWNERSHIP = 11;
+    CANCEL_INVESTMENT = 12;
 }
 
 //////// AMPnet contract messages ///////
@@ -31,7 +32,6 @@ message AddWalletRequest {
 
 message GenerateAddOrganizationTxRequest {
     string fromTxHash = 1;
-    string name = 2;
 }
 
 message OrganizationExistsRequest {
@@ -68,14 +68,14 @@ message BalanceResponse {
 // Called by token issuing authority, not using txHash here
 message GenerateMintTxRequest {
     string from = 1;
-    string to = 2;
+    string toTxHash = 2;
     uint64 amount = 3;
 }
 
 // Called by token issuing authority, not using txHash here
 message GenerateBurnFromTxRequest {
     string from = 1;
-    string burnFrom = 2;
+    string burnFromTxHash = 2;
     uint64 amount = 3;
 }
 
@@ -115,17 +115,15 @@ message GenerateWithdrawOrganizationFundsTxRequest {
 message GenerateAddMemberTxRequest {
     string fromTxHash = 1;
     string organizationTxHash = 2;
-    string member = 3;
+    string memberTxHash = 3;
 }
 
 message GenerateAddProjectTxRequest {
     string fromTxHash = 1;
     string organizationTxHash = 2;
-    string name = 3;
-    string description = 4;
-    uint64 maxInvestmentPerUser = 5;
-    uint64 minInvestmentPerUser = 6;
-    uint64 investmentCap = 7;
+    uint64 maxInvestmentPerUser = 3;
+    uint64 minInvestmentPerUser = 4;
+    uint64 investmentCap = 5;
 }
 
 message OrganizationVerifiedRequest {
@@ -173,22 +171,6 @@ message GenerateCancelInvestmentTx {
     string fromTxHash = 1;
     string projectTxHash = 2;
     uint64 amount = 3;
-}
-
-message ProjectNameRequest {
-    string projectTxHash = 1;
-}
-
-message ProjectNameResponse {
-    string name = 1;
-}
-
-message ProjectDescriptionRequest {
-    string projectTxHash = 1;
-}
-
-message ProjectDescriptionResponse {
-    string description = 1;
 }
 
 message ProjectMaxInvestmentPerUserRequest {
@@ -309,8 +291,6 @@ service BlockchainService {
     rpc generateWithdrawProjectFundsTx(GenerateWithdrawProjectFundsTx) returns (RawTxResponse);
     rpc generateTransferOwnershipTx(GenerateTransferOwnershipTx) returns (RawTxResponse);
     rpc generateCancelInvestmentTx(GenerateCancelInvestmentTx) returns (RawTxResponse);
-    rpc getProjectName(ProjectNameRequest) returns (ProjectNameResponse);
-    rpc getProjectDescription(ProjectDescriptionRequest) returns (ProjectDescriptionResponse);
     rpc getProjectMaxInvestmentPerUser(ProjectMaxInvestmentPerUserRequest) returns (ProjectMaxInvestmentPerUserResponse);
     rpc getProjectMinInvestmentPerUser(ProjectMinInvestmentPerUserRequest) returns (ProjectMinInvestmentPerUserResponse);
     rpc getProjectInvestmentCap(ProjectInvestmentCapRequest) returns (ProjectInvestmentCapResponse);
