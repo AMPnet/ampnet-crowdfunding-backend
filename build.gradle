@@ -3,7 +3,7 @@ buildscript {
         kotlinVersion = '1.3.11'
         springBootVersion = '2.1.1.RELEASE'
         junitVersion = '5.3.2'
-        grpcVersion = '1.17.0'
+        grpcVersion = '1.18.0'
     }
     repositories {
         mavenCentral()
@@ -98,7 +98,8 @@ dependencies {
     compile('io.github.microutils:kotlin-logging:1.6.22')
     compile('com.github.ipfs:java-ipfs-http-client:v1.2.3')
 
-    compile('net.devh:grpc-client-spring-boot-starter:2.2.0.RELEASE')
+    compile('net.devh:grpc-client-spring-boot-starter:2.2.1.RELEASE') exclude group: 'io.grpc', module: 'grpc-netty'
+    compile group: 'io.grpc', name: 'grpc-netty-shaded', version: "${grpcVersion}"
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
