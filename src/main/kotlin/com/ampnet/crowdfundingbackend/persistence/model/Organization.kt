@@ -25,7 +25,7 @@ data class Organization(
     var name: String,
 
     @Column                         // set nullable false
-    var legalInfo: String,          // TODO: change legal info, try to use @Embeddable and @Embedded
+    var legalInfo: String?,          // TODO: change legal info, try to use @Embeddable and @Embedded
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
