@@ -46,6 +46,7 @@ class WalletControllerTest : ControllerTestBase() {
         user = createUser("test@test.com")
     }
 
+    /* User Wallet */
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToGetOwnWallet() {
@@ -248,6 +249,7 @@ class WalletControllerTest : ControllerTestBase() {
         }
     }
 
+    /* Project Wallet */
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToGetCreateProjectWalletTransaction() {
@@ -494,7 +496,7 @@ class WalletControllerTest : ControllerTestBase() {
         }
     }
 
-    // *** Organization tests ***
+    /* Organization Wallet */
     @Test
     @WithMockCrowdfoundUser(email = "test@test.com")
     fun mustBeAbleToGetOrganizationWallet() {
