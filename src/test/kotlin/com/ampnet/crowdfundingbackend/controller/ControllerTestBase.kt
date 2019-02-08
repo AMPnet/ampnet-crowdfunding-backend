@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
@@ -23,6 +24,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.BeforeEach
@@ -45,7 +47,7 @@ import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
-@ActiveProfiles("MailMockConfig, IpfsMockConfig")
+@ActiveProfiles("MailMockConfig, IpfsMockConfig, BlockchainServiceMockConfig")
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
@@ -68,6 +70,10 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var ipfsService: IpfsService
     @Autowired
     private lateinit var membershipRepository: OrganizationMembershipRepository
+    @Autowired
+    protected lateinit var walletTokenRepository: WalletTokenRepository
+    @Autowired
+    protected lateinit var blockchainService: BlockchainService
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 
@@ -108,8 +114,8 @@ abstract class ControllerTestBase : TestBase() {
         return userRepository.save(user)
     }
 
-    protected fun createWalletForUser(user: User, address: String): Wallet {
-        val wallet = createWallet(address, WalletType.USER)
+    protected fun createWalletForUser(user: User, hash: String): Wallet {
+        val wallet = createWallet(hash, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
         return wallet
@@ -122,9 +128,16 @@ abstract class ControllerTestBase : TestBase() {
         return wallet
     }
 
-    protected fun createWallet(address: String, type: WalletType): Wallet {
+    protected fun createWalletForOrganization(organization: Organization, hash: String): Wallet {
+        val wallet = createWallet(hash, WalletType.ORG)
+        organization.wallet = wallet
+        organizationRepository.save(organization)
+        return wallet
+    }
+
+    protected fun createWallet(hash: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
-        wallet.address = address
+        wallet.hash = hash
         wallet.type = type
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()

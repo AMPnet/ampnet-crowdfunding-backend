@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.util.Optional
 
 interface WalletRepository : JpaRepository<Wallet, Int> {
-    fun findByAddress(address: String): Optional<Wallet>
+    fun findByHash(hash: String): Optional<Wallet>
 }

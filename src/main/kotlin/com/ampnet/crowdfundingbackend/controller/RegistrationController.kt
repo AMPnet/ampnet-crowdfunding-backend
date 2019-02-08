@@ -37,7 +37,7 @@ class RegistrationController(
 
     @PostMapping("/signup")
     fun createUser(@RequestBody request: SignupRequest): ResponseEntity<UserResponse> {
-        logger.debug { "Received request to sign up: $request" }
+        logger.debug { "Received request to sign up with method: ${request.signupMethod}" }
         val createUserRequest = createUserRequest(request)
         validateRequestOrThrow(createUserRequest)
         val user = userService.create(createUserRequest)
@@ -101,7 +101,7 @@ class RegistrationController(
                 }
             }
         } catch (ex: MissingKotlinParameterException) {
-            logger.info("Could not parse SignupRequest: $request", ex)
+            logger.info("Could not parse SignupRequest with method: ${request.signupMethod}", ex)
             throw InvalidRequestException(
                     ErrorCode.REG_INCOMPLETE, "Some fields missing or could not be parsed from JSON request.", ex)
         }

@@ -11,6 +11,7 @@ import javax.persistence.JoinColumn
 import javax.persistence.JoinTable
 import javax.persistence.ManyToOne
 import javax.persistence.OneToMany
+import javax.persistence.OneToOne
 import javax.persistence.Table
 
 @Entity
@@ -23,8 +24,8 @@ data class Organization(
     @Column(nullable = false)
     var name: String,
 
-    @Column                         // set nullable false
-    var legalInfo: String,          // TODO: change legal info, try to use @Embeddable and @Embedded
+    @Column(nullable = true)
+    var legalInfo: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
@@ -50,7 +51,11 @@ data class Organization(
     )
     var documents: List<Document>?,
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "organizationId")
-    var memberships: List<OrganizationMembership>?
+    var memberships: List<OrganizationMembership>?,
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id")
+    var wallet: Wallet?
 )

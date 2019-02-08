@@ -15,6 +15,7 @@ interface OrganizationService {
     fun createOrganization(serviceRequest: OrganizationServiceRequest): Organization
     fun getAllOrganizations(): List<Organization>
     fun findOrganizationById(id: Int): Organization?
+    fun findOrganizationByIdWithWallet(id: Int): Organization?
     fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: User): Organization
     fun findAllUsersFromOrganization(organizationId: Int): List<User>
     fun findAllOrganizationsForUser(userId: Int): List<Organization>

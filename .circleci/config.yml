@@ -89,14 +89,8 @@ jobs:
       - run: gradle jacocoTestCoverageVerification
 
       - run:
-          name: Stop current backend service
-          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t root@ampnet.io "cd /var/crowdfunding-backend ; bash -s" < .circleci/script/stopService.sh
-      - run:
-          name: Copy jar to server
-          command: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./build/libs/crowdfunding-backend-0.0.1.jar root@ampnet.io:/var/crowdfunding-backend/crowdfunding-backend.jar
-      - run:
-          name: Run new backend service
-          command: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t root@ampnet.io "cd /var/crowdfunding-backend ; bash -s" < .circleci/script/startService.sh
+          name: Push new docker image
+          command: gradle jib
 
 workflows:
   version: 2

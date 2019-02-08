@@ -28,7 +28,9 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     WALLET_MISSING("05", "01", "User does not have a wallet"),
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),
     WALLET_FUNDS("05", "03", "User does not have enough funds on wallet"),
-    WALLET_ADDRESS_EXISTS("05", "04", "Wallet with this address already exists"),
+    WALLET_TOKEN_MISSING("05", "04", "Missing token"),
+    WALLET_TOKEN_EXPIRED("05", "05", "Wallet token has expired"),
+    WALLET_HASH_EXISTS("05", "06", "Wallet with this hash already exists"),
 
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),
@@ -50,5 +52,11 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     PRJ_MAX_FUNDS_TOO_HIGH("07", "09", "Expected funding is too high"),
     PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "09", "Max funding per user is too high"),
 
-    INT_IPFS("08", "10", "Could not upload document to IPFS")
+    // Internal: 08
+    INT_WALLET_FUNDS("08", "01", "Could not fetch founds from blockchain service."),
+    INT_WALLET_ADD("08", "02", "Could not fetch add wallet to blockchain service."),
+    INT_TRANSACTION("08", "03", "Could not post transaction on blockchain."),
+    INT_ORG("08", "03", "Could not create Organization on blockchain."),
+    INT_ORG_ACTIVATE("08", "04", "Could not activate organization on blockchain"),
+    INT_IPFS("08", "5", "Could not upload document to IPFS")
 }

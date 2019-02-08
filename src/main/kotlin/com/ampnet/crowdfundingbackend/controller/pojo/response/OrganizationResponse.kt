@@ -17,7 +17,7 @@ data class OrganizationResponse(
             organization.createdByUser.getFullName(),
             organization.createdAt,
             organization.approved,
-            organization.legalInfo
+            organization.legalInfo.orEmpty()
     )
 }
 
@@ -38,7 +38,7 @@ data class OrganizationWithDocumentResponse(
             organization.createdByUser.getFullName(),
             organization.createdAt,
             organization.approved,
-            organization.legalInfo,
+            organization.legalInfo.orEmpty(),
             organization.documents?.map { DocumentResponse(it) }.orEmpty()
     )
 }

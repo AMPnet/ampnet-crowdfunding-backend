@@ -180,6 +180,13 @@ class OrganizationControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllOrganizations()
             testContext.organization = createOrganization("Approve organization", user)
         }
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(testContext.organization, "0x0000")
+        }
+        suppose("Blockchain service will successfully approve organization") {
+            Mockito.`when`(blockchainService.activateOrganization(testContext.organization.wallet!!.hash))
+                    .thenReturn("return")
+        }
 
         verify("Admin can approve organization") {
             val result = mockMvc.perform(

@@ -30,7 +30,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     private val organizationService: OrganizationService by lazy {
         val documentServiceImpl = DocumentServiceImpl(documentRepository, ipfsService)
         OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, inviteRepository,
-                roleRepository, userRepository, mailService, documentServiceImpl)
+                roleRepository, userRepository, mailService, mockedBlockchainService, documentServiceImpl)
     }
 
     private val user: User by lazy {
@@ -185,7 +185,20 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustThrowExceptionForApprovingNonExistingOrganization() {
         verify("Service will throw an exception if organization is missing") {
-            assertThrows<ResourceNotFoundException> { organizationService.approveOrganization(999, true, user) }
+            val exception = assertThrows<ResourceNotFoundException> {
+                organizationService.approveOrganization(0, true, user)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.ORG_MISSING)
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionForApprovingOrganizationWithoutWallet() {
+        verify("Service will throw an excpetion if organization is missing a wallet") {
+            val exception = assertThrows<ResourceNotFoundException> {
+                organizationService.approveOrganization(organization.id, true, user)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
     }
 

@@ -29,7 +29,7 @@ class DocumentServiceImpl(
         document.size = request.size
         document.createdAt = ZonedDateTime.now()
         document.createdBy = request.user
-        document.type = request.type
+        document.type = request.type.take(16)
         return documentRepository.save(document)
     }
 }

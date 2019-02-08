@@ -3,6 +3,7 @@ buildscript {
         kotlinVersion = '1.3.11'
         springBootVersion = '2.1.1.RELEASE'
         junitVersion = '5.3.2'
+        grpcVersion = '1.18.0'
     }
     repositories {
         mavenCentral()
@@ -14,6 +15,7 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-noarg:${kotlinVersion}")
         classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.7")
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.7'
     }
 }
 
@@ -30,10 +32,11 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.asciidoctor.convert'
 apply plugin: 'jacoco'
-apply plugin: 'com.google.cloud.tools.jib'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 description = "crowdfunding-backend"
 
 bootJar {
@@ -99,6 +102,9 @@ dependencies {
     compile('io.github.microutils:kotlin-logging:1.6.22')
     compile('com.github.ipfs:java-ipfs-http-client:v1.2.3')
 
+    compile('net.devh:grpc-client-spring-boot-starter:2.2.1.RELEASE') exclude group: 'io.grpc', module: 'grpc-netty'
+    compile group: 'io.grpc', name: 'grpc-netty-shaded', version: "${grpcVersion}"
+
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
     testCompile('org.springframework.restdocs:spring-restdocs-mockmvc')
@@ -111,7 +117,26 @@ dependencies {
 }
 compileJava.dependsOn(processResources)
 
-jib.container.useCurrentTimestamp = true
+protobuf {
+    protoc { artifact = 'com.google.protobuf:protoc:3.6.1' }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+jib {
+    to {
+        image = "ampnet/crowdfunding-backend:${version}"
+        auth {
+            username = "${System.env.DOCKER_USERNAME}"
+            password = "${System.env.DOCKER_PASSWORD}"
+        }
+    }
+    container.useCurrentTimestamp = true
+}
 
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
@@ -140,10 +165,13 @@ jacocoTestReport {
         html.destination file("${buildDir}/reports/jacoco/html")
     }
     sourceDirectories = files(["${project.projectDir}/src/main/kotlin"])
-    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**', '**/ipfs/**'])
+    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**', 'blockchain/**', '**/ipfs/**'])
 }
 
 jacocoTestCoverageVerification {
+    afterEvaluate {
+        classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['blockchain/**', '**/proto/**'])
+    }
     violationRules {
         rule {
             limit {

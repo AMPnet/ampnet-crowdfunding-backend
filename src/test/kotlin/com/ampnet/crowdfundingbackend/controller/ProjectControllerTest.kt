@@ -107,7 +107,7 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.wallet = createWalletForProject(testContext.project, testContext.walletHash)
         }
         suppose("Blockchain service will return current funding") {
-            // TODO: Mock blockchain service!
+            Mockito.`when`(blockchainService.getBalance(testContext.walletHash)).thenReturn(testContext.walletBalance)
         }
 
         verify("Project response contains all data") {
@@ -125,7 +125,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(documentResponse.name).isEqualTo(testContext.document.name)
             assertThat(documentResponse.createdAt).isEqualTo(testContext.document.createdAt)
 
-            assertThat(projectResponse.currentFunding).isEqualTo(0)
+            assertThat(projectResponse.currentFunding).isEqualTo(testContext.walletBalance)
         }
     }
 
@@ -388,5 +388,6 @@ class ProjectControllerTest : ControllerTestBase() {
         val documentHash = "hashos"
         var projectId: Int = -1
         val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
+        val walletBalance = 100L
     }
 }

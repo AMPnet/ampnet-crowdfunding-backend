@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.TestBase
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.config.PasswordEncoderConfig
@@ -25,7 +26,9 @@ import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
@@ -66,7 +69,11 @@ abstract class JpaServiceTestBase : TestBase() {
     @Autowired
     protected lateinit var projectRepository: ProjectRepository
     @Autowired
+    protected lateinit var walletTokenRepository: WalletTokenRepository
+    @Autowired
     protected lateinit var documentRepository: DocumentRepository
+
+    protected val mockedBlockchainService: BlockchainService = Mockito.mock(BlockchainService::class.java)
 
     protected val applicationProperties: ApplicationProperties by lazy {
         // add additional properties as needed
@@ -98,23 +105,30 @@ abstract class JpaServiceTestBase : TestBase() {
         return organizationRepository.save(organization)
     }
 
-    protected fun createWalletForUser(user: User, address: String): Wallet {
-        val wallet = createWallet(address, WalletType.USER)
+    protected fun createWalletForUser(user: User, hash: String): Wallet {
+        val wallet = createWallet(hash, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
         return wallet
     }
 
-    protected fun createWalletForProject(project: Project, address: String): Wallet {
-        val wallet = createWallet(address, WalletType.PROJECT)
+    protected fun createWalletForProject(project: Project, hash: String): Wallet {
+        val wallet = createWallet(hash, WalletType.PROJECT)
         project.wallet = wallet
         projectRepository.save(project)
         return wallet
     }
 
-    protected fun createWallet(address: String, type: WalletType): Wallet {
+    protected fun createWalletForOrganization(organization: Organization, hash: String): Wallet {
+        val wallet = createWallet(hash, WalletType.ORG)
+        organization.wallet = wallet
+        organizationRepository.save(organization)
+        return wallet
+    }
+
+    protected fun createWallet(hash: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
-        wallet.address = address
+        wallet.hash = hash
         wallet.type = type
         wallet.currency = Currency.EUR
         wallet.createdAt = ZonedDateTime.now()

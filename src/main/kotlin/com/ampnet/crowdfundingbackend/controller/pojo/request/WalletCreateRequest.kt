@@ -4,5 +4,9 @@ import com.ampnet.crowdfundingbackend.validation.WalletAddressConstraint
 
 data class WalletCreateRequest(
     @WalletAddressConstraint
-    val address: String
+    val address: String,
+
+    val publicKey: String,
+
+    val token: String
 )

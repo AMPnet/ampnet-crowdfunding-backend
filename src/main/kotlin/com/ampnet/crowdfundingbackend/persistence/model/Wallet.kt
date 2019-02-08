@@ -19,8 +19,8 @@ data class Wallet(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
 
-    @Column(nullable = false, length = 42)
-    var address: String,
+    @Column(nullable = false, length = 66)
+    var hash: String,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 8)

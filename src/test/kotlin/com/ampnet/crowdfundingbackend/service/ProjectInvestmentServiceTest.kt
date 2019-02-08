@@ -16,12 +16,14 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
-import java.util.UUID
 
 class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
     private val projectInvestmentService: ProjectInvestmentService by lazy {
-        val walletService = WalletServiceImpl(walletRepository, userRepository, projectRepository)
+        val walletService = WalletServiceImpl(
+                walletRepository, userRepository, projectRepository, organizationRepository,
+                walletTokenRepository, mockedBlockchainService
+        )
         ProjectInvestmentServiceImpl(walletService)
     }
     private val user: User by lazy {
@@ -165,8 +167,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfUserReachedMaximumFunding() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user,
-                    maxPerUser = 10_000)
+            testContext.project = createProject("test name", organization, user, maxPerUser = 10_000)
         }
         suppose("User invested once") {
             // TODO: invest to project 9_000 greenars
@@ -217,9 +218,9 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
             // TODO: invest to project
         }
         suppose("User invested in other project") {
-            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
-            val secondProject = createProject(
-                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = 10_000)
+//            val secondOrganization = createOrganization(UUID.randomUUID().toString(), user)
+//            val secondProject = createProject(
+//                    UUID.randomUUID().toString(), secondOrganization, user, maxPerUser = 10_000)
             // TODO: invest to second project
         }
         suppose("User has enough funds on wallet") {
