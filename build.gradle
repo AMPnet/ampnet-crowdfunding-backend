@@ -36,7 +36,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 description = "crowdfunding-backend"
 
 bootJar {
@@ -127,7 +127,16 @@ protobuf {
     }
 }
 
-jib.container.useCurrentTimestamp = true
+jib {
+    to {
+        image = "ampnet/crowdfunding-backend:${version}"
+        auth {
+            username = "${System.env.DOCKER_USERNAME}"
+            password = "${System.env.DOCKER_PASSWORD}"
+        }
+    }
+    container.useCurrentTimestamp = true
+}
 
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
