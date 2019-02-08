@@ -87,6 +87,9 @@ jobs:
       - run: gradle build
       - run: gradle jacocoTestReport
       - run: gradle jacocoTestCoverageVerification
+      - run:
+          name: Copy docs to static resources
+          command: gradle copyDocs
 
       - run:
           name: Push new docker image

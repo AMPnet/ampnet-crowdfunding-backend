@@ -148,3 +148,6 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 
 # End of https://www.gitignore.io/api/java,maven,kotlin,intellij
+
+# Ignore generated docs
+src/main/resources/static/docs
