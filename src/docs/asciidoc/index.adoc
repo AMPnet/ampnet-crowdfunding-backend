@@ -503,8 +503,13 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
 
-=== Add document to organization
+=== Get organization users
+.Request
+include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
 
+=== Add document for organization
 .Request
 include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrganization/http-request.adoc[]
 .Response
@@ -548,3 +553,9 @@ include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizat
 include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]
+
+=== Add document for project
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToAddDocumentForProject/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToAddDocumentForProject/http-response.adoc[]
