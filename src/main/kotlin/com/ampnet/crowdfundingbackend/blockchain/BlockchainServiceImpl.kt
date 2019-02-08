@@ -6,7 +6,7 @@ import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
 import com.ampnet.crowdfunding.proto.GenerateAddOrganizationTxRequest
 import com.ampnet.crowdfunding.proto.GenerateAddProjectTxRequest
-import com.ampnet.crowdfunding.proto.PostTxRequest
+import com.ampnet.crowdfunding.proto.PostVaultTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
@@ -98,8 +98,8 @@ class BlockchainServiceImpl(
 
     override fun postTransaction(transaction: String, type: PostTransactionType): String {
         try {
-            val response = serviceBlockingStub.postTransaction(
-                    PostTxRequest.newBuilder()
+            val response = serviceBlockingStub.postVaultTransaction(
+                    PostVaultTxRequest.newBuilder()
                             .setData(transaction)
                             .setTxType(type.type)
                             .build()

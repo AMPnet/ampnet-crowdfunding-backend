@@ -230,6 +230,11 @@ message PostTxRequest {
     TransactionType txType = 2;
 }
 
+message PostVaultTxRequest {
+    string data = 1;
+    TransactionType txType = 2;
+}
+
 message PostTxResponse {
     string txHash = 1;
 }
@@ -302,5 +307,6 @@ service BlockchainService {
     // Transactions
 
     rpc postTransaction(PostTxRequest) returns (PostTxResponse);
+    rpc postVaultTransaction(PostVaultTxRequest) returns (PostTxResponse);
 
 }
