@@ -317,7 +317,12 @@ class UserControllerTest : ControllerTestBase() {
         return userService.create(request)
     }
 
-    private fun createOrganizationInvite(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType): OrganizationInvite {
+    private fun createOrganizationInvite(
+        userId: Int,
+        organizationId: Int,
+        invitedBy: Int,
+        role: OrganizationRoleType
+    ): OrganizationInvite {
         val organizationInvite = OrganizationInvite::class.java.getConstructor().newInstance()
         organizationInvite.userId = userId
         organizationInvite.organizationId = organizationId

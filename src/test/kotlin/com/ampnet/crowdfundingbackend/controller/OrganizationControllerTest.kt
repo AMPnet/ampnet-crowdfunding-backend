@@ -367,7 +367,8 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
         suppose("Other user has organization invites") {
             testContext.user2 = createUser("user2@test.com")
-            inviteUserToOrganization(testContext.user2.id, testContext.organization.id, user.id, OrganizationRoleType.ORG_MEMBER)
+            inviteUserToOrganization(testContext.user2.id, testContext.organization.id, user.id,
+                OrganizationRoleType.ORG_MEMBER)
         }
 
         verify("User can revoke invitaiton") {

@@ -134,7 +134,9 @@ class WalletController(
     }
 
     @GetMapping("wallet/organization/{organizationId}/transaction")
-    fun getTransactionToCreateOrganizationWallet(@PathVariable organizationId: Int): ResponseEntity<TransactionResponse> {
+    fun getTransactionToCreateOrganizationWallet(
+        @PathVariable organizationId: Int
+    ): ResponseEntity<TransactionResponse> {
         logger.debug { "Received request to create organization wallet: $organizationId" }
 
         val user = ControllerUtils.getUserFromSecurityContext(userService)
@@ -162,7 +164,8 @@ class WalletController(
         logger.debug { "Received request to create organization($organizationId) wallet" }
 
         val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
-                ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id $organizationId")
+                ?: throw ResourceNotFoundException(
+                    ErrorCode.ORG_MISSING, "Missing organization with id $organizationId")
         val wallet = walletService.createOrganizationWallet(organization, request.data)
         val response = WalletResponse(wallet, 0)
         return ResponseEntity.ok(response)

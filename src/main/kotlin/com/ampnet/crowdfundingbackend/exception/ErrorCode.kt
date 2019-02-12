@@ -35,7 +35,8 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),
     ORG_PRIVILEGE_APPROVE("06", "02", "Cannot approve organization without privilege"),
-    ORG_PRIVILEGE_PW("06", "03", "Failed invite user to organization without organization user role, privilege PW_USERS"),
+    ORG_PRIVILEGE_PW("06", "03",
+        "Failed invite user to organization without organization user role, privilege PW_USERS"),
     ORG_DUPLICATE_USER("06", "04", "User is already a member of this organization"),
     ORG_DUPLICATE_INVITE("06", "05", "User is already invited"),
     ORG_DUPLICATE_NAME("06", "06", "Organization with this name alrady exists"),
@@ -48,7 +49,8 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     PRJ_MIN_PER_USER("07", "05", "Funding is below project minimum"),
     PRJ_MAX_FUNDS("07", "06", "Project has reached expected funding"),
     PRJ_NOT_ACTIVE("07", "07", "Project is not active"),
-    PRJ_MIN_ABOVE_MAX("07", "08", "Min investment per user is higher than max investment per user"),
+    PRJ_MIN_ABOVE_MAX("07", "08",
+        "Min investment per user is higher than max investment per user"),
     PRJ_MAX_FUNDS_TOO_HIGH("07", "09", "Expected funding is too high"),
     PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "09", "Max funding per user is too high"),
 

@@ -159,7 +159,8 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
         verify("Sending mail invitation is called") {
             Mockito.verify(mailService, Mockito.times(1))
-                    .sendOrganizationInvitationMail(testContext.invitedUser.email, user.getFullName(), organization.name)
+                    .sendOrganizationInvitationMail(
+                        testContext.invitedUser.email, user.getFullName(), organization.name)
         }
     }
 
@@ -209,7 +210,8 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             testContext.secondOrganization = createOrganization("Second org", user)
 
             organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
-            organizationService.addUserToOrganization(user.id, testContext.secondOrganization.id, OrganizationRoleType.ORG_MEMBER)
+            organizationService.addUserToOrganization(
+                user.id, testContext.secondOrganization.id, OrganizationRoleType.ORG_MEMBER)
         }
 
         verify("User is a member of two organizations") {
@@ -271,8 +273,9 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         suppose("IPFS service will successfully store document") {
             testContext.documentSaveRequest =
                     DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
-            Mockito.`when`(ipfsService.storeData(testContext.documentSaveRequest.data, testContext.documentSaveRequest.name))
-                    .thenReturn(IpfsFile(testContext.documentHash, testContext.documentSaveRequest.name, null))
+            Mockito.`when`(
+                ipfsService.storeData(testContext.documentSaveRequest.data, testContext.documentSaveRequest.name)
+            ).thenReturn(IpfsFile(testContext.documentHash, testContext.documentSaveRequest.name, null))
         }
 
         verify("Service will append new document") {

@@ -62,7 +62,9 @@ class OrganizationController(
     }
 
     @PostMapping("/organization")
-    fun createOrganization(@RequestBody @Valid request: OrganizationRequest): ResponseEntity<OrganizationWithDocumentResponse> {
+    fun createOrganization(
+        @RequestBody @Valid request: OrganizationRequest
+    ): ResponseEntity<OrganizationWithDocumentResponse> {
         logger.debug { "Received request to create organization: $request" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 

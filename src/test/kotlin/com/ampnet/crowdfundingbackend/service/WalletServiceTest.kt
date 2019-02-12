@@ -80,7 +80,9 @@ class WalletServiceTest : JpaServiceTestBase() {
             testContext.walletToken = walletService.createWalletToken(user)
         }
         verify("Service can create wallet for a user") {
-            val request = WalletCreateRequest(defaultAddress, defaultPublicKey, testContext.walletToken.token.toString())
+            val request = WalletCreateRequest(
+                defaultAddress, defaultPublicKey, testContext.walletToken.token.toString()
+            )
             val wallet = walletService.createUserWallet(request)
             assertThat(wallet.hash).isEqualTo(defaultAddressHash)
             assertThat(wallet.currency).isEqualTo(Currency.EUR)
@@ -122,7 +124,9 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service throws exception Wallet token has expired") {
-            val request = WalletCreateRequest(defaultAddress, defaultPublicKey, testContext.walletToken.token.toString())
+            val request = WalletCreateRequest(
+                defaultAddress, defaultPublicKey, testContext.walletToken.token.toString()
+            )
             val exception = assertThrows<InvalidRequestException> {
                 walletService.createUserWallet(request)
             }
@@ -157,8 +161,9 @@ class WalletServiceTest : JpaServiceTestBase() {
             testContext.project = createProject("Das project", organization, user)
         }
         suppose("Blockchain service successfully adds wallet") {
-            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.PRJ_CREATE))
-                    .thenReturn(defaultAddressHash)
+            Mockito.`when`(
+                mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.PRJ_CREATE)
+            ).thenReturn(defaultAddressHash)
         }
 
         verify("Service can create wallet for project") {
@@ -193,7 +198,9 @@ class WalletServiceTest : JpaServiceTestBase() {
 
         verify("Service cannot create additional account") {
             val exception = assertThrows<ResourceAlreadyExistsException> {
-                val request = WalletCreateRequest(defaultAddress, defaultPublicKey, testContext.walletToken.token.toString())
+                val request = WalletCreateRequest(
+                    defaultAddress, defaultPublicKey, testContext.walletToken.token.toString()
+                )
                 walletService.createUserWallet(request)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
@@ -354,8 +361,9 @@ class WalletServiceTest : JpaServiceTestBase() {
             testContext.organization = createOrganization("Org", user)
         }
         suppose("Blockchain service successfully adds wallet") {
-            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.ORG_CREATE))
-                    .thenReturn(defaultAddressHash)
+            Mockito.`when`(
+                mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.ORG_CREATE)
+            ).thenReturn(defaultAddressHash)
         }
 
         verify("Service can create wallet for organization") {
@@ -402,8 +410,9 @@ class WalletServiceTest : JpaServiceTestBase() {
             testContext.project = createProject("Das project", organization, user)
         }
         suppose("Blockchain service will return same hash for new project wallet transaction") {
-            Mockito.`when`(mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.PRJ_CREATE))
-                    .thenReturn(defaultAddressHash)
+            Mockito.`when`(
+                mockedBlockchainService.postTransaction(defaultSignedTransaction, PostTransactionType.PRJ_CREATE)
+            ).thenReturn(defaultAddressHash)
         }
 
         verify("User will not be able to create organization wallet with the same hash") {

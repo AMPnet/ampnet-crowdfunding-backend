@@ -294,8 +294,9 @@ class WalletControllerTest : ControllerTestBase() {
             testData.project = createProject("Test project", organization, user)
         }
         suppose("Blockchain service successfully adds project wallet") {
-            Mockito.`when`(blockchainService.postTransaction(testData.signedTransaction, PostTransactionType.PRJ_CREATE))
-                    .thenReturn(testData.hash)
+            Mockito.`when`(
+                blockchainService.postTransaction(testData.signedTransaction, PostTransactionType.PRJ_CREATE)
+            ).thenReturn(testData.hash)
         }
 
         verify("User can create project wallet") {
@@ -601,8 +602,9 @@ class WalletControllerTest : ControllerTestBase() {
             testData.organization = createOrganization("Turk org", user)
         }
         suppose("Blockchain service successfully generates transaction to create organization wallet") {
-            Mockito.`when`(blockchainService.postTransaction(testData.signedTransaction, PostTransactionType.ORG_CREATE))
-                    .thenReturn(testData.hash)
+            Mockito.`when`(
+                blockchainService.postTransaction(testData.signedTransaction, PostTransactionType.ORG_CREATE)
+            ).thenReturn(testData.hash)
         }
 
         verify("User can create organization wallet") {

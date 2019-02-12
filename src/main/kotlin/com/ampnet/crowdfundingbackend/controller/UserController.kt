@@ -55,7 +55,8 @@ class UserController(private val userService: UserService, private val organizat
     fun getMyInvitations(): ResponseEntity<OrganizationInvitesListResponse> {
         logger.debug { "Received request to list my invites" }
         val userId = getUserId()
-        val invites = organizationService.getAllOrganizationInvitesForUser(userId).map { OrganizationInviteResponse(it) }
+        val invites = organizationService.getAllOrganizationInvitesForUser(userId)
+            .map { OrganizationInviteResponse(it) }
         return ResponseEntity.ok(OrganizationInvitesListResponse(invites))
     }
 
