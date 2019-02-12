@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -7,23 +8,31 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.WalletService
+import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
+import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
 
 @Service
-class ProjectInvestmentServiceImpl(private val walletService: WalletService) : ProjectInvestmentService {
+class ProjectInvestmentServiceImpl(
+    private val walletService: WalletService,
+    private val blockchainService: BlockchainService
+) : ProjectInvestmentService {
 
-    @Transactional
     @Throws(InvalidRequestException::class, ResourceNotFoundException::class)
-    override fun investToProject(request: ProjectInvestmentRequest) {
+    override fun generateInvestInProjectTransaction(request: ProjectInvestmentRequest): TransactionData {
         verifyProjectIsStillActive(request.project)
         verifyInvestmentAmountIsValid(request.project, request.amount)
         verifyUserHasEnoughFunds(request.investor, request.amount)
         verifyProjectDidNotReachExpectedInvestment(request.project)
-        verifyUserDidNotReachMaximumInvestment(request)
+
+        return blockchainService.generateInvestInProjectTransaction(
+            request.investor.wallet!!.hash, request.project.wallet!!.hash, request.amount)
     }
+
+    override fun investInProject(signedTransaction: String): String =
+        blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST)
 
     private fun verifyProjectIsStillActive(project: Project) {
         if (project.active.not()) {
@@ -62,15 +71,6 @@ class ProjectInvestmentServiceImpl(private val walletService: WalletService) : P
         if (currentFunds == project.expectedFunding) {
             throw InvalidRequestException(
                     ErrorCode.PRJ_MAX_FUNDS, "Project has reached expected funding: $currentFunds")
-        }
-    }
-
-    private fun verifyUserDidNotReachMaximumInvestment(request: ProjectInvestmentRequest) {
-        // TODO: implement logic: fetch all user investments in current project
-        val currentInvestment: Long = 0
-        if ((currentInvestment + request.amount) > request.project.maxPerUser) {
-            val maxInvestment = request.project.maxPerUser.minus(currentInvestment)
-            throw InvalidRequestException(ErrorCode.PRJ_MAX_PER_USER, "User can invest max $maxInvestment")
         }
     }
 }

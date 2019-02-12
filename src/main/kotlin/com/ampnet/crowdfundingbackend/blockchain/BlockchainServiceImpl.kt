@@ -6,6 +6,7 @@ import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
 import com.ampnet.crowdfunding.proto.GenerateAddOrganizationTxRequest
 import com.ampnet.crowdfunding.proto.GenerateAddProjectTxRequest
+import com.ampnet.crowdfunding.proto.GenerateInvestTxRequest
 import com.ampnet.crowdfunding.proto.PostVaultTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
@@ -124,6 +125,27 @@ class BlockchainServiceImpl(
             logger.error(ex) { "Could not activate organization: $organizationWalletHash" }
             throw InternalException(ErrorCode.INT_ORG_ACTIVATE,
                     "Could not activate organization: $organizationWalletHash")
+        }
+    }
+
+    override fun generateInvestInProjectTransaction(
+        userWalletHash: String,
+        projectWalletHash: String,
+        amount: Long
+    ): TransactionData {
+        logger.info { "User: $userWalletHash is investing to project: $projectWalletHash with amount $amount" }
+        try {
+            val response = serviceBlockingStub.generateInvestTx(
+                GenerateInvestTxRequest.newBuilder()
+                    .setFromTxHash(userWalletHash)
+                    .setProjectTxHash(projectWalletHash)
+                    .setAmount(amount)
+                    .build()
+            )
+            return TransactionData(response)
+        } catch (ex: StatusRuntimeException) {
+            logger.error(ex) { "Could not invest in project: $projectWalletHash" }
+            throw InternalException(ErrorCode.PRJ_INVEST_FAILED, "Could not invest in project: $projectWalletHash")
         }
     }
 }

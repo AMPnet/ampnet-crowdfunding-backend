@@ -162,7 +162,8 @@ jacocoTestReport {
         html.destination file("${buildDir}/reports/jacoco/html")
     }
     sourceDirectories = files(["${project.projectDir}/src/main/kotlin"])
-    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['**/model/**', 'blockchain/**', '**/ipfs/**'])
+    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", 
+      excludes: ['**/model/**', '**/pojo/**', 'blockchain/**', '**/ipfs/**'])
 }
 
 jacocoTestCoverageVerification {
