@@ -8,7 +8,7 @@ data class OrganizationServiceRequest(
     val legalInfo: String,
     val owner: User
 ) {
-    constructor(request: OrganizationRequest, user: User): this(
+    constructor(request: OrganizationRequest, user: User) : this(
             request.name,
             request.legalInfo,
             user

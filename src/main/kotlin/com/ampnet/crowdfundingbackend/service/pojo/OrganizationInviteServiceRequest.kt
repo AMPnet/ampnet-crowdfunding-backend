@@ -10,7 +10,7 @@ data class OrganizationInviteServiceRequest(
     val organizationId: Int,
     val invitedByUser: User
 ) {
-    constructor(request: OrganizationInviteRequest, organizationId: Int, user: User): this(
+    constructor(request: OrganizationInviteRequest, organizationId: Int, user: User) : this(
         request.email, request.roleType, organizationId, user
     )
 }

@@ -11,7 +11,7 @@ data class TransactionData(
     val value: Long,
     val publicKey: String
 ) {
-    constructor(rawTxResponse: RawTxResponse): this(
+    constructor(rawTxResponse: RawTxResponse) : this(
             rawTxResponse.data,
             rawTxResponse.to,
             rawTxResponse.nonce,

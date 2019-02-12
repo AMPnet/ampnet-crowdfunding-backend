@@ -11,7 +11,7 @@ data class DocumentResponse(
     val size: Int,
     val createdAt: ZonedDateTime
 ) {
-    constructor(document: Document): this(
+    constructor(document: Document) : this(
             document.id,
             document.hash,
             document.name,

@@ -33,7 +33,7 @@ data class CreateUserServiceRequest(
     val authMethod: AuthMethod
 ) {
 
-    constructor(signupRequestUserInfo: SignupRequestUserInfo, signupMethod: AuthMethod): this(
+    constructor(signupRequestUserInfo: SignupRequestUserInfo, signupMethod: AuthMethod) : this(
             signupRequestUserInfo.email,
             signupRequestUserInfo.password,
             signupRequestUserInfo.firstName,
@@ -43,7 +43,7 @@ data class CreateUserServiceRequest(
             signupMethod
     )
 
-    constructor(socialUserInfo: SocialUser, signupMethod: AuthMethod): this(
+    constructor(socialUserInfo: SocialUser, signupMethod: AuthMethod) : this(
             socialUserInfo.email,
             null,
             socialUserInfo.firstName,

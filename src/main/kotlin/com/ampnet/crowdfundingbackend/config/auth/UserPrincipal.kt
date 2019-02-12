@@ -8,7 +8,7 @@ data class UserPrincipal(
     val completeProfile: Boolean,
     val enabled: Boolean
 ) {
-    constructor(user: User): this(
+    constructor(user: User) : this(
         user.email,
         user.getAuthorities().asSequence().map { it.authority }.toSet(),
         (user.firstName != null && user.lastName != null && user.country != null && user.phoneNumber != null),

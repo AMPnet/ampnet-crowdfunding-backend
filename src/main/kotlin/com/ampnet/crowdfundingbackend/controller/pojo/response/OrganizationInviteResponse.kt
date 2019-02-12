@@ -9,7 +9,7 @@ data class OrganizationInviteResponse(
     val role: OrganizationRoleType,
     val invitedByUser: String
 ) {
-    constructor(invite: OrganizationInvite): this(
+    constructor(invite: OrganizationInvite) : this(
             invite.organizationId,
             invite.organization!!.name,
             OrganizationRoleType.fromInt(invite.role.id)!!,

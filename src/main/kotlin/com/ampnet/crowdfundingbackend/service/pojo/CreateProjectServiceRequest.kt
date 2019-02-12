@@ -22,7 +22,7 @@ data class CreateProjectServiceRequest(
     val active: Boolean,
     val createdBy: User
 ) {
-    constructor(request: ProjectRequest, organization: Organization, user: User): this(
+    constructor(request: ProjectRequest, organization: Organization, user: User) : this(
         organization,
             request.name,
             request.description,

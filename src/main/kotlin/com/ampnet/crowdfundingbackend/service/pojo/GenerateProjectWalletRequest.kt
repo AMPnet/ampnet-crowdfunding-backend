@@ -9,7 +9,7 @@ data class GenerateProjectWalletRequest(
     val minPerUser: Long,
     val investmentCap: Long
 ) {
-    constructor(project: Project, organizationHash: String, userWalletHash: String): this(
+    constructor(project: Project, organizationHash: String, userWalletHash: String) : this(
             userWalletHash,
             organizationHash,
             project.maxPerUser,

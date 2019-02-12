@@ -11,7 +11,7 @@ data class OrganizationResponse(
     val approved: Boolean,
     val legalInfo: String
 ) {
-    constructor(organization: Organization): this(
+    constructor(organization: Organization) : this(
             organization.id,
             organization.name,
             organization.createdByUser.getFullName(),
@@ -32,7 +32,7 @@ data class OrganizationWithDocumentResponse(
     val legalInfo: String,
     val documents: List<DocumentResponse>
 ) {
-    constructor(organization: Organization): this(
+    constructor(organization: Organization) : this(
             organization.id,
             organization.name,
             organization.createdByUser.getFullName(),

@@ -9,7 +9,7 @@ data class OrganizationUserResponse(
     val role: OrganizationRoleType?
     // TODO: set invitation accepted
 ) {
-    constructor(user: User): this(
+    constructor(user: User) : this(
             user.getFullName(),
             user.email,
             user.organizations?.first()?.role?.let {

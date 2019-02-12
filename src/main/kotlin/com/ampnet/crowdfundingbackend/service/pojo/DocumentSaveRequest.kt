@@ -10,7 +10,7 @@ data class DocumentSaveRequest(
     val type: String,
     val user: User
 ) {
-    constructor(file: MultipartFile, user: User): this(
+    constructor(file: MultipartFile, user: User) : this(
             file.bytes,
             file.name,
             file.size.toInt(),

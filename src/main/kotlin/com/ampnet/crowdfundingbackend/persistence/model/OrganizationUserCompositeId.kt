@@ -7,7 +7,7 @@ class OrganizationUserCompositeId() : Serializable {
     protected var organizationId: Int = -1
     protected var userId: Int = -1
 
-    constructor(organizationId: Int, userId: Int): this() {
+    constructor(organizationId: Int, userId: Int) : this() {
         this.organizationId = organizationId
         this.userId = userId
     }

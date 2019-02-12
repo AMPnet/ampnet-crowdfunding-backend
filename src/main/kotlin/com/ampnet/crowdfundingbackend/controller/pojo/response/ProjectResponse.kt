@@ -21,7 +21,7 @@ data class ProjectResponse(
     val gallery: List<String>,
     val active: Boolean
 ) {
-    constructor(project: Project): this(
+    constructor(project: Project) : this(
             project.id,
             project.name,
             project.description,
