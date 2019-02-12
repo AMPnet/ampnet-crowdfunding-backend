@@ -161,14 +161,15 @@ jacocoTestReport {
         csv.enabled false
         html.destination file("${buildDir}/reports/jacoco/html")
     }
-    sourceDirectories = files(["${project.projectDir}/src/main/kotlin"])
-    classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", 
-      excludes: ['**/model/**', '**/pojo/**', 'blockchain/**', '**/ipfs/**'])
+    sourceDirectories.from = files(["${project.projectDir}/src/main/kotlin"])
+    classDirectories.from = fileTree(dir: "${buildDir}/classes/kotlin/main", 
+        excludes: ['**/model/**', '**/pojo/**', 'blockchain/**', '**/ipfs/**'])
 }
 
 jacocoTestCoverageVerification {
     afterEvaluate {
-        classDirectories = fileTree(dir: "${buildDir}/classes/kotlin/main", excludes: ['blockchain/**', '**/proto/**'])
+        classDirectories.from = fileTree(dir: "${buildDir}/classes/kotlin/main", 
+            excludes: ['blockchain/**', '**/proto/**'])
     }
     violationRules {
         rule {
