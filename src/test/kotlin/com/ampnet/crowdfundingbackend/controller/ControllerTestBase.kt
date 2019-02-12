@@ -135,7 +135,7 @@ abstract class ControllerTestBase : TestBase() {
         return wallet
     }
 
-    protected fun createWallet(hash: String, type: WalletType): Wallet {
+    private fun createWallet(hash: String, type: WalletType): Wallet {
         val wallet = Wallet::class.java.getConstructor().newInstance()
         wallet.hash = hash
         wallet.type = type

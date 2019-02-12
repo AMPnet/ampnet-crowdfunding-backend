@@ -51,4 +51,9 @@ class DatabaseCleanerService(val em: EntityManager) {
     fun deleteAllProjects() {
         em.createNativeQuery("TRUNCATE project CASCADE").executeUpdate()
     }
+
+    @Transactional
+    fun deleteAllWallets() {
+        em.createNativeQuery("DELETE FROM wallet").executeUpdate()
+    }
 }

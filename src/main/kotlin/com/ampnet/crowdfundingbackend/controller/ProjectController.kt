@@ -1,10 +1,13 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -13,11 +16,13 @@ import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.OrganizationService
+import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
+import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -35,7 +40,8 @@ class ProjectController(
     private val projectService: ProjectService,
     private val walletService: WalletService,
     private val userService: UserService,
-    private val organizationService: OrganizationService
+    private val organizationService: OrganizationService,
+    private val projectInvestmentService: ProjectInvestmentService
 ) {
 
     companion object : KLogging()
@@ -90,9 +96,7 @@ class ProjectController(
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document to project: $projectId" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
-
-        val project = projectService.getProjectById(projectId)
-                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
+        val project = getProjectById(projectId)
 
         getUserMembershipInOrganization(user.id, project.organization.id)?.let {
             return if (hasPrivilegeToWriteProject(it)) {
@@ -106,6 +110,31 @@ class ProjectController(
         }
         logger.info { "User ${user.id} is not a member of organization ${project.organization.id}" }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
+    @GetMapping("/project/{projectId}/invest")
+    fun generateInvestTransaction(
+        @PathVariable("projectId") projectId: Int,
+        @RequestParam(name = "amount") amount: Long
+    ): ResponseEntity<TransactionResponse> {
+        logger.debug { "Received request to generate invest transaction: $projectId" }
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val project = getProjectById(projectId)
+
+        val request = ProjectInvestmentRequest(project, user, amount)
+        val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
+        // TODO: define link
+        val link = "/project/invest"
+
+        return ResponseEntity.ok(TransactionResponse(transaction, link))
+    }
+
+    @PostMapping("/project/invest")
+    fun postTransaction(@RequestBody request: SignedTransactionRequest): ResponseEntity<TxHashResponse> {
+        logger.debug { "Received request to post signed transaction for project investment" }
+        val txHash = projectInvestmentService.investInProject(request.data)
+        logger.info { "Successfully posted signed transaction for project investment. TxHash: $txHash" }
+        return ResponseEntity.ok(TxHashResponse(txHash))
     }
 
     private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {
@@ -134,4 +163,8 @@ class ProjectController(
 
     private fun hasPrivilegeToWriteProject(membership: OrganizationMembership): Boolean =
             membership.getPrivileges().contains(OrganizationPrivilegeType.PW_PROJECT)
+
+    private fun getProjectById(projectId: Int): Project =
+        projectService.getProjectById(projectId)
+            ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
 }
