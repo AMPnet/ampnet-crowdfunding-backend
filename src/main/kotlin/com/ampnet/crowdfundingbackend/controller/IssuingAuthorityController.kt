@@ -4,6 +4,9 @@ import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import mu.KLogging
 import org.springframework.http.ResponseEntity
@@ -14,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class IssuingAuthorityController(private val blockchainService: BlockchainService) {
+class IssuingAuthorityController(
+    private val blockchainService: BlockchainService,
+    private val userService: UserService
+) {
 
     companion object : KLogging()
 
@@ -23,11 +29,13 @@ class IssuingAuthorityController(private val blockchainService: BlockchainServic
     @GetMapping("/issuer/mint")
     fun getMintTransaction(
         @RequestParam(name = "from") from: String,
-        @RequestParam(name = "toHash") toHash: String,
+        @RequestParam(name = "email") email: String,
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionResponse> {
-        logger.info { "Received mint request from=$from toHash=$toHash in amount=$amount" }
-        val transaction = blockchainService.generateMintTransaction(from, toHash, amount)
+        logger.info { "Received mint request from=$from to email=$email in amount=$amount" }
+        val userWalletHash = getUserWalletHashFromEmail(email)
+
+        val transaction = blockchainService.generateMintTransaction(from, userWalletHash, amount)
         val link = "$transactionTypeLink${IssuerTransactionType.mint}"
         logger.info { "Successfully generated mint transaction" }
 
@@ -37,11 +45,13 @@ class IssuingAuthorityController(private val blockchainService: BlockchainServic
     @GetMapping("/issuer/burn")
     fun getBurnTransaction(
         @RequestParam(name = "from") from: String,
-        @RequestParam(name = "burnFromTxHash") burnFromTxHash: String,
+        @RequestParam(name = "email") email: String,
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionResponse> {
-        logger.info { "Received burn request from=$from burnFromTxHash=$burnFromTxHash in amount=$amount" }
-        val transaction = blockchainService.generateBurnTransaction(from, burnFromTxHash, amount)
+        logger.info { "Received burn request from=$from for email=$email in amount=$amount" }
+        val userWalletHash = getUserWalletHashFromEmail(email)
+
+        val transaction = blockchainService.generateBurnTransaction(from, userWalletHash, amount)
         val link = "$transactionTypeLink${IssuerTransactionType.burn}"
         logger.info { "Successfully generated burn transaction" }
 
@@ -62,6 +72,13 @@ class IssuingAuthorityController(private val blockchainService: BlockchainServic
         logger.info { "Issuer successfully posted transaction, type = $type. TxHash = $txHash" }
 
         return ResponseEntity.ok(TxHashResponse(txHash))
+    }
+
+    private fun getUserWalletHashFromEmail(email: String): String {
+        val user = userService.findWithWallet(email)
+            ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
+        return user.wallet?.hash
+            ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have a wallet")
     }
 
     enum class IssuerTransactionType {
