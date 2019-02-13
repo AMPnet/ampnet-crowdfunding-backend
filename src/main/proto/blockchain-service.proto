@@ -13,14 +13,15 @@ enum TransactionType {
     DEPOSIT = 2;
     PENDING_WITHDRAW = 3;
     PENDING_ORG_WITHDRAW = 4;
-    WITHDRAW = 5;
-    INVEST = 6;
-    TRANSFER = 7;
-    ORG_ADD_MEMBER = 8;
-    ORG_ADD_PROJECT = 9;
-    ORG_ACTIVATE = 10;
-    TRANSFER_OWNERSHIP = 11;
-    CANCEL_INVESTMENT = 12;
+    PENDING_PROJ_WITHDRAW = 5;
+    WITHDRAW = 6;
+    INVEST = 7;
+    TRANSFER = 8;
+    ORG_ADD_MEMBER = 9;
+    ORG_ADD_PROJECT = 10;
+    ORG_ACTIVATE = 11;
+    TRANSFER_OWNERSHIP = 12;
+    CANCEL_INVESTMENT = 13;
 }
 
 //////// AMPnet contract messages ///////
