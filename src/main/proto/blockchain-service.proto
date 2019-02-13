@@ -80,11 +80,9 @@ message GenerateBurnFromTxRequest {
     uint64 amount = 3;
 }
 
-// Approve address should always be address of token issuing authority (known upfront)
 message GenerateApproveTxRequest {
     string fromTxHash = 1;
-    string approve = 2;
-    uint64 amount = 3;
+    uint64 amount = 2;
 }
 
 message GenerateTransferTxRequest {
@@ -109,8 +107,7 @@ message ActivateOrganizationRequest {
 message GenerateWithdrawOrganizationFundsTxRequest {
     string fromTxHash = 1;
     string organizationTxHash = 2;
-    string tokenIssuer = 3;
-    uint64 amount = 4;
+    uint64 amount = 3;
 }
 
 message GenerateAddMemberTxRequest {
@@ -157,8 +154,7 @@ message OrganizationMembersResponse {
 message GenerateWithdrawProjectFundsTx {
     string fromTxHash = 1;
     string projectTxHash = 2;
-    string tokenIssuer = 3;
-    uint64 amount = 4;
+    uint64 amount = 3;
 }
 
 message GenerateTransferOwnershipTx {
