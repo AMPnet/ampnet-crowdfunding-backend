@@ -1,10 +1,13 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
@@ -13,8 +16,9 @@ import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
+import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
+import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions.assertSoftly
@@ -104,7 +108,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentHash)
         }
         suppose("Project has a wallet") {
-            testContext.wallet = createWalletForProject(testContext.project, testContext.walletHash)
+            databaseCleanerService.deleteAllWallets()
+            createWalletForProject(testContext.project, testContext.walletHash)
         }
         suppose("Blockchain service will return current funding") {
             Mockito.`when`(blockchainService.getBalance(testContext.walletHash)).thenReturn(testContext.walletBalance)
@@ -258,6 +263,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToGetListOfProjectForOrganization() {
         suppose("Organization has 3 projects") {
+            databaseCleanerService.deleteAllProjects()
             testContext.project = createProject("Project 1", organization, user)
             createProject("Project 2", organization, user)
             createProject("Project 3", organization, user)
@@ -301,6 +307,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToAddDocumentForProject() {
         suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
             testContext.project = createProject("Project", organization, user)
         }
         suppose("User is an admin of organization") {
@@ -339,6 +346,65 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
             assertThat(document.hash).isEqualTo(testContext.documentHash)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    fun mustBeAbleToGenerateInvestmentTransaction() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("Project has empty wallet") {
+            databaseCleanerService.deleteAllWallets()
+            createWalletForProject(testContext.project, testContext.walletHash)
+        }
+        suppose("Project has wallet") {
+            val userWithWallet = createUser("user@with.wallet")
+            createWalletForUser(userWithWallet, testContext.userWalletHash)
+        }
+        suppose("User has enough funds on wallet") {
+            Mockito.`when`(blockchainService.getBalance(testContext.userWalletHash)).thenReturn(100_000_00)
+        }
+        suppose("Blockchain service will generate transaction") {
+            Mockito.`when`(blockchainService.generateInvestInProjectTransaction(
+                testContext.userWalletHash, testContext.walletHash, 1_000)
+            ).thenReturn(testContext.transactionData)
+        }
+
+        verify("User can generate invest project transaction") {
+            val result = mockMvc.perform(
+                get("$projectPath/${testContext.project.id}/invest")
+                    .param("amount", "1000"))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.link).isEqualTo("/project/invest")
+        }
+    }
+
+    @Test
+    fun mustBeAbleToPostSignedTransaction() {
+        suppose("Blockchain service will accept signed transaction for project investment") {
+            Mockito.`when`(
+                blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.PRJ_INVEST)
+            ).thenReturn(testContext.txHash)
+        }
+
+        verify("User can post signed transaction to invest in project") {
+            val request = SignedTransactionRequest(testContext.signedTransaction)
+            val result = mockMvc.perform(
+                post("$projectPath/invest")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(txHashResponse.txHash).isEqualTo(testContext.txHash)
         }
     }
 
@@ -384,10 +450,13 @@ class ProjectControllerTest : ControllerTestBase() {
         lateinit var projectResponse: ProjectResponse
         lateinit var multipartFile: MockMultipartFile
         lateinit var document: Document
-        lateinit var wallet: Wallet
         val documentHash = "hashos"
         var projectId: Int = -1
         val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         val walletBalance = 100L
+        val signedTransaction = "SignedTransaction"
+        val txHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
+        val userWalletHash = "0x29bC6a8219c798394726f8e86E040A878da1daAA"
+        val transactionData = TransactionData("data", "to", 22, 33, 44, 1000, "pubg")
     }
 }

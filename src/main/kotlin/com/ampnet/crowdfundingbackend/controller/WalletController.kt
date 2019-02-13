@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransaction
+import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
@@ -104,7 +104,7 @@ class WalletController(
     @PostMapping("/wallet/project/{projectId}/transaction")
     fun createProjectWallet(
         @PathVariable projectId: Int,
-        @RequestBody request: SignedTransaction
+        @RequestBody request: SignedTransactionRequest
     ): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to create project($projectId) wallet" }
 
@@ -159,7 +159,7 @@ class WalletController(
     @PostMapping("/wallet/organization/{organizationId}/transaction")
     fun createOrganizationWallet(
         @PathVariable organizationId: Int,
-        @RequestBody request: SignedTransaction
+        @RequestBody request: SignedTransactionRequest
     ): ResponseEntity<WalletResponse> {
         logger.debug { "Received request to create organization($organizationId) wallet" }
 

@@ -11,4 +11,9 @@ interface BlockchainService {
     fun generateProjectWalletTransaction(request: GenerateProjectWalletRequest): TransactionData
     fun postTransaction(transaction: String, type: PostTransactionType): String
     fun activateOrganization(organizationWalletHash: String): String
+    fun generateInvestInProjectTransaction(
+        userWalletHash: String,
+        projectWalletHash: String,
+        amount: Long
+    ): TransactionData
 }
