@@ -5,7 +5,6 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
@@ -163,38 +162,6 @@ class WalletServiceTest : JpaServiceTestBase() {
         verify("Service can return wallet balance") {
             val balance = walletService.getWalletBalance(user.wallet!!)
             assertThat(balance).isEqualTo(testContext.balance)
-        }
-    }
-
-    @Test
-    fun mustThrowExceptionIfBlockchainServiceFailsToCreateWallet() {
-        suppose("gRPC service cannot create a wallet") {
-            Mockito.`when`(mockedBlockchainService.addWallet(defaultAddress, defaultPublicKey)).thenReturn(null)
-        }
-
-        verify("Service will throw InternalException") {
-            val request = WalletCreateRequest(defaultAddress, defaultPublicKey)
-            val exception = assertThrows<InternalException> {
-                walletService.createUserWallet(user, request)
-            }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.INT_WALLET_ADD)
-        }
-    }
-
-    @Test
-    fun mustThrowExceptionIfBlockchainServiceToGetBalance() {
-        suppose("User has a wallet") {
-            createWalletForUser(user, defaultAddress)
-        }
-        suppose("Blockchain service cannot get balance for wallet") {
-            Mockito.`when`(mockedBlockchainService.getBalance(defaultAddress)).thenReturn(null)
-        }
-
-        verify("Service will throw InternalException") {
-            val exception = assertThrows<InternalException> {
-                walletService.getWalletBalance(user.wallet!!)
-            }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.INT_WALLET_FUNDS)
         }
     }
 

@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import mu.KLogging
 import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory
@@ -32,25 +33,24 @@ class BlockchainServiceImpl(
         BlockchainServiceGrpc.newBlockingStub(channel)
     }
 
-    override fun getBalance(hash: String): Long? {
+    override fun getBalance(hash: String): Long {
         logger.info { "Fetching balance for hash: $hash" }
-        return try {
+        try {
             val response = serviceBlockingStub.getBalance(
                     BalanceRequest.newBuilder()
                             .setWalletTxHash(hash)
                             .build()
             )
             logger.info { "Received response: $response" }
-            response.balance
+            return response.balance
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not get balance for wallet: $hash" }
-            null
+            throw getInternalExceptionFromStatusException(ex, "Could not get balance for wallet: $hash")
         }
     }
 
-    override fun addWallet(address: String, publicKey: String): String? {
+    override fun addWallet(address: String, publicKey: String): String {
         logger.info { "Adding wallet: $address" }
-        return try {
+        try {
             val response = serviceBlockingStub.addWallet(
                     AddWalletRequest.newBuilder()
                             .setAddress(address)
@@ -60,8 +60,7 @@ class BlockchainServiceImpl(
             logger.info { "Successfully added wallet: $response" }
             return response.txHash
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not add wallet: $address" }
-            null
+            throw getInternalExceptionFromStatusException(ex, "Could not add wallet: $address")
         }
     }
 
@@ -75,8 +74,7 @@ class BlockchainServiceImpl(
             )
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not generate Add Organization transaction" }
-            throw InternalException(ErrorCode.INT_ORG, "Failed to create Organization on blockchain")
+            throw getInternalExceptionFromStatusException(ex, "Could not generate transaction Add Organization: $name")
         }
     }
 
@@ -94,12 +92,12 @@ class BlockchainServiceImpl(
             )
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not generate Project wallet transaction: $request" }
-            throw InternalException(ErrorCode.INT_WALLET_ADD, "Could not create wallet for project")
+            throw getInternalExceptionFromStatusException(ex, "Could not generate Project wallet transaction: $request")
         }
     }
 
     override fun postTransaction(transaction: String, type: PostTransactionType): String {
+        logger.info { "Post transaction type: $type" }
         try {
             val response = serviceBlockingStub.postVaultTransaction(
                     PostVaultTxRequest.newBuilder()
@@ -109,8 +107,7 @@ class BlockchainServiceImpl(
             )
             return response.txHash
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not post type: $type transaction: $transaction" }
-            throw InternalException(ErrorCode.INT_TRANSACTION, "Could not post transaction")
+            throw getInternalExceptionFromStatusException(ex, "Could not post type: $type transaction: $transaction")
         }
     }
 
@@ -124,9 +121,8 @@ class BlockchainServiceImpl(
             )
             return response.txHash
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not activate organization: $organizationWalletHash" }
-            throw InternalException(ErrorCode.INT_ORG_ACTIVATE,
-                    "Could not activate organization: $organizationWalletHash")
+            throw getInternalExceptionFromStatusException(
+                ex, "Could not activate organization: $organizationWalletHash")
         }
     }
 
@@ -146,13 +142,12 @@ class BlockchainServiceImpl(
             )
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not invest in project: $projectWalletHash" }
-            throw InternalException(ErrorCode.PRJ_INVEST_FAILED, "Could not invest in project: $projectWalletHash")
+            throw getInternalExceptionFromStatusException(ex, "Could not invest in project: $projectWalletHash")
         }
     }
 
     override fun generateMintTransaction(from: String, toHash: String, amount: Long): TransactionData {
-        logger.info { "Minting toHash: $toHash with amount = $amount" }
+        logger.warn { "Generating Mint transaction from: $from toHash: $toHash with amount = $amount" }
         try {
             val response = serviceBlockingStub.generateMintTx(
                 GenerateMintTxRequest.newBuilder()
@@ -163,12 +158,12 @@ class BlockchainServiceImpl(
             )
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not mint toHash: $toHash" }
-            throw InternalException(ErrorCode.INT_GRPC, "Could not generate mint transaction!")
+            throw getInternalExceptionFromStatusException(ex, "Could not Mint toHash: $toHash")
         }
     }
 
     override fun generateBurnTransaction(from: String, burnFromTxHash: String, amount: Long): TransactionData {
+        logger.warn { "Generating Burn transaction from: $from burnFromTxHash: $burnFromTxHash with amount = $amount" }
         try {
             val response = serviceBlockingStub.generateBurnFromTx(
                 GenerateBurnFromTxRequest.newBuilder()
@@ -179,8 +174,32 @@ class BlockchainServiceImpl(
             )
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {
-            logger.error(ex) { "Could not mint toHash: $burnFromTxHash" }
-            throw InternalException(ErrorCode.INT_GRPC, "Could not generate burn transaction!")
+            throw getInternalExceptionFromStatusException(ex, "Could not Burn toHash: $burnFromTxHash")
         }
     }
+
+    private fun getInternalExceptionFromStatusException(
+        ex: StatusRuntimeException,
+        message: String
+    ): InternalException {
+        logger.error(ex) { message }
+        val grpcErrorCode = getErrorDescriptionFromExceptionStatus(ex.status)
+        val errorCode = ErrorCode.INT_GRPC
+        errorCode.specificCode = grpcErrorCode.code
+        errorCode.message = grpcErrorCode.message
+        return InternalException(errorCode, message)
+    }
+
+    // Status defined in ampenet-blockchain service, for more info see:
+    // ampnet-blockchain-service/src/main/kotlin/com/ampnet/crowdfunding/blockchain/enums/ErrorCode.kt
+    private fun getErrorDescriptionFromExceptionStatus(status: Status): GrpcErrorCode {
+        val description = status.description?.split(" > ")
+            ?: return GrpcErrorCode("90", "Could not parse error: ${status.description}")
+        if (description.size != 2) {
+            return GrpcErrorCode("91", "Wrong size of error message: $description")
+        }
+        return GrpcErrorCode(description[0], description[1])
+    }
+
+    private data class GrpcErrorCode(val code: String, val message: String)
 }

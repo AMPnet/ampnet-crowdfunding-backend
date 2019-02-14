@@ -1,21 +1,21 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
-import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
+import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.InternalException
+import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
+import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
+import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
-import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
-import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
-import com.ampnet.crowdfundingbackend.exception.InternalException
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
-import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -40,7 +40,6 @@ class WalletServiceImpl(
     @Throws(InternalException::class)
     override fun getWalletBalance(wallet: Wallet): Long {
         return blockchainService.getBalance(wallet.hash)
-                ?: throw InternalException(ErrorCode.INT_WALLET_FUNDS, "Could not fetch wallet funds from blockchain")
     }
 
     @Transactional
@@ -49,7 +48,6 @@ class WalletServiceImpl(
         throwExceptionIfUserAlreadyHasWallet(user)
 
         val txHash = blockchainService.addWallet(request.address, request.publicKey)
-                ?: throw InternalException(ErrorCode.INT_WALLET_ADD, "Could not store User wallet")
         val wallet = createWallet(txHash, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
