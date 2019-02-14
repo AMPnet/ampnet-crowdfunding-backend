@@ -6,7 +6,9 @@ import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
 import com.ampnet.crowdfunding.proto.GenerateAddOrganizationTxRequest
 import com.ampnet.crowdfunding.proto.GenerateAddProjectTxRequest
+import com.ampnet.crowdfunding.proto.GenerateBurnFromTxRequest
 import com.ampnet.crowdfunding.proto.GenerateInvestTxRequest
+import com.ampnet.crowdfunding.proto.GenerateMintTxRequest
 import com.ampnet.crowdfunding.proto.PostVaultTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
@@ -146,6 +148,39 @@ class BlockchainServiceImpl(
         } catch (ex: StatusRuntimeException) {
             logger.error(ex) { "Could not invest in project: $projectWalletHash" }
             throw InternalException(ErrorCode.PRJ_INVEST_FAILED, "Could not invest in project: $projectWalletHash")
+        }
+    }
+
+    override fun generateMintTransaction(from: String, toHash: String, amount: Long): TransactionData {
+        logger.info { "Minting toHash: $toHash with amount = $amount" }
+        try {
+            val response = serviceBlockingStub.generateMintTx(
+                GenerateMintTxRequest.newBuilder()
+                    .setFrom(from)
+                    .setToTxHash(toHash)
+                    .setAmount(amount)
+                    .build()
+            )
+            return TransactionData(response)
+        } catch (ex: StatusRuntimeException) {
+            logger.error(ex) { "Could not mint toHash: $toHash" }
+            throw InternalException(ErrorCode.INT_GRPC, "Could not generate mint transaction!")
+        }
+    }
+
+    override fun generateBurnTransaction(from: String, burnFromTxHash: String, amount: Long): TransactionData {
+        try {
+            val response = serviceBlockingStub.generateBurnFromTx(
+                GenerateBurnFromTxRequest.newBuilder()
+                    .setFrom(from)
+                    .setBurnFromTxHash(burnFromTxHash)
+                    .setAmount(amount)
+                    .build()
+            )
+            return TransactionData(response)
+        } catch (ex: StatusRuntimeException) {
+            logger.error(ex) { "Could not mint toHash: $burnFromTxHash" }
+            throw InternalException(ErrorCode.INT_GRPC, "Could not generate burn transaction!")
         }
     }
 }

@@ -61,5 +61,7 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     INT_TRANSACTION("08", "03", "Could not post transaction on blockchain."),
     INT_ORG("08", "03", "Could not create Organization on blockchain."),
     INT_ORG_ACTIVATE("08", "04", "Could not activate organization on blockchain"),
-    INT_IPFS("08", "5", "Could not upload document to IPFS")
+    INT_IPFS("08", "5", "Could not upload document to IPFS"),
+
+    INT_GRPC("08", "99", "Failed gRPC call")
 }
