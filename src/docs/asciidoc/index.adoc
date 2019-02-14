@@ -296,22 +296,6 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/h
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/http-response.adoc[]
 
-==== Wallet token
-
-===== Generate wallet token
-Wallet token is used for wallet creation
-
-.Request
-include::{snippets}/WalletControllerTest/mustGenerateWalletTokenToCreateWallet/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustGenerateWalletTokenToCreateWallet/http-response.adoc[]
-
-===== Failed to generate token if user has wallet
-.Request
-include::{snippets}/WalletControllerTest/mustNotGenerateWalletTokenIfUserHasWallet/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotGenerateWalletTokenIfUserHasWallet/http-response.adoc[]
-
 === Project Wallet
 Collection of endpoints for managing Project wallet
 

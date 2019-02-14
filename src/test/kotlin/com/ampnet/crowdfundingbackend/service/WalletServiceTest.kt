@@ -5,13 +5,11 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -22,7 +20,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
-import java.util.UUID
 
 class WalletServiceTest : JpaServiceTestBase() {
 
@@ -33,7 +30,7 @@ class WalletServiceTest : JpaServiceTestBase() {
     }
     private val walletService: WalletService by lazy {
         WalletServiceImpl(walletRepository, userRepository, projectRepository, organizationRepository,
-                walletTokenRepository, mockedBlockchainService)
+            mockedBlockchainService)
     }
     private lateinit var user: User
     private lateinit var testContext: TestContext
@@ -74,15 +71,9 @@ class WalletServiceTest : JpaServiceTestBase() {
                     .thenReturn(defaultAddressHash)
         }
 
-        verify("Service can generate wallet token") {
-            databaseCleanerService.deleteAllWalletTokens()
-            testContext.walletToken = walletService.createWalletToken(user)
-        }
         verify("Service can create wallet for a user") {
-            val request = WalletCreateRequest(
-                defaultAddress, defaultPublicKey, testContext.walletToken.token.toString()
-            )
-            val wallet = walletService.createUserWallet(request)
+            val request = WalletCreateRequest(defaultAddress, defaultPublicKey)
+            val wallet = walletService.createUserWallet(user, request)
             assertThat(wallet.hash).isEqualTo(defaultAddressHash)
             assertThat(wallet.currency).isEqualTo(Currency.EUR)
             assertThat(wallet.type).isEqualTo(WalletType.USER)
@@ -93,63 +84,6 @@ class WalletServiceTest : JpaServiceTestBase() {
             assertThat(userWithWallet).isNotNull
             assertThat(userWithWallet!!.wallet).isNotNull
             assertThat(userWithWallet.wallet!!.hash).isEqualTo(defaultAddressHash)
-        }
-    }
-
-    @Test
-    fun mustThrowExceptionIfWalletTokenIsMissing() {
-        suppose("User did not generate Wallet Token") {
-            databaseCleanerService.deleteAllWalletTokens()
-        }
-
-        verify("Service will throw exception that wallet token is missing") {
-            val request = WalletCreateRequest(defaultAddress, defaultPublicKey, UUID.randomUUID().toString())
-            val exception = assertThrows<ResourceNotFoundException> {
-                walletService.createUserWallet(request)
-            }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_TOKEN_MISSING)
-        }
-    }
-
-    @Test
-    fun mustThrowExceptionIfWalletHasExpired() {
-        suppose("User has generate Wallet token 1 hour ago") {
-            databaseCleanerService.deleteAllWalletTokens()
-            val token = WalletToken::class.java.newInstance()
-            token.user = user
-            token.token = UUID.randomUUID()
-            token.createdAt = ZonedDateTime.now().minusHours(1)
-            testContext.walletToken = walletTokenRepository.save(token)
-        }
-
-        verify("Service throws exception Wallet token has expired") {
-            val request = WalletCreateRequest(
-                defaultAddress, defaultPublicKey, testContext.walletToken.token.toString()
-            )
-            val exception = assertThrows<InvalidRequestException> {
-                walletService.createUserWallet(request)
-            }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_TOKEN_EXPIRED)
-        }
-    }
-
-    @Test
-    fun mustDeleteOldWalletTokenIfUserGeneratesWalletToken() {
-        suppose("User has generate wallet token") {
-            databaseCleanerService.deleteAllWalletTokens()
-            testContext.walletToken = walletService.createWalletToken(user)
-        }
-        suppose("User generated new wallet token") {
-            walletService.createWalletToken(user)
-        }
-
-        verify("Old wallet token is deleted") {
-            val optionalToken = walletTokenRepository.findByToken(testContext.walletToken.token)
-            assertThat(optionalToken).isNotPresent
-        }
-        verify("New token is generated") {
-            val optionalToken = walletTokenRepository.findByUserId(user.id)
-            assertThat(optionalToken).isPresent
         }
     }
 
@@ -187,34 +121,11 @@ class WalletServiceTest : JpaServiceTestBase() {
         suppose("User has a wallet") {
             createWalletForUser(user, defaultAddressHash)
         }
-        suppose("User has wallet token") {
-            val token = WalletToken::class.java.newInstance()
-            token.user = user
-            token.token = UUID.randomUUID()
-            token.createdAt = ZonedDateTime.now()
-            testContext.walletToken = walletTokenRepository.save(token)
-        }
 
         verify("Service cannot create additional account") {
             val exception = assertThrows<ResourceAlreadyExistsException> {
-                val request = WalletCreateRequest(
-                    defaultAddress, defaultPublicKey, testContext.walletToken.token.toString()
-                )
-                walletService.createUserWallet(request)
-            }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
-        }
-    }
-
-    @Test
-    fun mustNotBeAbleToCreateWalletTokenIfUserHasWallet() {
-        suppose("User has a wallet") {
-            createWalletForUser(user, defaultAddressHash)
-        }
-
-        verify("Service cannot create additional account") {
-            val exception = assertThrows<ResourceAlreadyExistsException> {
-                walletService.createWalletToken(user).token.toString()
+                val request = WalletCreateRequest(defaultAddress, defaultPublicKey)
+                walletService.createUserWallet(user, request)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
         }
@@ -392,7 +303,6 @@ class WalletServiceTest : JpaServiceTestBase() {
     private class TestContext {
         lateinit var organization: Organization
         lateinit var project: Project
-        lateinit var walletToken: WalletToken
         lateinit var wallet: Wallet
         var balance: Long = -1
     }
