@@ -24,7 +24,6 @@ import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.BeforeEach
@@ -70,8 +69,6 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var ipfsService: IpfsService
     @Autowired
     private lateinit var membershipRepository: OrganizationMembershipRepository
-    @Autowired
-    protected lateinit var walletTokenRepository: WalletTokenRepository
     @Autowired
     protected lateinit var blockchainService: BlockchainService
     @Autowired

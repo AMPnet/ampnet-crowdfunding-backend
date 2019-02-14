@@ -13,12 +13,9 @@ import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.exception.InternalException
-import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.WalletToken
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.WalletTokenRepository
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -27,7 +24,6 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
-import java.util.UUID
 
 @Service
 class WalletServiceImpl(
@@ -35,7 +31,6 @@ class WalletServiceImpl(
     private val userRepository: UserRepository,
     private val projectRepository: ProjectRepository,
     private val organizationRepository: OrganizationRepository,
-    private val walletTokenRepository: WalletTokenRepository,
     private val blockchainService: BlockchainService
 ) : WalletService {
 
@@ -50,14 +45,7 @@ class WalletServiceImpl(
 
     @Transactional
     @Throws(ResourceAlreadyExistsException::class, InternalException::class)
-    override fun createUserWallet(request: WalletCreateRequest): Wallet {
-        val token = ServiceUtils.wrapOptional(walletTokenRepository.findByToken(UUID.fromString(request.token)))
-                ?: throw ResourceNotFoundException(ErrorCode.WALLET_TOKEN_MISSING, "Missing token: ${request.token}")
-        if (token.isExpired()) {
-            throw InvalidRequestException(ErrorCode.WALLET_TOKEN_EXPIRED, "Wallet token has expired!")
-        }
-
-        val user = token.user
+    override fun createUserWallet(user: User, request: WalletCreateRequest): Wallet {
         throwExceptionIfUserAlreadyHasWallet(user)
 
         val txHash = blockchainService.addWallet(request.address, request.publicKey)
@@ -65,22 +53,7 @@ class WalletServiceImpl(
         val wallet = createWallet(txHash, WalletType.USER)
         user.wallet = wallet
         userRepository.save(user)
-        walletTokenRepository.delete(token)
         return wallet
-    }
-
-    @Transactional
-    override fun createWalletToken(user: User): WalletToken {
-        throwExceptionIfUserAlreadyHasWallet(user)
-        walletTokenRepository.findByUserId(user.id).ifPresent {
-            walletTokenRepository.delete(it)
-        }
-
-        val token = WalletToken::class.java.newInstance()
-        token.user = user
-        token.token = UUID.randomUUID()
-        token.createdAt = ZonedDateTime.now()
-        return walletTokenRepository.save(token)
     }
 
     @Transactional(readOnly = true)
