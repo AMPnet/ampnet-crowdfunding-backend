@@ -52,7 +52,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
 
             testContext.transactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(testContext.transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction?type=mint")
+            assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction/mint")
         }
 
         suppose("Blockchain service will accept signed transaction") {
@@ -91,7 +91,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
 
             testContext.transactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(testContext.transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction?type=burn")
+            assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction/burn")
         }
 
         suppose("Blockchain service will accept signed transaction") {
@@ -176,7 +176,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
     fun mustNotBeAbleToPostOtherTransactions() {
         val request = SignedTransactionRequest(testContext.signedTransaction)
         mockMvc.perform(
-            MockMvcRequestBuilders.post("$pathIssuer/transaction?type=invalid")
+            MockMvcRequestBuilders.post("$pathIssuer/transaction/invalid")
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isBadRequest)

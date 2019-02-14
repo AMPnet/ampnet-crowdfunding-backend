@@ -11,6 +11,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -24,7 +25,7 @@ class IssuingAuthorityController(
 
     companion object : KLogging()
 
-    private val transactionTypeLink = "/issuer/transaction?type="
+    private val transactionTypeLink = "/issuer/transaction/"
 
     @GetMapping("/issuer/mint")
     fun getMintTransaction(
@@ -36,7 +37,7 @@ class IssuingAuthorityController(
         val userWalletHash = getUserWalletHashFromEmail(email)
 
         val transaction = blockchainService.generateMintTransaction(from, userWalletHash, amount)
-        val link = "$transactionTypeLink${IssuerTransactionType.mint}"
+        val link = transactionTypeLink + IssuerTransactionType.mint
         logger.info { "Successfully generated mint transaction" }
 
         return ResponseEntity.ok(TransactionResponse(transaction, link))
@@ -52,16 +53,16 @@ class IssuingAuthorityController(
         val userWalletHash = getUserWalletHashFromEmail(email)
 
         val transaction = blockchainService.generateBurnTransaction(from, userWalletHash, amount)
-        val link = "$transactionTypeLink${IssuerTransactionType.burn}"
+        val link = transactionTypeLink + IssuerTransactionType.burn
         logger.info { "Successfully generated burn transaction" }
 
         return ResponseEntity.ok(TransactionResponse(transaction, link))
     }
 
-    @PostMapping("/issuer/transaction")
+    @PostMapping("/issuer/transaction/{type}")
     fun postTransaction(
         @RequestBody request: SignedTransactionRequest,
-        @RequestParam(name = "type") type: IssuerTransactionType
+        @PathVariable(value = "type") type: IssuerTransactionType
     ): ResponseEntity<TxHashResponse> {
         logger.info { "Received request to post issuer transaction, type = $type" }
         val postTransactionType = when (type) {
