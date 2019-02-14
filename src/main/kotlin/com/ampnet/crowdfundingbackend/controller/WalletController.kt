@@ -4,10 +4,8 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionR
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletTokenResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.UserService
@@ -46,18 +44,11 @@ class WalletController(
 
     @PostMapping("/wallet")
     fun createWallet(@RequestBody @Valid request: WalletCreateRequest): ResponseEntity<WalletResponse> {
-        logger.debug { "Received request to create wallet: $request" }
-        val wallet = walletService.createUserWallet(request)
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        logger.debug { "Received request from user: ${user.email} to create wallet: $request" }
+        val wallet = walletService.createUserWallet(user, request)
         val response = WalletResponse(wallet, 0)
         return ResponseEntity.ok(response)
-    }
-
-    @GetMapping("/wallet/token")
-    fun getTokenForWalletCreation(): ResponseEntity<WalletTokenResponse> {
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-        logger.debug("Received request for Wallet token from user: ${user.email}")
-        val token = walletService.createWalletToken(user)
-        return ResponseEntity.ok(WalletTokenResponse(token))
     }
 
     @GetMapping("/wallet/project/{projectId}")
@@ -169,10 +160,5 @@ class WalletController(
         val wallet = walletService.createOrganizationWallet(organization, request.data)
         val response = WalletResponse(wallet, 0)
         return ResponseEntity.ok(response)
-    }
-
-    private fun getUserWithWallet(email: String): User {
-        return userService.findWithWallet(email)
-                ?: throw ResourceNotFoundException(ErrorCode.USER_MISSING, "Missing user with email: $email")
     }
 }

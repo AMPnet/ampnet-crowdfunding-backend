@@ -78,7 +78,6 @@ class WebSecurityConfig(
                 .antMatchers("/mail-confirmation").permitAll()
                 .antMatchers("/mail-check").permitAll()
                 .antMatchers("/issuer/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/wallet").permitAll()
                 .antMatchers(HttpMethod.POST, "/wallet/project/*/transaction").permitAll()
                 .antMatchers(HttpMethod.POST, "/wallet/organization/*/transaction").permitAll()
                 .antMatchers(HttpMethod.POST, "/project/invest").permitAll()
