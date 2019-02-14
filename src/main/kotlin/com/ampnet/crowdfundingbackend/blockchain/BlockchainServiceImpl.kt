@@ -121,7 +121,8 @@ class BlockchainServiceImpl(
             )
             return response.txHash
         } catch (ex: StatusRuntimeException) {
-            throw getInternalExceptionFromStatusException(ex, "Could not activate organization: $organizationWalletHash")
+            throw getInternalExceptionFromStatusException(
+                ex, "Could not activate organization: $organizationWalletHash")
         }
     }
 
@@ -177,7 +178,10 @@ class BlockchainServiceImpl(
         }
     }
 
-    private fun getInternalExceptionFromStatusException(ex: StatusRuntimeException, message: String): InternalException {
+    private fun getInternalExceptionFromStatusException(
+        ex: StatusRuntimeException,
+        message: String
+    ): InternalException {
         logger.error(ex) { message }
         val grpcErrorCode = getErrorDescriptionFromExceptionStatus(ex.status)
         val errorCode = ErrorCode.INT_GRPC
