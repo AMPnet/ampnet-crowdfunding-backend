@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.exception
 
-enum class ErrorCode(val categoryCode: String, val specificCode: String, val message: String) {
+enum class ErrorCode(val categoryCode: String, var specificCode: String, var message: String) {
     // Registration: 01
     REG_INCOMPLETE("01", "01", "Incomplete signup information"),
     REG_INVALID("01", "02", "Signup information complete but invalid"),
@@ -56,12 +56,6 @@ enum class ErrorCode(val categoryCode: String, val specificCode: String, val mes
     PRJ_INVEST_FAILED("07", "10", "Could not invest to project"),
 
     // Internal: 08
-    INT_WALLET_FUNDS("08", "01", "Could not fetch founds from blockchain service."),
-    INT_WALLET_ADD("08", "02", "Could not fetch add wallet to blockchain service."),
-    INT_TRANSACTION("08", "03", "Could not post transaction on blockchain."),
-    INT_ORG("08", "03", "Could not create Organization on blockchain."),
-    INT_ORG_ACTIVATE("08", "04", "Could not activate organization on blockchain"),
-    INT_IPFS("08", "5", "Could not upload document to IPFS"),
-
-    INT_GRPC("08", "99", "Failed gRPC call")
+    INT_IPFS("08", "01", "Could not upload document to IPFS"),
+    INT_GRPC("08", "50", "Failed gRPC call")
 }
