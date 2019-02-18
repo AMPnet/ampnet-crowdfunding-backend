@@ -557,3 +557,11 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateInvestmentTransact
 include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedTransaction/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedTransaction/http-response.adoc[]
+
+== Search API
+
+=== Search organizations and projects by name
+.Request
+include::{snippets}/SearchControllerTest/mustReturnListOfOrganizationsAndProjects/http-request.adoc[]
+.Response
+include::{snippets}/SearchControllerTest/mustReturnListOfOrganizationsAndProjects/http-response.adoc[]
