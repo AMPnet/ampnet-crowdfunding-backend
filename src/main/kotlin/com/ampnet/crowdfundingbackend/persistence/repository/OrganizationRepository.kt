@@ -15,4 +15,6 @@ interface OrganizationRepository : JpaRepository<Organization, Int> {
     fun findAllOrganizationsForUser(userId: Int): List<Organization>
 
     fun findByName(name: String): Optional<Organization>
+
+    fun findByNameContainingIgnoreCase(name: String): List<Organization>
 }
