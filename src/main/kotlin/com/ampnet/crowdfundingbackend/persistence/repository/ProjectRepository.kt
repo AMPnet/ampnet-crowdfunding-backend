@@ -34,4 +34,6 @@ interface ProjectRepository : JpaRepository<Project, Int> {
             "INNER JOIN FETCH project.organization organization " +
             "WHERE organization.id = ?1")
     fun findAllByOrganizationId(organizationId: Int): List<Project>
+
+    fun findByNameContainingIgnoreCase(name: String): List<Project>
 }
