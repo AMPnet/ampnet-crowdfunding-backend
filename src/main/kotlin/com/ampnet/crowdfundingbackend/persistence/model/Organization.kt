@@ -1,5 +1,8 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.TermVector
 import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -15,6 +18,7 @@ import javax.persistence.OneToOne
 import javax.persistence.Table
 
 @Entity
+@Indexed
 @Table(name = "organization")
 data class Organization(
     @Id
@@ -22,6 +26,7 @@ data class Organization(
     val id: Int,
 
     @Column(nullable = false)
+    @Field(termVector = TermVector.YES)
     var name: String,
 
     @Column(nullable = true)
