@@ -163,7 +163,7 @@ jacocoTestReport {
     }
     sourceDirectories.from = files(["${project.projectDir}/src/main/kotlin"])
     classDirectories.from = fileTree(dir: "${buildDir}/classes/kotlin/main", 
-        excludes: ['**/model/**', '**/pojo/**', 'blockchain/**', '**/ipfs/**'])
+        excludes: ['**/model/**', '**/pojo/**', '**/blockchain/**', '**/ipfs/**'])
 }
 
 jacocoTestCoverageVerification {

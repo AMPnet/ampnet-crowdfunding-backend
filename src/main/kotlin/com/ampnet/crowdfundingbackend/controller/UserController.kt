@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.RoleRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInviteResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
@@ -78,6 +79,7 @@ class UserController(private val userService: UserService, private val organizat
         return ResponseEntity.ok().build()
     }
 
+    // TODO: maybe extract to admin controller
     @GetMapping("/users")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
     fun getUsers(): ResponseEntity<UsersListResponse> {
@@ -92,6 +94,18 @@ class UserController(private val userService: UserService, private val organizat
         logger.debug { "Received request for user info with id: $id" }
         return userService.find(id)?.let { ResponseEntity.ok(UserResponse(it)) }
                 ?: ResponseEntity.notFound().build()
+    }
+
+    @PostMapping("/users/{id}/role")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_PROFILE)")
+    fun changeUserRole(
+        @PathVariable("id") id: Int,
+        @RequestBody request: RoleRequest
+    ): ResponseEntity<UserResponse> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.debug { "Received request by user: ${userPrincipal.email} to change user: $id role to ${request.role}" }
+        val user = userService.changeUserRole(id, request.role)
+        return ResponseEntity.ok(UserResponse(user))
     }
 
     private fun getUserId(): Int = ControllerUtils.getUserFromSecurityContext(userService).id

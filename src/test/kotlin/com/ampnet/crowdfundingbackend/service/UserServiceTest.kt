@@ -3,6 +3,9 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
+import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
@@ -10,6 +13,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
 
@@ -35,6 +39,10 @@ class UserServiceTest : JpaServiceTestBase() {
     @BeforeEach
     fun initTestContext() {
         testContext = TestContext()
+
+        val properties = ApplicationProperties()
+        properties.mail.enabled = false
+        testContext.applicationProperties = properties
     }
 
     @Test
@@ -137,6 +145,51 @@ class UserServiceTest : JpaServiceTestBase() {
             assertThat(optionalMailToken).isPresent
             Mockito.verify(mailService, Mockito.times(1))
                     .sendConfirmationMail(testContext.mailUser.email, optionalMailToken.get().token.toString())
+        }
+    }
+
+    @Test
+    fun mustBeAbleToChangeUserRoleToAdmin() {
+        suppose("There is user with user role") {
+            user.role = roleRepository.getOne(UserRoleType.USER.id)
+        }
+
+        verify("Service can change user role to admin role") {
+            val service = createUserService(testContext.applicationProperties)
+            service.changeUserRole(user.id, UserRoleType.ADMIN)
+        }
+        verify("User has admin role") {
+            val userWithNewRole = userRepository.findById(user.id)
+            assertThat(userWithNewRole).isPresent
+            assertThat(userWithNewRole.get().role.id).isEqualTo(UserRoleType.ADMIN.id)
+        }
+    }
+
+    @Test
+    fun mustBeAbleToChangeUserRoleToUser() {
+        suppose("There is user with user role") {
+            user.role = roleRepository.getOne(UserRoleType.USER.id)
+        }
+
+        verify("Service can change user role to admin role") {
+            val service = createUserService(testContext.applicationProperties)
+            service.changeUserRole(user.id, UserRoleType.USER)
+        }
+        verify("User has admin role") {
+            val userWithNewRole = userRepository.findById(user.id)
+            assertThat(userWithNewRole).isPresent
+            assertThat(userWithNewRole.get().role.id).isEqualTo(UserRoleType.USER.id)
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionForChangeRoleOfNonExistingUser() {
+        verify("Service will throw exception") {
+            val service = createUserService(testContext.applicationProperties)
+            val exception = assertThrows<InvalidRequestException> {
+                service.changeUserRole(0, UserRoleType.ADMIN)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.USER_MISSING)
         }
     }
 

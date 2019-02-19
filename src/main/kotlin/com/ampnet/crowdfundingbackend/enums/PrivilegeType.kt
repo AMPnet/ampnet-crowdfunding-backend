@@ -21,6 +21,7 @@ enum class PrivilegeType {
     PRO_PROFILE,
     PWO_PROFILE,
     PRA_PROFILE,
+    PWA_PROFILE,
 
     // Organization
     PRA_ORG,
