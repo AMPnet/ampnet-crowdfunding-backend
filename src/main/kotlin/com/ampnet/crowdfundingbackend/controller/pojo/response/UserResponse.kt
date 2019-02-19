@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller.pojo.response
 import com.ampnet.crowdfundingbackend.persistence.model.User
 
 data class UserResponse(
+    val id: Int,
     val email: String,
     val firstName: String?,
     val lastName: String?,
@@ -12,6 +13,7 @@ data class UserResponse(
 ) {
 
     constructor(user: User) : this(
+            user.id,
             user.email,
             user.firstName,
             user.lastName,
@@ -20,3 +22,5 @@ data class UserResponse(
             user.role.name
     )
 }
+
+data class UsersListResponse(val users: List<UserResponse>)

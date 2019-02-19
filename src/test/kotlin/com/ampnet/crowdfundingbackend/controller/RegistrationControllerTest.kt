@@ -16,7 +16,6 @@ import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -77,13 +76,15 @@ class RegistrationControllerTest : ControllerTestBase() {
 
         verify("The controller returned valid user") {
             val userResponse: UserResponse = objectMapper.readValue(testContext.mvcResult.response.contentAsString)
-            Assertions.assertThat(userResponse.email).isEqualTo(testUser.email)
+            assertThat(userResponse.email).isEqualTo(testUser.email)
+            testUser.id = userResponse.id
         }
         verify("The user is stored in database") {
             val userInRepo = userService.find(testUser.email)
-            Assertions.assertThat(userInRepo).isNotNull
+            assertThat(userInRepo).isNotNull
 
             assert(userInRepo!!.email == testUser.email)
+            assertThat(testUser.id).isEqualTo(userInRepo.id)
             assert(passwordEncoder.matches(testUser.password, userInRepo.password))
             assert(userInRepo.firstName == testUser.firstName)
             assert(userInRepo.lastName == testUser.lastName)
@@ -96,7 +97,7 @@ class RegistrationControllerTest : ControllerTestBase() {
         }
         verify("The user confirmation token is created") {
             val userInRepo = userService.find(testUser.email)
-            Assertions.assertThat(userInRepo).isNotNull
+            assertThat(userInRepo).isNotNull
             val mailToken = mailTokenRepository.findByUserId(userInRepo!!.id)
             assertThat(mailToken).isPresent
             assertThat(mailToken.get().token).isNotNull()
@@ -506,12 +507,12 @@ class RegistrationControllerTest : ControllerTestBase() {
 
         verify("The controller returned valid user") {
             val userResponse: UserResponse = objectMapper.readValue(testContext.mvcResult.response.contentAsString)
-            Assertions.assertThat(userResponse.email).isEqualTo(expectedSocialUser.email)
+            assertThat(userResponse.email).isEqualTo(expectedSocialUser.email)
         }
 
         verify("The user is stored in database") {
             val userInRepo = userService.find(expectedSocialUser.email)
-            Assertions.assertThat(userInRepo).isNotNull
+            assertThat(userInRepo).isNotNull
 
             assert(userInRepo!!.email == expectedSocialUser.email)
             assert(userInRepo.firstName == expectedSocialUser.firstName)

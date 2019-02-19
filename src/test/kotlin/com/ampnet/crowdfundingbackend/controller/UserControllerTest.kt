@@ -110,6 +110,7 @@ class UserControllerTest : ControllerTestBase() {
 
             val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(userResponse.email).isEqualTo("test@test.com")
+            assertThat(userResponse.id).isNotNull()
             assertThat(userResponse.firstName).isNull()
             assertThat(userResponse.lastName).isNull()
             assertThat(userResponse.country).isNull()
