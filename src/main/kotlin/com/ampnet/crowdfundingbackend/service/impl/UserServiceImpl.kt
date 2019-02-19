@@ -131,6 +131,20 @@ class UserServiceImpl(
         mailService.sendConfirmationMail(user.email, mailToken.token.toString())
     }
 
+    @Transactional
+    override fun changeUserRole(userId: Int, role: UserRoleType): User {
+        val user = userRepository.findById(userId).orElseThrow {
+            logger.debug { "User with id: $userId does not exist" }
+            throw InvalidRequestException(ErrorCode.USER_MISSING, "Missing user with id: $userId")
+        }
+
+        user.role = when (role) {
+            UserRoleType.ADMIN -> adminRole
+            UserRoleType.USER -> userRole
+        }
+        return userRepository.save(user)
+    }
+
     private fun createUserFromRequest(request: CreateUserServiceRequest): User {
         val user = User::class.java.getConstructor().newInstance()
         user.email = request.email

@@ -7,6 +7,7 @@ enum class UserRoleType(val id: Int) {
             return listOf(
                     PrivilegeType.MONITORING,
                     PrivilegeType.PRA_PROFILE,
+                    PrivilegeType.PWA_PROFILE,
                     PrivilegeType.PRO_PROFILE,
                     PrivilegeType.PWO_PROFILE,
                     PrivilegeType.PRA_ORG,
