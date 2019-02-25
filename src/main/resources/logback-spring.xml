@@ -1,0 +1,37 @@
+<configuration scan="false">
+
+    <property name="LOG_FILE" value="crowndfunding-backend.log" />
+    <property name="LOG_DIR" value="/var/log" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev">
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_DIR}/${LOG_FILE}</file>
+            <encoder>
+                <pattern>%date{HH:mm:ss.SSS} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+            </encoder>
+
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+                <!-- keep 10 days' worth of history capped at 1GB total size -->
+                <maxHistory>10</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+    </springProfile>
+
+    <logger name="com.ampnet" level="DEBUG" />
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <springProfile name="dev">
+            <appender-ref ref="FILE" />
+        </springProfile>
+    </root>
+
+</configuration>
