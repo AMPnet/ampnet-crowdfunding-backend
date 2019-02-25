@@ -19,24 +19,26 @@ data class ProjectResponse(
     val maxPerUser: Long,
     val mainImage: String?,
     val gallery: List<String>,
-    val active: Boolean
+    val active: Boolean,
+    val walletHash: String?
 ) {
     constructor(project: Project) : this(
-            project.id,
-            project.name,
-            project.description,
-            project.location,
-            project.locationText,
-            project.returnOnInvestment,
-            project.startDate,
-            project.endDate,
-            project.expectedFunding,
-            project.currency,
-            project.minPerUser,
-            project.maxPerUser,
-            project.mainImage,
-            project.gallery ?: emptyList(),
-            project.active
+        project.id,
+        project.name,
+        project.description,
+        project.location,
+        project.locationText,
+        project.returnOnInvestment,
+        project.startDate,
+        project.endDate,
+        project.expectedFunding,
+        project.currency,
+        project.minPerUser,
+        project.maxPerUser,
+        project.mainImage,
+        project.gallery ?: emptyList(),
+        project.active,
+        project.wallet?.hash
     )
 }
 

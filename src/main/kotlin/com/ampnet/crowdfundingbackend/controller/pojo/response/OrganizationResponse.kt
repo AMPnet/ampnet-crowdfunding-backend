@@ -9,15 +9,17 @@ data class OrganizationResponse(
     val createdByUser: String,
     val createdAt: ZonedDateTime,
     val approved: Boolean,
-    val legalInfo: String
+    val legalInfo: String,
+    val walletHash: String?
 ) {
     constructor(organization: Organization) : this(
-            organization.id,
-            organization.name,
-            organization.createdByUser.getFullName(),
-            organization.createdAt,
-            organization.approved,
-            organization.legalInfo.orEmpty()
+        organization.id,
+        organization.name,
+        organization.createdByUser.getFullName(),
+        organization.createdAt,
+        organization.approved,
+        organization.legalInfo.orEmpty(),
+        organization.wallet?.hash
     )
 }
 
@@ -30,15 +32,17 @@ data class OrganizationWithDocumentResponse(
     val createdAt: ZonedDateTime,
     val approved: Boolean,
     val legalInfo: String,
-    val documents: List<DocumentResponse>
+    val documents: List<DocumentResponse>,
+    val walletHash: String?
 ) {
     constructor(organization: Organization) : this(
-            organization.id,
-            organization.name,
-            organization.createdByUser.getFullName(),
-            organization.createdAt,
-            organization.approved,
-            organization.legalInfo.orEmpty(),
-            organization.documents?.map { DocumentResponse(it) }.orEmpty()
+        organization.id,
+        organization.name,
+        organization.createdByUser.getFullName(),
+        organization.createdAt,
+        organization.approved,
+        organization.legalInfo.orEmpty(),
+        organization.documents?.map { DocumentResponse(it) }.orEmpty(),
+        organization.wallet?.hash
     )
 }

@@ -93,6 +93,7 @@ class ProjectControllerTest : ControllerTestBase() {
                         .isEqualTo(organization.createdByUser.getFullName())
             }
 
+            assertThat(projectResponse.walletHash).isNull()
             assertThat(projectResponse.currentFunding).isNull()
         }
     }
@@ -251,6 +252,7 @@ class ProjectControllerTest : ControllerTestBase() {
                         .isEqualTo(organization.createdByUser.getFullName())
             }
 
+            assertThat(projectResponse.walletHash).isNull()
             testContext.projectId = projectResponse.id
         }
         verify("Project is stored in database") {
@@ -300,6 +302,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(testContext.projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
             assertThat(testContext.projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
             assertThat(testContext.projectResponse.active).isEqualTo(testContext.project.active)
+            assertThat(testContext.projectResponse.walletHash).isNull()
         }
     }
 
