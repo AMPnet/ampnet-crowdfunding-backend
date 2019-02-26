@@ -82,6 +82,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(organizationWithDocumentResponse.approved).isFalse()
             assertThat(organizationWithDocumentResponse.documents).isEmpty()
             assertThat(organizationWithDocumentResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+            assertThat(organizationWithDocumentResponse.walletHash).isNull()
 
             testContext.organizationId = organizationWithDocumentResponse.id
         }
@@ -123,6 +124,10 @@ class OrganizationControllerTest : ControllerTestBase() {
         suppose("Organization has document") {
             createOrganizationDocument(testContext.organization, user, "name", testContext.documentHash)
         }
+        suppose("Organization has a wallet") {
+            databaseCleanerService.deleteAllWallets()
+            createWalletForOrganization(testContext.organization, testContext.walletHash)
+        }
 
         verify("User can get organization with id") {
             val result = mockMvc.perform(get("$organizationPath/${testContext.organization.id}"))
@@ -140,6 +145,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(organizationWithDocumentResponse.createdAt).isEqualTo(testContext.organization.createdAt)
             assertThat(organizationWithDocumentResponse.createdByUser)
                     .isEqualTo(testContext.organization.createdByUser.getFullName())
+            assertThat(organizationWithDocumentResponse.walletHash).isEqualTo(testContext.walletHash)
         }
     }
 
@@ -181,7 +187,8 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.organization = createOrganization("Approve organization", user)
         }
         suppose("Organization has a wallet") {
-            createWalletForOrganization(testContext.organization, "0x0000")
+            databaseCleanerService.deleteAllWallets()
+            createWalletForOrganization(testContext.organization, testContext.walletHash)
         }
         suppose("Blockchain service will successfully approve organization") {
             Mockito.`when`(blockchainService.activateOrganization(testContext.organization.wallet!!.hash))
@@ -479,5 +486,6 @@ class OrganizationControllerTest : ControllerTestBase() {
         lateinit var user2: User
         val documentHash = "hashos"
         lateinit var multipartFile: MockMultipartFile
+        val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
     }
 }

@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.service.DocumentService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
+import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
@@ -20,12 +21,21 @@ class ProjectServiceImpl(
     private val documentService: DocumentService
 ) : ProjectService {
 
+    companion object : KLogging()
+
     val maxProjectInvestment: Long = 100_000_000_000_000_00
     val maxPerUserInvestment: Long = 1_000_000_000_000_00
 
     @Transactional
     override fun createProject(request: CreateProjectServiceRequest): Project {
         validateCreateProjectRequest(request)
+        if (request.organization.wallet == null) {
+            logger.info { "Trying to create project without organization wallet. " +
+                "Organization: ${request.organization.id}"
+            }
+            throw InvalidRequestException(ErrorCode.WALLET_MISSING,
+                "Organization cannot create project without organization wallet")
+        }
 
         val project = createProjectFromRequest(request)
         project.createdAt = ZonedDateTime.now()
@@ -69,6 +79,7 @@ class ProjectServiceImpl(
     @Transactional
     override fun addDocument(projectId: Int, request: DocumentSaveRequest): Document {
         val project = projectRepository.findById(projectId).orElseThrow {
+            logger.info { "Trying to add document to missing project. Project: $projectId" }
             throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
         }
 

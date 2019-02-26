@@ -30,21 +30,23 @@ class ProjectServiceTest : JpaServiceTestBase() {
         databaseCleanerService.deleteAllUsers()
         createUser("test@email.com", "Test", "User")
     }
-    private val organization: Organization by lazy {
-        databaseCleanerService.deleteAllOrganizations()
-        createOrganization("Das Organization", user)
-    }
 
+    private lateinit var organization: Organization
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun initTestContext() {
-        organization.id
+        databaseCleanerService.deleteAllWalletsAndOwners()
+        organization = createOrganization("Das Organization", user)
         testContext = TestContext()
     }
 
     @Test
     fun mustBeAbleToCreateProject() {
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(organization,
+                "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+        }
         suppose("Service received a request to create a project") {
             databaseCleanerService.deleteAllProjects()
             testContext.createProjectRequest = createProjectRequest("Test project")
@@ -74,6 +76,19 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(project.mainImage.isNullOrEmpty()).isTrue()
             assertThat(project.gallery.isNullOrEmpty()).isTrue()
             assertThat(project.documents.isNullOrEmpty()).isTrue()
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToCreateProjectWithoutOrganizationWallet() {
+        verify("Service will throw an exception") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.createProjectRequest = createProjectRequest("Test project")
+
+            val exception = assertThrows<InvalidRequestException> {
+                projectService.createProject(testContext.createProjectRequest)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
     }
 
@@ -108,6 +123,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustBeAbleToAddMainImage() {
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(organization,
+                "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+        }
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
             testContext.createProjectRequest = createProjectRequest("Image")
@@ -127,6 +146,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustBeAbleToAddImagesToGallery() {
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(organization,
+                "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+        }
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
             testContext.createProjectRequest = createProjectRequest("Image")
@@ -146,6 +169,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustBeAbleToAppendNewImageToGallery() {
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(organization,
+                "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+        }
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
             testContext.createProjectRequest = createProjectRequest("Image")

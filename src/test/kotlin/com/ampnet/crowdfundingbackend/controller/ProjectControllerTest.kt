@@ -41,16 +41,15 @@ class ProjectControllerTest : ControllerTestBase() {
         databaseCleanerService.deleteAllUsers()
         createUser(defaultEmail)
     }
-    private val organization: Organization by lazy {
-        databaseCleanerService.deleteAllOrganizations()
-        createOrganization("Test organization", user)
-    }
 
+    private lateinit var organization: Organization
     private lateinit var testContext: TestContext
 
     @BeforeEach
-    fun initializeTextContext() {
-        organization.id
+    fun init() {
+        databaseCleanerService.deleteAllWalletsAndOwners()
+        organization = createOrganization("Test organization", user)
+        createWalletForOrganization(organization, "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
         testContext = TestContext()
     }
 
@@ -93,6 +92,7 @@ class ProjectControllerTest : ControllerTestBase() {
                         .isEqualTo(organization.createdByUser.getFullName())
             }
 
+            assertThat(projectResponse.walletHash).isNull()
             assertThat(projectResponse.currentFunding).isNull()
         }
     }
@@ -108,7 +108,6 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentHash)
         }
         suppose("Project has a wallet") {
-            databaseCleanerService.deleteAllWallets()
             createWalletForProject(testContext.project, testContext.walletHash)
         }
         suppose("Blockchain service will return current funding") {
@@ -251,6 +250,7 @@ class ProjectControllerTest : ControllerTestBase() {
                         .isEqualTo(organization.createdByUser.getFullName())
             }
 
+            assertThat(projectResponse.walletHash).isNull()
             testContext.projectId = projectResponse.id
         }
         verify("Project is stored in database") {
@@ -300,6 +300,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(testContext.projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
             assertThat(testContext.projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
             assertThat(testContext.projectResponse.active).isEqualTo(testContext.project.active)
+            assertThat(testContext.projectResponse.walletHash).isNull()
         }
     }
 
@@ -357,7 +358,6 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.project = createProject("Project", organization, user)
         }
         suppose("Project has empty wallet") {
-            databaseCleanerService.deleteAllWallets()
             createWalletForProject(testContext.project, testContext.walletHash)
         }
         suppose("Project has wallet") {

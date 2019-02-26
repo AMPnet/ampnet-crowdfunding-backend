@@ -181,6 +181,24 @@ class WalletServiceTest : JpaServiceTestBase() {
     }
 
     @Test
+    fun mustThrowExceptionIfOrganizationWithoutWalletTriesToGenerateCreateProjectWallet() {
+        suppose("User has a wallet") {
+            createWalletForUser(user, defaultAddressHash)
+        }
+        suppose("Project exists") {
+            val organization = createOrganization("Org", user)
+            testContext.project = createProject("Das project", organization, user)
+        }
+
+        verify("Service will throw InternalException") {
+            val exception = assertThrows<ResourceNotFoundException> {
+                walletService.generateTransactionToCreateProjectWallet(testContext.project)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Test
     fun mustThrowExceptionWhenGenerateTransactionToCreateOrganizationWalletWithoutUserWallet() {
         suppose("Organization exists") {
             testContext.organization = createOrganization("Org", user)

@@ -25,7 +25,7 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
     COUNTRY_MISSING("04", "01", "No country with specified ID"),
 
     // Wallet: 05
-    WALLET_MISSING("05", "01", "User does not have a wallet"),
+    WALLET_MISSING("05", "01", "Missing wallet"),
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),
     WALLET_FUNDS("05", "03", "User does not have enough funds on wallet"),
     WALLET_HASH_EXISTS("05", "04", "Wallet with this hash already exists"),
