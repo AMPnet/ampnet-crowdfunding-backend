@@ -37,7 +37,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.0.1'
+version = '0.0.2'
 description = "crowdfunding-backend"
 
 repositories {
@@ -131,6 +131,7 @@ jib {
             username = "${System.env.DOCKER_USERNAME}"
             password = "${System.env.DOCKER_PASSWORD}"
         }
+        tags = ["latest"]
     }
     container.useCurrentTimestamp = true
 }
