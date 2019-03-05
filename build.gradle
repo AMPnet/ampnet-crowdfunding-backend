@@ -81,6 +81,8 @@ dependencies {
     kapt "org.springframework.boot:spring-boot-configuration-processor"
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
 
+    runtime('org.springframework.cloud:spring-cloud-starter-vault-config:2.1.0.RELEASE')
+
     compile("org.springframework.social:spring-social-facebook:2.0.3.RELEASE")
     compile('com.github.spring-social:spring-social-google:1.1.3')
 
