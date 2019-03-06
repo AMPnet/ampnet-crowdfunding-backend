@@ -64,6 +64,7 @@ class IssuingAuthorityController(
         @RequestBody request: SignedTransactionRequest,
         @PathVariable(value = "type") type: IssuerTransactionType
     ): ResponseEntity<TxHashResponse> {
+        // TODO: think about using the same RequestParam d, same as for vault transactions
         logger.info { "Received request to post issuer transaction, type = $type" }
         val postTransactionType = when (type) {
             IssuerTransactionType.burn -> PostTransactionType.ISSUER_BURN

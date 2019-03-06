@@ -349,27 +349,27 @@ include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProje
 .Response
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-response.adoc[]
 
-=== Create project wallet
+==== Create project wallet
 
-==== Generate create project wallet transaction
+===== Generate create project wallet transaction
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-response.adoc[]
 
-===== Successfully create
+====== Successfully create
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-response.adoc[]
 
-===== Project wallet exists
+====== Project wallet exists
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-response.adoc[]
 
-===== Cannot create project wallet
+====== Cannot create project wallet
 User can create project wallet only for his project
 
 .Request
@@ -377,13 +377,13 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCre
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
-===== Missing project
+====== Missing project
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-response.adoc[]
 
-===== Invalid address
+====== Invalid address
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-request.adoc[]
 .Response

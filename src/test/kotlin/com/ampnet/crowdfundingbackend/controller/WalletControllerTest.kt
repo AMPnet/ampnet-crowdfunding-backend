@@ -9,7 +9,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
@@ -32,6 +31,7 @@ class WalletControllerTest : ControllerTestBase() {
     private val walletPath = "/wallet"
     private val projectWalletPath = "/wallet/project"
     private val organizationWalletPath = "/wallet/organization"
+    private val transactionParam = "d"
 
     private lateinit var testData: TestData
     private lateinit var user: User
@@ -194,7 +194,7 @@ class WalletControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isEqualTo(path)
+            assertThat(transactionResponse.link).isEqualTo("$path?d=")
         }
     }
 
@@ -211,11 +211,9 @@ class WalletControllerTest : ControllerTestBase() {
         }
 
         verify("User can create project wallet") {
-            val request = SignedTransactionRequest(testData.signedTransaction)
             val result = mockMvc.perform(
                     post("$projectWalletPath/${testData.project.id}/transaction")
-                            .content(objectMapper.writeValueAsString(request))
-                            .contentType(MediaType.APPLICATION_JSON))
+                        .param(transactionParam, testData.signedTransaction))
                     .andExpect(status().isOk)
                     .andReturn()
 
@@ -269,11 +267,9 @@ class WalletControllerTest : ControllerTestBase() {
         }
 
         verify("User cannot create a wallet") {
-            val request = SignedTransactionRequest(testData.signedTransaction)
             val response = mockMvc.perform(
                     post("$projectWalletPath/${testData.project.id}/transaction")
-                            .content(objectMapper.writeValueAsString(request))
-                            .contentType(MediaType.APPLICATION_JSON))
+                        .param(transactionParam, testData.signedTransaction))
                     .andExpect(status().isBadRequest)
                     .andReturn()
             verifyResponseErrorCode(response, ErrorCode.WALLET_EXISTS)
@@ -299,11 +295,9 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     fun mustNotBeAbleToCreateWalletForNonExistingProject() {
         verify("User cannot create project wallet for non existing project") {
-            val request = SignedTransactionRequest(testData.signedTransaction)
             val response = mockMvc.perform(
                     post("$projectWalletPath/0/transaction")
-                            .content(objectMapper.writeValueAsString(request))
-                            .contentType(MediaType.APPLICATION_JSON))
+                        .param(transactionParam, testData.signedTransaction))
                     .andExpect(status().isBadRequest)
                     .andReturn()
             verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
@@ -487,7 +481,7 @@ class WalletControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isEqualTo(path)
+            assertThat(transactionResponse.link).isEqualTo("$path?d=")
         }
     }
 
@@ -519,11 +513,9 @@ class WalletControllerTest : ControllerTestBase() {
         }
 
         verify("User can create organization wallet") {
-            val request = SignedTransactionRequest(testData.signedTransaction)
             val result = mockMvc.perform(
                     post("$organizationWalletPath/${testData.organization.id}/transaction")
-                            .content(objectMapper.writeValueAsString(request))
-                            .contentType(MediaType.APPLICATION_JSON))
+                        .param(transactionParam, testData.signedTransaction))
                     .andExpect(status().isOk)
                     .andReturn()
 
@@ -549,11 +541,9 @@ class WalletControllerTest : ControllerTestBase() {
     @Test
     fun mustThrowErrorIfOrganizationIsMissingForCreatingWallet() {
         verify("User cannot create organization wallet for non existing organization") {
-            val request = SignedTransactionRequest(testData.signedTransaction)
             val result = mockMvc.perform(
                     post("$organizationWalletPath/0/transaction")
-                            .content(objectMapper.writeValueAsString(request))
-                            .contentType(MediaType.APPLICATION_JSON))
+                        .param(transactionParam, testData.signedTransaction))
                     .andExpect(status().isBadRequest)
                     .andReturn()
             verifyResponseErrorCode(result, ErrorCode.ORG_MISSING)
