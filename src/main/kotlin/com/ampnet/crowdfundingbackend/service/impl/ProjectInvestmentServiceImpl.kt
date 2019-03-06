@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
+import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -27,12 +28,26 @@ class ProjectInvestmentServiceImpl(
         verifyUserHasEnoughFunds(request.investor, request.amount)
         verifyProjectDidNotReachExpectedInvestment(request.project)
 
-        return blockchainService.generateInvestInProjectTransaction(
-            request.investor.wallet!!.hash, request.project.wallet!!.hash, request.amount)
+        val investRequest = ProjectInvestmentTxRequest(
+            request.investor.wallet!!.hash,
+            request.project.wallet!!.hash,
+            request.amount
+        )
+        return blockchainService.generateProjectInvestmentTransaction(investRequest)
     }
 
     override fun investInProject(signedTransaction: String): String =
         blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST)
+
+    override fun generateConfirmInvestment(user: User, project: Project): TransactionData {
+        val userWallet = getUserWallet(user)
+        val projectWallet = getProjectWallet(project)
+
+        return blockchainService.generateConfirmInvestment(userWallet.hash, projectWallet.hash)
+    }
+
+    override fun confirmInvestment(signedTransaction: String): String =
+        blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST_CONFIRM)
 
     private fun verifyProjectIsStillActive(project: Project) {
         if (project.active.not()) {
@@ -54,8 +69,7 @@ class ProjectInvestmentServiceImpl(
     }
 
     private fun verifyUserHasEnoughFunds(user: User, amount: Long) {
-        val wallet = user.wallet
-                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have the wallet")
+        val wallet = getUserWallet(user)
 
         val funds = walletService.getWalletBalance(wallet)
         if (funds < amount) {
@@ -64,8 +78,7 @@ class ProjectInvestmentServiceImpl(
     }
 
     private fun verifyProjectDidNotReachExpectedInvestment(project: Project) {
-        val wallet = project.wallet
-                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "Project does not have the wallet")
+        val wallet = getProjectWallet(project)
 
         val currentFunds = walletService.getWalletBalance(wallet)
         if (currentFunds == project.expectedFunding) {
@@ -73,4 +86,10 @@ class ProjectInvestmentServiceImpl(
                     ErrorCode.PRJ_MAX_FUNDS, "Project has reached expected funding: $currentFunds")
         }
     }
+
+    private fun getUserWallet(user: User) = user.wallet
+        ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have the wallet")
+
+    private fun getProjectWallet(project: Project) = project.wallet
+        ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "Project does not have the wallet")
 }

@@ -568,11 +568,25 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateInvestmentTransact
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateInvestmentTransaction/http-response.adoc[]
 
-==== Send signed transaction
+==== Send signed transaction to greenvest
 .Request
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedTransaction/http-request.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedInvestTransaction/http-request.adoc[]
 .Response
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedTransaction/http-response.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedInvestTransaction/http-response.adoc[]
+
+=== Approve Greenvestment
+
+==== Generate transaction to approve greenvestment in project
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateConfirmInvestmentTransaction/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateConfirmInvestmentTransaction/http-response.adoc[]
+
+==== Send signed transaction to approve greenvestment
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedConfirmInvestTransaction/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedConfirmInvestTransaction/http-response.adoc[]
 
 == Search API
 

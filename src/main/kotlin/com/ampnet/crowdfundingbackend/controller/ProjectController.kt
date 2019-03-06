@@ -117,7 +117,7 @@ class ProjectController(
         @PathVariable("projectId") projectId: Int,
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionResponse> {
-        logger.debug { "Received request to generate invest transaction: $projectId" }
+        logger.debug { "Received request to generate invest transaction for project: $projectId" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
@@ -130,10 +130,32 @@ class ProjectController(
     }
 
     @PostMapping("/project/invest")
-    fun postTransaction(@RequestBody request: SignedTransactionRequest): ResponseEntity<TxHashResponse> {
+    fun postInvestTransaction(@RequestBody request: SignedTransactionRequest): ResponseEntity<TxHashResponse> {
         logger.debug { "Received request to post signed transaction for project investment" }
         val txHash = projectInvestmentService.investInProject(request.data)
         logger.info { "Successfully posted signed transaction for project investment. TxHash: $txHash" }
+        return ResponseEntity.ok(TxHashResponse(txHash))
+    }
+
+    @GetMapping("/project/{projectId}/invest/confirm")
+    fun generateConfirmInvestTransaction(
+        @PathVariable("projectId") projectId: Int
+    ): ResponseEntity<TransactionResponse> {
+        logger.debug { "Received request to generate confirm invest transaction for project: $projectId" }
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val project = getProjectById(projectId)
+
+        val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
+        // TODO: define link
+        val link = "/project/invest/confirm"
+        return ResponseEntity.ok(TransactionResponse(transaction, link))
+    }
+
+    @PostMapping("/project/invest/confirm")
+    fun postConfirmTransaction(@RequestBody request: SignedTransactionRequest): ResponseEntity<TxHashResponse> {
+        logger.debug { "Received request to post signed transaction for project confirm investment" }
+        val txHash = projectInvestmentService.confirmInvestment(request.data)
+        logger.info { "Successfully posted signed transaction for project confirm investment. TxHash: $txHash" }
         return ResponseEntity.ok(TxHashResponse(txHash))
     }
 

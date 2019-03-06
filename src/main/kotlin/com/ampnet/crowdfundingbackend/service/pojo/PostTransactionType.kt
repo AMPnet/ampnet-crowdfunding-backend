@@ -6,6 +6,7 @@ enum class PostTransactionType(val type: TransactionType) {
     ORG_CREATE(TransactionType.ORG_CREATE),
     PRJ_CREATE(TransactionType.ORG_ADD_PROJECT),
     PRJ_INVEST(TransactionType.INVEST),
+    PRJ_INVEST_CONFIRM(TransactionType.APPROVE),
     ISSUER_MINT(TransactionType.DEPOSIT),
     ISSUER_BURN(TransactionType.WITHDRAW)
 }
