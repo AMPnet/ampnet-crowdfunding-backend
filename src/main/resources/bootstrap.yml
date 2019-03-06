@@ -3,6 +3,14 @@ spring:
         name: crowdfunding-backend
     cloud:
         vault:
+            enabled: false
+
+---
+spring:
+    profiles: dev
+    cloud:
+        vault:
+            enabled: true
             scheme: http
             host: localhost
             port: 8200
