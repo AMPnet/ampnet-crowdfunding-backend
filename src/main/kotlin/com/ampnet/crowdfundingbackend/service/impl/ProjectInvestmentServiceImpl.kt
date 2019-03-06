@@ -7,6 +7,7 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -25,14 +26,14 @@ class ProjectInvestmentServiceImpl(
     override fun generateInvestInProjectTransaction(request: ProjectInvestmentRequest): TransactionData {
         verifyProjectIsStillActive(request.project)
         verifyInvestmentAmountIsValid(request.project, request.amount)
-        verifyUserHasEnoughFunds(request.investor, request.amount)
-        verifyProjectDidNotReachExpectedInvestment(request.project)
 
-        val investRequest = ProjectInvestmentTxRequest(
-            request.investor.wallet!!.hash,
-            request.project.wallet!!.hash,
-            request.amount
-        )
+        val userWallet = getUserWallet(request.investor)
+        verifyUserHasEnoughFunds(userWallet, request.amount)
+
+        val projectWallet = getProjectWallet(request.project)
+        verifyProjectDidNotReachExpectedInvestment(projectWallet, request.project.expectedFunding)
+
+        val investRequest = ProjectInvestmentTxRequest(userWallet.hash, projectWallet.hash, request.amount)
         return blockchainService.generateProjectInvestmentTransaction(investRequest)
     }
 
@@ -68,20 +69,16 @@ class ProjectInvestmentServiceImpl(
         }
     }
 
-    private fun verifyUserHasEnoughFunds(user: User, amount: Long) {
-        val wallet = getUserWallet(user)
-
+    private fun verifyUserHasEnoughFunds(wallet: Wallet, amount: Long) {
         val funds = walletService.getWalletBalance(wallet)
         if (funds < amount) {
             throw InvalidRequestException(ErrorCode.WALLET_FUNDS, "User does not have enough funds on wallet")
         }
     }
 
-    private fun verifyProjectDidNotReachExpectedInvestment(project: Project) {
-        val wallet = getProjectWallet(project)
-
+    private fun verifyProjectDidNotReachExpectedInvestment(wallet: Wallet, expectedFunding: Long) {
         val currentFunds = walletService.getWalletBalance(wallet)
-        if (currentFunds == project.expectedFunding) {
+        if (currentFunds == expectedFunding) {
             throw InvalidRequestException(
                     ErrorCode.PRJ_MAX_FUNDS, "Project has reached expected funding: $currentFunds")
         }
