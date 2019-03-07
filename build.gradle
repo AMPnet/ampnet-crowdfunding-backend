@@ -37,7 +37,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.0.3'
+version = '0.0.4'
 description = "crowdfunding-backend"
 
 repositories {
