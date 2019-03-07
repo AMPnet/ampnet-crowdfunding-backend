@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
@@ -360,7 +361,7 @@ class ProjectControllerTest : ControllerTestBase() {
         suppose("Project has empty wallet") {
             createWalletForProject(testContext.project, testContext.walletHash)
         }
-        suppose("Project has wallet") {
+        suppose("User has wallet") {
             val userWithWallet = createUser("user@with.wallet")
             createWalletForUser(userWithWallet, testContext.userWalletHash)
         }
@@ -368,8 +369,8 @@ class ProjectControllerTest : ControllerTestBase() {
             Mockito.`when`(blockchainService.getBalance(testContext.userWalletHash)).thenReturn(100_000_00)
         }
         suppose("Blockchain service will generate transaction") {
-            Mockito.`when`(blockchainService.generateInvestInProjectTransaction(
-                testContext.userWalletHash, testContext.walletHash, 1_000)
+            Mockito.`when`(blockchainService.generateProjectInvestmentTransaction(
+                ProjectInvestmentTxRequest(testContext.userWalletHash, testContext.walletHash, 1_000))
             ).thenReturn(testContext.transactionData)
         }
 
@@ -387,7 +388,7 @@ class ProjectControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun mustBeAbleToPostSignedTransaction() {
+    fun mustBeAbleToPostSignedInvestTransaction() {
         suppose("Blockchain service will accept signed transaction for project investment") {
             Mockito.`when`(
                 blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.PRJ_INVEST)
@@ -398,6 +399,93 @@ class ProjectControllerTest : ControllerTestBase() {
             val request = SignedTransactionRequest(testContext.signedTransaction)
             val result = mockMvc.perform(
                 post("$projectPath/invest")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(txHashResponse.txHash).isEqualTo(testContext.txHash)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    fun mustBeAbleToGenerateConfirmInvestmentTransaction() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("Project has empty wallet") {
+            createWalletForProject(testContext.project, testContext.walletHash)
+        }
+        suppose("User has wallet") {
+            val userWithWallet = createUser("user@with.wallet")
+            createWalletForUser(userWithWallet, testContext.userWalletHash)
+        }
+        suppose("Blockchain service will generate transaction") {
+            Mockito.`when`(blockchainService.generateConfirmInvestment(
+                testContext.userWalletHash, testContext.walletHash)
+            ).thenReturn(testContext.transactionData)
+        }
+
+        verify("User can generate invest project transaction") {
+            val result = mockMvc.perform(
+                get("$projectPath/${testContext.project.id}/invest/confirm"))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.link).isEqualTo("/project/invest/confirm")
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    fun mustNotBeAbleToGenerateConfirmInvestmentTransactionForMissingProject() {
+        suppose("User has wallet") {
+            val userWithWallet = createUser("user@with.wallet")
+            createWalletForUser(userWithWallet, testContext.userWalletHash)
+        }
+
+        verify("User can generate invest project transaction") {
+            val result = mockMvc.perform(
+                get("$projectPath/0/invest/confirm"))
+                .andExpect(status().isBadRequest)
+                .andReturn()
+            verifyResponseErrorCode(result, ErrorCode.PRJ_MISSING)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "missing@user.com")
+    fun mustReturnErrorForNonExistingUserTryingToGenerateConfirmInvestment() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+
+        verify("Controller will return error for missing user") {
+            val response = mockMvc.perform(
+                get("$projectPath/${testContext.project.id}/invest/confirm"))
+                .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
+        }
+    }
+
+    @Test
+    fun mustBeAbleToPostSignedConfirmInvestTransaction() {
+        suppose("Blockchain service will accept signed transaction for project investment") {
+            Mockito.`when`(
+                blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.PRJ_INVEST_CONFIRM)
+            ).thenReturn(testContext.txHash)
+        }
+
+        verify("User can post signed transaction to invest in project") {
+            val request = SignedTransactionRequest(testContext.signedTransaction)
+            val result = mockMvc.perform(
+                post("$projectPath/invest/confirm")
                     .content(objectMapper.writeValueAsString(request))
                     .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk)

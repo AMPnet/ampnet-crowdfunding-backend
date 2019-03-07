@@ -7,9 +7,11 @@ import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
 import com.ampnet.crowdfunding.proto.GenerateAddOrganizationTxRequest
 import com.ampnet.crowdfunding.proto.GenerateAddProjectTxRequest
 import com.ampnet.crowdfunding.proto.GenerateBurnFromTxRequest
-import com.ampnet.crowdfunding.proto.GenerateInvestTxRequest
+import com.ampnet.crowdfunding.proto.GenerateConfirmInvestmentTxRequest
+import com.ampnet.crowdfunding.proto.GenerateInvestmentTxRequest
 import com.ampnet.crowdfunding.proto.GenerateMintTxRequest
 import com.ampnet.crowdfunding.proto.PostVaultTxRequest
+import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
@@ -81,6 +83,7 @@ class BlockchainServiceImpl(
     override fun generateProjectWalletTransaction(request: GenerateProjectWalletRequest): TransactionData {
         logger.info { "Generating Project wallet transaction" }
         try {
+            val endTimeInSeconds = request.endDate.toEpochSecond()
             val response = serviceBlockingStub.generateAddOrganizationProjectTx(
                     GenerateAddProjectTxRequest.newBuilder()
                             .setFromTxHash(request.userWalletHash)
@@ -88,6 +91,7 @@ class BlockchainServiceImpl(
                             .setMaxInvestmentPerUser(request.maxPerUser)
                             .setMinInvestmentPerUser(request.minPerUser)
                             .setInvestmentCap(request.investmentCap)
+                            .setEndInvestmentTime(endTimeInSeconds)
                             .build()
             )
             return TransactionData(response)
@@ -126,23 +130,37 @@ class BlockchainServiceImpl(
         }
     }
 
-    override fun generateInvestInProjectTransaction(
-        userWalletHash: String,
-        projectWalletHash: String,
-        amount: Long
-    ): TransactionData {
-        logger.info { "User: $userWalletHash is investing to project: $projectWalletHash with amount $amount" }
+    override fun generateProjectInvestmentTransaction(request: ProjectInvestmentTxRequest): TransactionData {
+        logger.info { "User: ${request.userWalletHash} is investing to project: ${request.projectWalletHash} " +
+            "with amount ${request.amount}" }
         try {
-            val response = serviceBlockingStub.generateInvestTx(
-                GenerateInvestTxRequest.newBuilder()
-                    .setFromTxHash(userWalletHash)
-                    .setProjectTxHash(projectWalletHash)
-                    .setAmount(amount)
+            val response = serviceBlockingStub.generateInvestmentTx(
+                GenerateInvestmentTxRequest.newBuilder()
+                    .setFromTxHash(request.userWalletHash)
+                    .setProjectTxHash(request.projectWalletHash)
+                    .setAmount(request.amount)
                     .build()
             )
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {
-            throw getInternalExceptionFromStatusException(ex, "Could not invest in project: $projectWalletHash")
+            throw getInternalExceptionFromStatusException(
+                ex, "Could not invest in project: ${request.projectWalletHash}")
+        }
+    }
+
+    override fun generateConfirmInvestment(userWalletHash: String, projectWalletHash: String): TransactionData {
+        logger.info { "Confirm user: $userWalletHash investment to project: $projectWalletHash" }
+        try {
+            val response = serviceBlockingStub.generateConfirmInvestmentTx(
+                GenerateConfirmInvestmentTxRequest.newBuilder()
+                    .setFromTxHash(userWalletHash)
+                    .setProjectTxHash(projectWalletHash)
+                    .build()
+            )
+            return TransactionData(response)
+        } catch (ex: StatusRuntimeException) {
+            throw getInternalExceptionFromStatusException(
+                ex, "Could not confirm investment in project: $projectWalletHash")
         }
     }
 

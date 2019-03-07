@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.service
 
+import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -193,8 +194,8 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
             Mockito.`when`(mockedBlockchainService.getBalance(testContext.project.wallet!!.hash)).thenReturn(0)
         }
         suppose("Blockchain service will generate transaction") {
-            Mockito.`when`(mockedBlockchainService.generateInvestInProjectTransaction(
-                user.wallet!!.hash, testContext.project.wallet!!.hash, 100_00)
+            Mockito.`when`(mockedBlockchainService.generateProjectInvestmentTransaction(
+                ProjectInvestmentTxRequest(user.wallet!!.hash, testContext.project.wallet!!.hash, 100_00))
             ).thenReturn(testContext.defaultTransactionData)
         }
 
@@ -244,6 +245,64 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         verify("Service can post project invest transaction") {
             val txHash = projectInvestmentService.investInProject(testContext.defaultSignedTransaction)
             assertThat(txHash).isEqualTo(testContext.defaultTxHash)
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToGenerateConfirmInvestmentWithoutUserWallet() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("test name", organization, user)
+        }
+
+        verify("Service will throw exception that user wallet is missing") {
+            val exception = assertThrows<ResourceNotFoundException> {
+                projectInvestmentService.generateConfirmInvestment(user, testContext.project)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Test
+    fun mustNotBeAbleToGenerateConfirmInvestmentWithoutProjectWallet() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("test name", organization, user)
+        }
+        suppose("User has a wallet") {
+            createWalletForUser(user, testContext.defaultAddressHash)
+        }
+
+        verify("Service will throw exception that project wallet is missing") {
+            val exception = assertThrows<ResourceNotFoundException> {
+                projectInvestmentService.generateConfirmInvestment(user, testContext.project)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Test
+    fun mustBeAbleGenerateConfirmInvestment() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("test name", organization, user)
+        }
+        suppose("User has a wallet") {
+            createWalletForUser(user, testContext.defaultAddressHash)
+        }
+        suppose("Project has wallet") {
+            testContext.project.wallet =
+                createWalletForProject(testContext.project, testContext.defaultProjectAddressHash)
+        }
+        suppose("Blockchain service will generate transaction") {
+            Mockito.`when`(mockedBlockchainService.generateConfirmInvestment(
+                user.wallet!!.hash, testContext.project.wallet!!.hash)
+            ).thenReturn(testContext.defaultTransactionData)
+        }
+
+        verify("Service will generate confirm transaction") {
+            val transactionData = projectInvestmentService.generateConfirmInvestment(user, testContext.project)
+            assertThat(transactionData).isEqualTo(testContext.defaultTransactionData)
         }
     }
 
