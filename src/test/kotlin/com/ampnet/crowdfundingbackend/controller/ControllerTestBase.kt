@@ -50,6 +50,7 @@ import java.time.ZonedDateTime
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
+    protected val transactionParam = "d"
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper

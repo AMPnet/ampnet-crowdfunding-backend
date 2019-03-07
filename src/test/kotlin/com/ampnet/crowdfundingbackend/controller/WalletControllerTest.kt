@@ -31,7 +31,6 @@ class WalletControllerTest : ControllerTestBase() {
     private val walletPath = "/wallet"
     private val projectWalletPath = "/wallet/project"
     private val organizationWalletPath = "/wallet/organization"
-    private val transactionParam = "d"
 
     private lateinit var testData: TestData
     private lateinit var user: User
@@ -194,7 +193,7 @@ class WalletControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("$path?d=")
+            assertThat(transactionResponse.link).isEqualTo("$path${ControllerUtils.transactionRequestParam}")
         }
     }
 
@@ -481,7 +480,7 @@ class WalletControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("$path?d=")
+            assertThat(transactionResponse.link).isEqualTo("$path${ControllerUtils.transactionRequestParam}")
         }
     }
 

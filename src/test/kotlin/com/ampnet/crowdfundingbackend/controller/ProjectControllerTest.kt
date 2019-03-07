@@ -36,7 +36,6 @@ import java.time.ZonedDateTime
 class ProjectControllerTest : ControllerTestBase() {
 
     private val projectPath = "/project"
-    private val transactionParam = "d"
 
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()
@@ -383,7 +382,7 @@ class ProjectControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("/project/invest?d=")
+            assertThat(transactionResponse.link).isEqualTo("/project/invest${ControllerUtils.transactionRequestParam}")
         }
     }
 
@@ -435,7 +434,8 @@ class ProjectControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("/project/invest/confirm?d=")
+            assertThat(transactionResponse.link)
+                .isEqualTo("/project/invest/confirm${ControllerUtils.transactionRequestParam}")
         }
     }
 

@@ -45,8 +45,6 @@ class ProjectController(
 
     companion object : KLogging()
 
-    private val transactionParamLink = "?d="
-
     @GetMapping("/project/{id}")
     fun getProject(@PathVariable id: Int): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to get project with id: $id" }
@@ -124,7 +122,7 @@ class ProjectController(
 
         val request = ProjectInvestmentRequest(project, user, amount)
         val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
-        val link = "/project/invest$transactionParamLink"
+        val link = ControllerUtils.appendLinkWithTransactionRequestParam("/project/invest")
 
         return ResponseEntity.ok(TransactionResponse(transaction, link))
     }
@@ -146,7 +144,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
-        val link = "/project/invest/confirm$transactionParamLink"
+        val link = ControllerUtils.appendLinkWithTransactionRequestParam("/project/invest/confirm")
         return ResponseEntity.ok(TransactionResponse(transaction, link))
     }
 
