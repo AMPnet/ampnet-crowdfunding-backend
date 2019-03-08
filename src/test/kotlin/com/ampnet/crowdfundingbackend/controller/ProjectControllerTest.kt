@@ -2,7 +2,6 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
@@ -383,7 +382,7 @@ class ProjectControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("/project/invest")
+            assertThat(transactionResponse.link).isEqualTo("/project/invest${ControllerUtils.transactionRequestParam}")
         }
     }
 
@@ -396,11 +395,9 @@ class ProjectControllerTest : ControllerTestBase() {
         }
 
         verify("User can post signed transaction to invest in project") {
-            val request = SignedTransactionRequest(testContext.signedTransaction)
             val result = mockMvc.perform(
                 post("$projectPath/invest")
-                    .content(objectMapper.writeValueAsString(request))
-                    .contentType(MediaType.APPLICATION_JSON))
+                    .param(transactionParam, testContext.signedTransaction))
                 .andExpect(status().isOk)
                 .andReturn()
 
@@ -437,7 +434,8 @@ class ProjectControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("/project/invest/confirm")
+            assertThat(transactionResponse.link)
+                .isEqualTo("/project/invest/confirm${ControllerUtils.transactionRequestParam}")
         }
     }
 
@@ -483,11 +481,9 @@ class ProjectControllerTest : ControllerTestBase() {
         }
 
         verify("User can post signed transaction to invest in project") {
-            val request = SignedTransactionRequest(testContext.signedTransaction)
             val result = mockMvc.perform(
                 post("$projectPath/invest/confirm")
-                    .content(objectMapper.writeValueAsString(request))
-                    .contentType(MediaType.APPLICATION_JSON))
+                    .param(transactionParam, testContext.signedTransaction))
                 .andExpect(status().isOk)
                 .andReturn()
 
