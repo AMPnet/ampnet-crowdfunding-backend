@@ -1,7 +1,8 @@
 <configuration scan="false">
 
-    <property name="LOG_FILE" value="crowndfunding-backend.log" />
     <property name="LOG_DIR" value="/var/log" />
+    <property name="LOG_FILE" value="crowndfunding-backend.log" />
+    <property name="LOG_ERROR_FILE" value="crowndfunding-backend-error.log" />
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -20,6 +21,22 @@
                 <fileNamePattern>${LOG_DIR}/${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
                 <!-- keep 10 days' worth of history capped at 1GB total size -->
                 <maxHistory>10</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>ERROR</level>
+            </filter>
+            <file>${LOG_DIR}/${LOG_ERROR_FILE}</file>
+            <encoder>
+                <pattern>%date{HH:mm:ss.SSS} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+            </encoder>
+
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/${LOG_ERROR_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+                <maxHistory>30</maxHistory>
                 <totalSizeCap>1GB</totalSizeCap>
             </rollingPolicy>
         </appender>
