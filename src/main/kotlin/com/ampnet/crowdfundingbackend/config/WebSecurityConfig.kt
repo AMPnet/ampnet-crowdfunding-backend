@@ -4,7 +4,6 @@ import com.ampnet.crowdfundingbackend.config.auth.CustomAuthenticationProvider
 import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationEntryPoint
 import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationFilter
 import com.ampnet.crowdfundingbackend.config.auth.ProfileFilter
-import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -70,9 +69,8 @@ class WebSecurityConfig(
     override fun configure(http: HttpSecurity) {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/actuator/health").permitAll()
+                .antMatchers("/actuator/**").permitAll()
                 .antMatchers("/docs/index.html").permitAll()
-                .antMatchers("/actuator/**").hasAnyAuthority(PrivilegeType.MONITORING.name)
                 .antMatchers("/token/**", "/signup").permitAll()
                 .antMatchers("/countries/**").permitAll()
                 .antMatchers("/mail-confirmation").permitAll()
