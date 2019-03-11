@@ -79,6 +79,7 @@ class WebSecurityConfig(
                 .antMatchers(HttpMethod.POST, "/wallet/project/*/transaction").permitAll()
                 .antMatchers(HttpMethod.POST, "/wallet/organization/*/transaction").permitAll()
                 .antMatchers(HttpMethod.POST, "/project/invest").permitAll()
+                .antMatchers(HttpMethod.POST, "/project/invest/confirm").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()

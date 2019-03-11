@@ -171,41 +171,57 @@ include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShould
 == Users API
 Collection of endpoints for managing users
 
-=== Successful fetch list of users (admin)
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-response.adoc[]
+=== Get own profile
 
-=== Failed fetch list of users (not admin)
-.Request
-include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
-
-=== Failed to fetch list of users because incomplete user profile
-.Request
-include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustThrowErrorForIncompleteUserProfile/http-response.adoc[]
-
-=== Successful fetch own profile
+==== Successful fetch own profile
 .Request
 include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-request.adoc[]
 .Response
 include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-response.adoc[]
 
-=== Successful update own profile
+==== Successful update own profile
 .Request
 include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-request.adoc[]
 .Response
 include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-response.adoc[]
 
-=== Failed to update others profile
+==== Failed to update others profile
 .Request
 include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-request.adoc[]
 .Response
 include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-response.adoc[]
+
+=== Fetch users
+
+==== Successful fetch list of users (admin)
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-response.adoc[]
+
+==== Failed to fetch list of users
+Missing privilege: `PRA_PROFILE`
+
+.Request
+include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
+
+=== Change user role
+
+==== Successfully change
+.Request
+include::{snippets}/UserControllerTest/mustBeAbleToChangeRoleWithPrivilege/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustBeAbleToChangeRoleWithPrivilege/http-response.adoc[]
+
+==== Missing privilege to change role
+Missing privilege: `PWA_PROFILE`
+
+.Request
+include::{snippets}/UserControllerTest/mustNotBeAbleToChangeRoleWithUserRole/http-request.adoc[]
+.Response
+include::{snippets}/UserControllerTest/mustNotBeAbleToChangeRoleWithUserRole/http-response.adoc[]
 
 === Organization invites
 
@@ -333,27 +349,27 @@ include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProje
 .Response
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-response.adoc[]
 
-=== Create project wallet
+==== Create project wallet
 
-==== Generate create project wallet transaction
+===== Generate create project wallet transaction
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-response.adoc[]
 
-===== Successfully create
+====== Successfully create
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-response.adoc[]
 
-===== Project wallet exists
+====== Project wallet exists
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-response.adoc[]
 
-===== Cannot create project wallet
+====== Cannot create project wallet
 User can create project wallet only for his project
 
 .Request
@@ -361,13 +377,13 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCre
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
-===== Missing project
+====== Missing project
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-response.adoc[]
 
-===== Invalid address
+====== Invalid address
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-request.adoc[]
 .Response
@@ -552,11 +568,25 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateInvestmentTransact
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateInvestmentTransaction/http-response.adoc[]
 
-==== Send signed transaction
+==== Send signed transaction to greenvest
 .Request
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedTransaction/http-request.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedInvestTransaction/http-request.adoc[]
 .Response
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedTransaction/http-response.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedInvestTransaction/http-response.adoc[]
+
+=== Approve Greenvestment
+
+==== Generate transaction to approve greenvestment in project
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateConfirmInvestmentTransaction/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateConfirmInvestmentTransaction/http-response.adoc[]
+
+==== Send signed transaction to approve greenvestment
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedConfirmInvestTransaction/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedConfirmInvestTransaction/http-response.adoc[]
 
 == Search API
 

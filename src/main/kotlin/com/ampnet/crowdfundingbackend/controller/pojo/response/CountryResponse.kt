@@ -21,3 +21,5 @@ data class CountryResponse(
             country.phonecode
     )
 }
+
+data class CountriesListResponse(val countries: List<CountryResponse>)

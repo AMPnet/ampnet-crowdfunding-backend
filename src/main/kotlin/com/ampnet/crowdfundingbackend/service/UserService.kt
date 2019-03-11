@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import java.util.UUID
@@ -15,4 +16,5 @@ interface UserService {
     fun findWithWallet(email: String): User?
     fun confirmEmail(token: UUID): User?
     fun resendConfirmationMail(user: User)
+    fun changeUserRole(userId: Int, role: UserRoleType): User
 }

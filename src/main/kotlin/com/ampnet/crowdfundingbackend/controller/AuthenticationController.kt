@@ -35,7 +35,7 @@ class AuthenticationController(
 
     @PostMapping("token")
     fun generateToken(@RequestBody tokenRequest: TokenRequest): ResponseEntity<AuthTokenResponse> {
-        logger.debug { "Received request for token: $tokenRequest" }
+        logger.debug { "Received request for token with: ${tokenRequest.loginMethod}" }
         val usernamePasswordAuthenticationToken = when (tokenRequest.loginMethod) {
             AuthMethod.EMAIL -> {
                 val userInfo: TokenRequestUserInfo = objectMapper.convertValue(tokenRequest.credentials)

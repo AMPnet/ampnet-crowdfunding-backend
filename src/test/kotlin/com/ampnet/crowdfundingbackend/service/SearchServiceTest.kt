@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test
 
 class SearchServiceTest : JpaServiceTestBase() {
 
-    private val searchService: SearchService by lazy { SearchServiceImpl(organizationRepository, projectRepository) }
+    private val searchService: SearchService by lazy {
+        SearchServiceImpl(organizationRepository, projectRepository, userRepository)
+    }
 
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()
@@ -179,9 +181,62 @@ class SearchServiceTest : JpaServiceTestBase() {
         }
     }
 
+    /* User search */
+    @Test
+    fun mustReturnEmptyListOfUsersForNonExistingEmail() {
+        suppose("Some users exist") {
+            databaseCleanerService.deleteAllUsers()
+            createUser("pero@gmail.com", "P", "R")
+            createUser("djuro@test.com", "dj", "U")
+            createUser("nikola@grb.hr", "Niki", "La")
+        }
+
+        verify("Service will return empty list for non existing email") {
+            val users = searchService.searchUsers("non-existing@email.com")
+            assertThat(users).hasSize(0)
+        }
+    }
+
+    @Test
+    fun mustReturnUserForSearchedEmail() {
+        suppose("Some users exists") {
+            databaseCleanerService.deleteAllUsers()
+            createUser("pero@gmail.com", "P", "R")
+            createUser("djuro@test.com", "dj", "U")
+            createUser("nikola@grb.hr", "Niki", "La")
+        }
+        suppose("User with defined email exists") {
+            testContext.email = "user@gmail.com"
+            createUser(testContext.email, "Usr", "E")
+        }
+
+        verify("Service will return user with searched email") {
+            val users = searchService.searchUsers(testContext.email)
+            assertThat(users).hasSize(1)
+            assertThat(users.first().email).isEqualTo(testContext.email)
+        }
+    }
+
+    @Test
+    fun mustFindMultipleUsersWithSimilarEmail() {
+        suppose("Users with similar email exist") {
+            databaseCleanerService.deleteAllUsers()
+            createUser("test@sdf.co", "Fir", "ST")
+            createUser("Test2@fdsa.sca", "Sca", "Di")
+            createUser("teStos@fs.cs", "Cs", "Si")
+            createUser("other@fdsa.sca", "Last", "In")
+        }
+
+        verify("Service will find multiple users") {
+            val users = searchService.searchUsers("test")
+            assertThat(users).hasSize(3)
+        }
+    }
+
     private class TestContext {
         lateinit var organizationName: String
         lateinit var organization: Organization
         lateinit var projectName: String
+        lateinit var email: String
     }
 }

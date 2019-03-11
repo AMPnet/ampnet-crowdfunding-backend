@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
@@ -41,16 +41,15 @@ class ProjectControllerTest : ControllerTestBase() {
         databaseCleanerService.deleteAllUsers()
         createUser(defaultEmail)
     }
-    private val organization: Organization by lazy {
-        databaseCleanerService.deleteAllOrganizations()
-        createOrganization("Test organization", user)
-    }
 
+    private lateinit var organization: Organization
     private lateinit var testContext: TestContext
 
     @BeforeEach
-    fun initializeTextContext() {
-        organization.id
+    fun init() {
+        databaseCleanerService.deleteAllWalletsAndOwners()
+        organization = createOrganization("Test organization", user)
+        createWalletForOrganization(organization, "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
         testContext = TestContext()
     }
 
@@ -93,6 +92,7 @@ class ProjectControllerTest : ControllerTestBase() {
                         .isEqualTo(organization.createdByUser.getFullName())
             }
 
+            assertThat(projectResponse.walletHash).isNull()
             assertThat(projectResponse.currentFunding).isNull()
         }
     }
@@ -108,7 +108,6 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentHash)
         }
         suppose("Project has a wallet") {
-            databaseCleanerService.deleteAllWallets()
             createWalletForProject(testContext.project, testContext.walletHash)
         }
         suppose("Blockchain service will return current funding") {
@@ -251,6 +250,7 @@ class ProjectControllerTest : ControllerTestBase() {
                         .isEqualTo(organization.createdByUser.getFullName())
             }
 
+            assertThat(projectResponse.walletHash).isNull()
             testContext.projectId = projectResponse.id
         }
         verify("Project is stored in database") {
@@ -300,6 +300,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(testContext.projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
             assertThat(testContext.projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
             assertThat(testContext.projectResponse.active).isEqualTo(testContext.project.active)
+            assertThat(testContext.projectResponse.walletHash).isNull()
         }
     }
 
@@ -357,10 +358,9 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.project = createProject("Project", organization, user)
         }
         suppose("Project has empty wallet") {
-            databaseCleanerService.deleteAllWallets()
             createWalletForProject(testContext.project, testContext.walletHash)
         }
-        suppose("Project has wallet") {
+        suppose("User has wallet") {
             val userWithWallet = createUser("user@with.wallet")
             createWalletForUser(userWithWallet, testContext.userWalletHash)
         }
@@ -368,8 +368,8 @@ class ProjectControllerTest : ControllerTestBase() {
             Mockito.`when`(blockchainService.getBalance(testContext.userWalletHash)).thenReturn(100_000_00)
         }
         suppose("Blockchain service will generate transaction") {
-            Mockito.`when`(blockchainService.generateInvestInProjectTransaction(
-                testContext.userWalletHash, testContext.walletHash, 1_000)
+            Mockito.`when`(blockchainService.generateProjectInvestmentTransaction(
+                ProjectInvestmentTxRequest(testContext.userWalletHash, testContext.walletHash, 1_000))
             ).thenReturn(testContext.transactionData)
         }
 
@@ -382,12 +382,12 @@ class ProjectControllerTest : ControllerTestBase() {
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("/project/invest")
+            assertThat(transactionResponse.link).isEqualTo("/project/invest${ControllerUtils.transactionRequestParam}")
         }
     }
 
     @Test
-    fun mustBeAbleToPostSignedTransaction() {
+    fun mustBeAbleToPostSignedInvestTransaction() {
         suppose("Blockchain service will accept signed transaction for project investment") {
             Mockito.`when`(
                 blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.PRJ_INVEST)
@@ -395,11 +395,95 @@ class ProjectControllerTest : ControllerTestBase() {
         }
 
         verify("User can post signed transaction to invest in project") {
-            val request = SignedTransactionRequest(testContext.signedTransaction)
             val result = mockMvc.perform(
                 post("$projectPath/invest")
-                    .content(objectMapper.writeValueAsString(request))
-                    .contentType(MediaType.APPLICATION_JSON))
+                    .param(transactionParam, testContext.signedTransaction))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(txHashResponse.txHash).isEqualTo(testContext.txHash)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    fun mustBeAbleToGenerateConfirmInvestmentTransaction() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("Project has empty wallet") {
+            createWalletForProject(testContext.project, testContext.walletHash)
+        }
+        suppose("User has wallet") {
+            val userWithWallet = createUser("user@with.wallet")
+            createWalletForUser(userWithWallet, testContext.userWalletHash)
+        }
+        suppose("Blockchain service will generate transaction") {
+            Mockito.`when`(blockchainService.generateConfirmInvestment(
+                testContext.userWalletHash, testContext.walletHash)
+            ).thenReturn(testContext.transactionData)
+        }
+
+        verify("User can generate invest project transaction") {
+            val result = mockMvc.perform(
+                get("$projectPath/${testContext.project.id}/invest/confirm"))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.link)
+                .isEqualTo("/project/invest/confirm${ControllerUtils.transactionRequestParam}")
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    fun mustNotBeAbleToGenerateConfirmInvestmentTransactionForMissingProject() {
+        suppose("User has wallet") {
+            val userWithWallet = createUser("user@with.wallet")
+            createWalletForUser(userWithWallet, testContext.userWalletHash)
+        }
+
+        verify("User can generate invest project transaction") {
+            val result = mockMvc.perform(
+                get("$projectPath/0/invest/confirm"))
+                .andExpect(status().isBadRequest)
+                .andReturn()
+            verifyResponseErrorCode(result, ErrorCode.PRJ_MISSING)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "missing@user.com")
+    fun mustReturnErrorForNonExistingUserTryingToGenerateConfirmInvestment() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+
+        verify("Controller will return error for missing user") {
+            val response = mockMvc.perform(
+                get("$projectPath/${testContext.project.id}/invest/confirm"))
+                .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
+        }
+    }
+
+    @Test
+    fun mustBeAbleToPostSignedConfirmInvestTransaction() {
+        suppose("Blockchain service will accept signed transaction for project investment") {
+            Mockito.`when`(
+                blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.PRJ_INVEST_CONFIRM)
+            ).thenReturn(testContext.txHash)
+        }
+
+        verify("User can post signed transaction to invest in project") {
+            val result = mockMvc.perform(
+                post("$projectPath/invest/confirm")
+                    .param(transactionParam, testContext.signedTransaction))
                 .andExpect(status().isOk)
                 .andReturn()
 

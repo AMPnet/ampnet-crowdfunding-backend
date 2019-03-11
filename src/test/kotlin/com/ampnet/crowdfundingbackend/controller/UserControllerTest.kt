@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.RoleRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
@@ -109,6 +110,7 @@ class UserControllerTest : ControllerTestBase() {
 
             val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(userResponse.email).isEqualTo("test@test.com")
+            assertThat(userResponse.id).isNotNull()
             assertThat(userResponse.firstName).isNull()
             assertThat(userResponse.lastName).isNull()
             assertThat(userResponse.country).isNull()
@@ -300,6 +302,54 @@ class UserControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser(email = "john@smith.com", role = UserRoleType.USER)
+    fun mustNotBeAbleToChangeRoleWithUserRole() {
+        suppose("User is in database") {
+            databaseCleanerService.deleteAllUsers()
+            testContext.user = saveTestUser()
+        }
+
+        verify("Controller will return forbidden because privilege is missing") {
+            val request = RoleRequest(UserRoleType.ADMIN)
+            mockMvc.perform(
+                post("$pathUsers/${testContext.user.id}/role")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(email = "admin@user.com", privileges = [PrivilegeType.PWA_PROFILE])
+    fun mustBeAbleToChangeRoleWithPrivilege() {
+        suppose("Admin with privilege is in database") {
+            databaseCleanerService.deleteAllUsers()
+            testContext.admin = createUser("admin@user.com")
+            testContext.admin.role = roleRepository.getOne(UserRoleType.ADMIN.id)
+            userRepository.save(testContext.admin)
+        }
+        suppose("User with user role is in database") {
+            testContext.user = createUser("user@role.com")
+        }
+
+        verify("Admin user can change user role") {
+            val roleType = UserRoleType.ADMIN
+            val request = RoleRequest(roleType)
+            val result = mockMvc.perform(
+                post("$pathUsers/${testContext.user.id}/role")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val userResponse: UserResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(userResponse.email).isEqualTo(testContext.user.email)
+            val role = roleRepository.getOne(roleType.id)
+            assertThat(userResponse.role).isEqualTo(role.name)
+        }
+    }
+
     private fun saveTestUser(): User {
         return createServiceUser(testUser.email)
     }
@@ -356,5 +406,6 @@ class UserControllerTest : ControllerTestBase() {
         lateinit var user: User
         lateinit var organization: Organization
         lateinit var invitedByUser: User
+        lateinit var admin: User
     }
 }

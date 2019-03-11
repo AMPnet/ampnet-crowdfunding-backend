@@ -14,4 +14,6 @@ interface UserRepository : JpaRepository<User, Int> {
     // Each User in the list will have only one membership because of inner join
     @Query("SELECT u FROM User u INNER JOIN FETCH u.organizations mem WHERE mem.organizationId = ?1")
     fun findAllUserForOrganization(organizationId: Int): List<User>
+
+    fun findByEmailContainingIgnoreCase(email: String): List<User>
 }
