@@ -135,7 +135,10 @@ jib {
         }
         tags = ["latest"]
     }
-    container.useCurrentTimestamp = true
+    container {
+        useCurrentTimestamp = true
+        environment = ["VAULT_TOKEN": "${System.env.VAULT_TOKEN}".toString()]
+    }
 }
 
 task ktlint(type: JavaExec, group: "verification") {

@@ -15,6 +15,6 @@ spring:
             host: localhost
             port: 8200
             authentication: token
-            token: s.pVrcU4UdOdOFTD96jn5cbq72   # set vault token
+            token: ${VAULT_TOKEN}
             kv:
                 enabled: true
