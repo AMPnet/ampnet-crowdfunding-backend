@@ -35,7 +35,11 @@ jobs:
       - run: |
             psql \
             -d $TEST_DATABASE_URL \
-            -c "CREATE ROLE cf_role; GRANT cf_role TO crowdfunding_test;"
+            -c "CREATE ROLE cf_role;"
+      - run: |
+            psql \
+            -d $TEST_DATABASE_URL \
+            -c "GRANT cf_role TO crowdfunding_test;"
 
       - save_cache:
           paths:
