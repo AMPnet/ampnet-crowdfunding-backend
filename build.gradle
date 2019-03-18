@@ -37,7 +37,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.0.9'
+version = '0.1.0'
 description = "crowdfunding-backend"
 
 repositories {
@@ -80,6 +80,8 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-mail')
     kapt "org.springframework.boot:spring-boot-configuration-processor"
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+
+    runtime('org.springframework.cloud:spring-cloud-starter-vault-config:2.1.0.RELEASE')
 
     compile("org.springframework.social:spring-social-facebook:2.0.3.RELEASE")
     compile('com.github.spring-social:spring-social-google:1.1.3')
@@ -135,7 +137,10 @@ jib {
         }
         tags = ["latest"]
     }
-    container.useCurrentTimestamp = true
+    container {
+        useCurrentTimestamp = true
+        environment = ["VAULT_TOKEN": "${System.env.VAULT_TOKEN}".toString()]
+    }
 }
 
 task ktlint(type: JavaExec, group: "verification") {

@@ -1,0 +1,20 @@
+spring:
+    application:
+        name: crowdfunding-backend
+    cloud:
+        vault:
+            enabled: false
+
+---
+spring:
+    profiles: dev
+    cloud:
+        vault:
+            enabled: true
+            scheme: http
+            host: localhost
+            port: 8200
+            authentication: token
+            token: ${VAULT_TOKEN}
+            kv:
+                enabled: true

@@ -9,3 +9,8 @@ CREATE USER crowdfunding WITH PASSWORD 'password';
 
 DROP USER IF EXISTS crowdfunding_test;
 CREATE USER crowdfunding_test WITH PASSWORD 'password';
+
+DROP ROLE IF EXISTS cf_role;
+CREATE ROLE cf_role;
+GRANT cf_role TO crowdfunding;
+GRANT cf_role TO crowdfunding_test;
