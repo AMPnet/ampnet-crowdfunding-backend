@@ -13,27 +13,29 @@ executors:
       TERM: dumb
 
 jobs:
-  test:
+  dependencies:
     executor: java-executor
     steps:
       - checkout
-
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "build.gradle" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
+            - v1-dependencies-{{ checksum "build.gradle" }}
+            - v1-dependencies-
       - run: gradle dependencies
-
-      - run: sudo apt install -y postgresql-client || true
-      - run: |
-            psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
-
       - save_cache:
           paths:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
+
+  initialize-db:
+    executor: java-executor
+    steps:
+      - run: sudo apt install -y postgresql-client || true
+      - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
+
+  test:
+    executor: java-executor
+    steps:
       - run:
           name: Run all tests
           command: gradle test
@@ -82,7 +84,13 @@ workflows:
   version: 2
   test-deploy:
     jobs:
-      - test
+      - dependencies
+      - initialize-db:
+          requires:
+            - dependencies
+      - test:
+          requires:
+            - initialize-db
       - quality-check:
           requires:
             - test
