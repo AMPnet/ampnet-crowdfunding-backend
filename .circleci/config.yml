@@ -81,7 +81,7 @@ jobs:
           command: gradle jib
 
 workflows:
-  version: 2
+  version: 2.1
   test-deploy:
     jobs:
       - dependencies
