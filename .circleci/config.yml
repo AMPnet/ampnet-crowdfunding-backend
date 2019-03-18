@@ -59,9 +59,15 @@ jobs:
             - v1-dependencies-{{ checksum "build.gradle" }}
             - v1-dependencies-
       - run: gradle dependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: v1-dependencies-{{ checksum "build.gradle" }}
+
+      - run: sudo apt install -y postgresql-client || true
+      - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
+
       - run: gradle build
-      - run: gradle jacocoTestReport
-      - run: gradle jacocoTestCoverageVerification
 
       - run:
           name: Copy docs to static resources
@@ -84,10 +90,10 @@ workflows:
   version: 2.1
   test:
     jobs:
-        - test:
-          filters:
-            branches:
-              ignore: master
+      - test:
+        filters:
+          branches:
+            ignore: master
 
   deploy:
     jobs:
