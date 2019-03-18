@@ -91,6 +91,15 @@ jobs:
           name: Copy docs to static resources
           command: gradle copyDocs
 
+    # Concept to generate new Vault token for each service release
+#      - run:
+#          name: Revoke current Vault token
+#          command: ssh eugen@ampnet.io "/home/eugen/go/bin/vault token revoke -address=http://127.0.0.1:8200 $VAULT_TOKEN"
+#
+#      - run:
+#            name: Revoke current Vault token
+#            command: echo 'export VAULT_TOKEN=$(ssh eugen@ampnet.io '/home/eugen/go/bin/vault token create -address=http://127.0.0.1:8200' | awk 'FNR==3 {print $2}')' >> $BASH_ENV
+
       - run:
           name: Push new docker image
           command: gradle jib
