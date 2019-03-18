@@ -11,7 +11,7 @@ enum TransactionType {
     WALLET_CREATE = 0;
     ORG_CREATE = 1;
     DEPOSIT = 2;
-    PENDING_WITHDRAW = 3;
+    APPROVE = 3;
     PENDING_ORG_WITHDRAW = 4;
     PENDING_PROJ_WITHDRAW = 5;
     WITHDRAW = 6;
@@ -20,11 +20,13 @@ enum TransactionType {
     ORG_ADD_MEMBER = 9;
     ORG_ADD_PROJECT = 10;
     ORG_ACTIVATE = 11;
-    TRANSFER_OWNERSHIP = 12;
-    CANCEL_INVESTMENT = 13;
+    START_REVENUE_PAYOUT = 12;
+    REVENUE_PAYOUT = 13;
+    SHARE_PAYOUT = 14;
+    WITHDRAW_INVESTMENT = 15;
 }
 
-//////// AMPnet contract messages ///////
+//////// Cooperative contract messages ///////
 
 message AddWalletRequest {
     string publicKey = 1;
@@ -43,7 +45,7 @@ message OrganizationExistsResponse {
     bool exists = 1;
 }
 
-message GetAllOrganizationsResponse {
+message GetOrganizationsResponse {
     repeated string organizations = 1;
 }
 
@@ -80,20 +82,25 @@ message GenerateBurnFromTxRequest {
     uint64 amount = 3;
 }
 
-message GenerateApproveTxRequest {
+message GenerateApproveWithdrawTxRequest {
     string fromTxHash = 1;
     uint64 amount = 2;
+}
+
+message GenerateInvestmentTxRequest {
+    string fromTxHash = 1;
+    string projectTxHash = 2;
+    uint64 amount = 3;
+}
+
+message GenerateCancelPendingInvestmentTxRequest {
+    string fromTxHash = 1;
+    string projectTxHash = 2;
 }
 
 message GenerateTransferTxRequest {
     string fromTxHash = 1;
     string toTxHash = 2;
-    uint64 amount = 3;
-}
-
-message GenerateInvestTxRequest {
-    string fromTxHash = 1;
-    string projectTxHash = 2;
     uint64 amount = 3;
 }
 
@@ -122,6 +129,7 @@ message GenerateAddProjectTxRequest {
     uint64 maxInvestmentPerUser = 3;
     uint64 minInvestmentPerUser = 4;
     uint64 investmentCap = 5;
+    uint64 endInvestmentTime = 6;
 }
 
 message OrganizationVerifiedRequest {
@@ -151,20 +159,28 @@ message OrganizationMembersResponse {
 
 ///////// Project contract ///////////////
 
+message GenerateConfirmInvestmentTxRequest {
+    string fromTxHash = 1;
+    string projectTxHash = 2;
+}
+
+message GenerateStartRevenuePayoutTxRequest {
+    string fromTxHash = 1;
+    string projectTxHash = 2;
+    uint64 revenue = 3;
+}
+
+message GeneratePayoutRevenueSharesTxRequest {
+    string fromTxHash = 1;
+    string projectTxHash = 2;
+}
+
+message GenerateWithdrawInvestmentTxRequest {
+    string fromTxHash = 1;
+    string projectTxHash = 2;
+}
+
 message GenerateWithdrawProjectFundsTx {
-    string fromTxHash = 1;
-    string projectTxHash = 2;
-    uint64 amount = 3;
-}
-
-message GenerateTransferOwnershipTx {
-    string fromTxHash = 1;
-    string projectTxHash = 2;
-    string toTxHash = 3;
-    uint64 amount = 4;
-}
-
-message GenerateCancelInvestmentTx {
     string fromTxHash = 1;
     string projectTxHash = 2;
     uint64 amount = 3;
@@ -211,12 +227,12 @@ message ProjectTotalInvestmentForUserResponse {
     uint64 amount = 1;
 }
 
-message ProjectLockedForInvestmentsRequest {
+message ProjectCompletelyFundedRequest {
     string projectTxHash = 1;
 }
 
-message ProjectLockedForInvestmentsResponse {
-    bool locked = 1;
+message ProjectCompletelyFundedResponse {
+    bool funded = 1;
 }
 
 
@@ -258,11 +274,11 @@ message Empty {
 
 service BlockchainService {
 
-    // AMPnet
+    // Cooperative
 
     rpc addWallet(AddWalletRequest) returns (PostTxResponse);
     rpc generateAddOrganizationTx(GenerateAddOrganizationTxRequest) returns (RawTxResponse);
-    rpc getAllOrganizations(Empty) returns (GetAllOrganizationsResponse);
+    rpc getOrganizations(Empty) returns (GetOrganizationsResponse);
     rpc isWalletActive(WalletActiveRequest) returns (WalletActiveResponse);
     rpc organizationExists(OrganizationExistsRequest) returns (OrganizationExistsResponse);
 
@@ -271,9 +287,10 @@ service BlockchainService {
 
     rpc generateMintTx(GenerateMintTxRequest) returns (RawTxResponse);
     rpc generateBurnFromTx(GenerateBurnFromTxRequest) returns (RawTxResponse);
-    rpc generateApproveTx(GenerateApproveTxRequest) returns (RawTxResponse);
+    rpc generateApproveWithdrawTx(GenerateApproveWithdrawTxRequest) returns (RawTxResponse);
+    rpc generateInvestmentTx(GenerateInvestmentTxRequest) returns (RawTxResponse);
+    rpc generateCancelPendingInvestmentTx(GenerateCancelPendingInvestmentTxRequest) returns (RawTxResponse);
     rpc getBalance(BalanceRequest) returns (BalanceResponse);
-    rpc generateInvestTx(GenerateInvestTxRequest) returns (RawTxResponse);
     rpc generateTransferTx(GenerateTransferTxRequest) returns (RawTxResponse);
 
 
@@ -290,15 +307,17 @@ service BlockchainService {
 
     // Project
 
+    rpc generateConfirmInvestmentTx(GenerateConfirmInvestmentTxRequest) returns (RawTxResponse);
+    rpc generateStartRevenuePayoutTx(GenerateStartRevenuePayoutTxRequest) returns (RawTxResponse);
+    rpc generatePayoutRevenueSharesTx(GeneratePayoutRevenueSharesTxRequest) returns (RawTxResponse);
+    rpc generateWithdrawInvestmentTx(GenerateWithdrawInvestmentTxRequest) returns (RawTxResponse);
     rpc generateWithdrawProjectFundsTx(GenerateWithdrawProjectFundsTx) returns (RawTxResponse);
-    rpc generateTransferOwnershipTx(GenerateTransferOwnershipTx) returns (RawTxResponse);
-    rpc generateCancelInvestmentTx(GenerateCancelInvestmentTx) returns (RawTxResponse);
     rpc getProjectMaxInvestmentPerUser(ProjectMaxInvestmentPerUserRequest) returns (ProjectMaxInvestmentPerUserResponse);
     rpc getProjectMinInvestmentPerUser(ProjectMinInvestmentPerUserRequest) returns (ProjectMinInvestmentPerUserResponse);
     rpc getProjectInvestmentCap(ProjectInvestmentCapRequest) returns (ProjectInvestmentCapResponse);
     rpc getProjectCurrentTotalInvestment(ProjectCurrentTotalInvestmentRequest) returns (ProjectCurrentTotalInvestmentResponse);
     rpc getProjectTotalInvestmentForUser(ProjectTotalInvestmentForUserRequest) returns (ProjectTotalInvestmentForUserResponse);
-    rpc isProjectLockedForInvestments(ProjectLockedForInvestmentsRequest) returns (ProjectLockedForInvestmentsResponse);
+    rpc isProjectCompletelyFunded(ProjectCompletelyFundedRequest) returns (ProjectCompletelyFundedResponse);
 
 
     // Transactions
