@@ -82,16 +82,16 @@ jobs:
 
 workflows:
   version: 2.1
-    test:
-      jobs:
-          - test:
-            filters:
-              branches:
-                ignore: master
+  test:
+    jobs:
+        - test:
+          filters:
+            branches:
+              ignore: master
 
-    deploy:
-      jobs:
-        - deploy:
-            filters:
-              branches:
-                only: master
+  deploy:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              only: master
