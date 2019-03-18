@@ -6,7 +6,7 @@ jobs:
       - image: circleci/openjdk:8-jdk
       - image: circleci/postgres:10.5-ram
         environment:
-          POSTGRES_USER: root
+          POSTGRES_USER: postgres
 
     working_directory: ~/repo
 
@@ -28,7 +28,7 @@ jobs:
 
       - run: sudo apt install -y postgresql-client || true
       - run: |
-            psql -h localhost -U root -a -f etc/flyway/init/create_databases.sql
+            psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
 
       - save_cache:
           paths:
@@ -56,7 +56,7 @@ jobs:
       - image: circleci/openjdk:8-jdk
       - image: circleci/postgres:10.5-ram
         environment:
-          POSTGRES_USER: root
+          POSTGRES_USER: postgres
 
     working_directory: ~/repo
 
