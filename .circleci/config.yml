@@ -4,9 +4,6 @@ jobs:
   test:
     docker:
       - image: circleci/openjdk:8-jdk
-        environment:
-          TEST_DATABASE_URL: postgresql://crowdfunding_test@localhost:5432/crowdfunding_test
-
       - image: circleci/postgres:10.5-ram
         environment:
           POSTGRES_USER: postgres
@@ -57,14 +54,9 @@ jobs:
   deploy:
     docker:
       - image: circleci/openjdk:8-jdk
-        environment:
-          TEST_DATABASE_URL: postgresql://crowdfunding_test@localhost:5432/crowdfunding_test
-
       - image: circleci/postgres:10.5-ram
         environment:
-          POSTGRES_USER: crowdfunding_test
-          POSTGRES_DB: crowdfunding_test
-          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
 
     working_directory: ~/repo
 
@@ -77,18 +69,6 @@ jobs:
           fingerprints:
             - "96:2c:54:e3:52:7c:c8:89:e3:0f:58:44:d8:be:71:fb"
 
-      - checkout
-      
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "build.gradle" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
-      - run: gradle dependencies
-      - run: gradle build
-      - run: gradle jacocoTestReport
-      - run: gradle jacocoTestCoverageVerification
       - run:
           name: Copy docs to static resources
           command: gradle copyDocs
@@ -116,7 +96,10 @@ workflows:
               ignore: master
   deploy:
     jobs:
+      - test
       - deploy:
+          requires:
+            - test
           filters:
             branches:
               only: master
