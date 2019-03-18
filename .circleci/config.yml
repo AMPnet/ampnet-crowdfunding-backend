@@ -31,6 +31,12 @@ jobs:
 
       - run: gradle dependencies
 
+      - run: sudo apt install -y postgresql-client || true
+      - run: |
+            psql \
+            -d $TEST_DATABASE_URL \
+            -c "CREATE ROLE cf_role; GRANT cf_role TO crowdfunding_test;"
+
       - save_cache:
           paths:
             - ~/.gradle
