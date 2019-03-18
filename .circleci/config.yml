@@ -28,7 +28,7 @@ jobs:
 
       - run: sudo apt install -y postgresql-client || true
       - run: |
-            psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
+            psql -h localhost -U root -a -f etc/flyway/init/create_databases.sql
 
       - save_cache:
           paths:
