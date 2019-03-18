@@ -13,7 +13,7 @@ executors:
       TERM: dumb
 
 jobs:
-  dependencies:
+  test:
     executor: java-executor
     steps:
       - checkout
@@ -27,22 +27,13 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
-  initialize-db:
-    executor: java-executor
-    steps:
       - run: sudo apt install -y postgresql-client || true
       - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
 
-  test:
-    executor: java-executor
-    steps:
       - run:
           name: Run all tests
           command: gradle test
 
-  quality-check:
-    executor: java-executor
-    steps:
       - run:
           name: Kotlin linter
           command: gradle ktlin
@@ -62,6 +53,15 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "96:2c:54:e3:52:7c:c8:89:e3:0f:58:44:d8:be:71:fb"
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.gradle" }}
+            - v1-dependencies-
+      - run: gradle dependencies
+      - run: gradle build
+      - run: gradle jacocoTestReport
+      - run: gradle jacocoTestCoverageVerification
 
       - run:
           name: Copy docs to static resources
@@ -82,21 +82,16 @@ jobs:
 
 workflows:
   version: 2.1
-  test-deploy:
-    jobs:
-      - dependencies
-      - initialize-db:
-          requires:
-            - dependencies
-      - test:
-          requires:
-            - initialize-db
-      - quality-check:
-          requires:
-            - test
-      - deploy:
-          filters:
-            branches:
-              only: master
-          requires:
-            - test
+    test:
+      jobs:
+          - test:
+            filters:
+              branches:
+                ignore: master
+
+    deploy:
+      jobs:
+        - deploy:
+            filters:
+              branches:
+                only: master
