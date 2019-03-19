@@ -2,6 +2,7 @@ buildscript {
     ext {
         kotlinVersion = '1.3.21'
         springBootVersion = '2.1.3.RELEASE'
+        springCloudVaultVersion = '2.1.1.RELEASE'
         junitVersion = '5.3.2'
         grpcVersion = '1.18.0'
         jjwtVersion = '0.10.6'
@@ -37,7 +38,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.1.0'
+version = '0.1.1'
 description = "crowdfunding-backend"
 
 repositories {
@@ -81,7 +82,8 @@ dependencies {
     kapt "org.springframework.boot:spring-boot-configuration-processor"
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
 
-    runtime('org.springframework.cloud:spring-cloud-starter-vault-config:2.1.0.RELEASE')
+    runtime("org.springframework.cloud:spring-cloud-starter-vault-config:$springCloudVaultVersion")
+    runtime("org.springframework.cloud:spring-cloud-vault-config-databases:$springCloudVaultVersion")
 
     compile("org.springframework.social:spring-social-facebook:2.0.3.RELEASE")
     compile('com.github.spring-social:spring-social-google:1.1.3')

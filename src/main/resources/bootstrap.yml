@@ -10,11 +10,13 @@ spring:
     profiles: dev
     cloud:
         vault:
+            fail-fast: true
             enabled: true
             scheme: http
             host: localhost
             port: 8200
             authentication: token
             token: ${VAULT_TOKEN}
-            kv:
+            database:
                 enabled: true
+                role: cf_role
