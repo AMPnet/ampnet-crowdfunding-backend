@@ -82,9 +82,9 @@ workflows:
   test:
     jobs:
       - test:
-        filters:
-          branches:
-            ignore: master
+          filters:
+            branches:
+              ignore: master
 
   deploy:
     jobs:
