@@ -4,7 +4,7 @@ executors:
   java-executor:
     docker:
       - image: circleci/openjdk:8-jdk
-      - image: circleci/postgres:10.5-ram
+      - image: circleci/postgres:10.7
         environment:
           POSTGRES_USER: postgres
     working_directory: ~/repo
