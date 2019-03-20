@@ -13,7 +13,7 @@ spring:
             fail-fast: true
             enabled: true
             scheme: http
-            host: localhost
+            host: outside
             port: 8200
             authentication: token
             token: ${VAULT_TOKEN}
