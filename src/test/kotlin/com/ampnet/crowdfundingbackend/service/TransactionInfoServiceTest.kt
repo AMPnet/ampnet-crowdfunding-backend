@@ -1,16 +1,18 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.enums.TransactionType
-import com.ampnet.crowdfundingbackend.persistence.model.Transaction
+import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.service.impl.TransactionServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class TransactionServiceTest : JpaServiceTestBase() {
+class TransactionInfoServiceTest : JpaServiceTestBase() {
 
-    private val transactionService: TransactionService by lazy { TransactionServiceImpl(transactionRepository) }
+    private val transactionInfoService: TransactionInfoService by lazy {
+        TransactionInfoServiceImpl(transactionInfoRepository)
+    }
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()
         createUser("admin@test.com", "Admin", "User")
@@ -25,12 +27,12 @@ class TransactionServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustCreateOrgTransaction() {
-        suppose("Service can create org transaction") {
-            testContext.transaction = transactionService.createOrgTransaction(testContext.orgName, user.id)
+        suppose("Service can create org transactionInfo") {
+            testContext.transactionInfo = transactionInfoService.createOrgTransaction(testContext.orgName, user.id)
         }
 
-        verify("Org transaction is created") {
-            val optionalTx = transactionRepository.findById(testContext.transaction.id)
+        verify("Org transactionInfo is created") {
+            val optionalTx = transactionInfoRepository.findById(testContext.transactionInfo.id)
             assertThat(optionalTx).isPresent
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.CREATE_ORG)
@@ -41,12 +43,13 @@ class TransactionServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustCreateProjectTransaction() {
-        suppose("Service can create project transaction") {
-            testContext.transaction = transactionService.createProjectTransaction(testContext.projectName, user.id)
+        suppose("Service can create project transactionInfo") {
+            testContext.transactionInfo = transactionInfoService.createProjectTransaction(
+                    testContext.projectName, user.id)
         }
 
-        verify("Project transaction is created") {
-            val optionalTx = transactionRepository.findById(testContext.transaction.id)
+        verify("Project transactionInfo is created") {
+            val optionalTx = transactionInfoRepository.findById(testContext.transactionInfo.id)
             assertThat(optionalTx).isPresent
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.CREATE_PROJECT)
@@ -57,13 +60,13 @@ class TransactionServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustCreateInvestAllowanceTransaction() {
-        suppose("Service can create invest allowance transaction") {
-            testContext.transaction = transactionService.createInvestAllowanceTransaction(
+        suppose("Service can create invest allowance transactionInfo") {
+            testContext.transactionInfo = transactionInfoService.createInvestAllowanceTransaction(
                     testContext.projectName, testContext.amount, user.id)
         }
 
-        verify("Invest allowance transaction is created") {
-            val optionalTx = transactionRepository.findById(testContext.transaction.id)
+        verify("Invest allowance transactionInfo is created") {
+            val optionalTx = transactionInfoRepository.findById(testContext.transactionInfo.id)
             assertThat(optionalTx).isPresent
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.INVEST_ALLOWANCE)
@@ -75,12 +78,13 @@ class TransactionServiceTest : JpaServiceTestBase() {
 
     @Test
     fun mustCreateInvestTransaction() {
-        suppose("Service can create invest transaction") {
-            testContext.transaction = transactionService.createInvestTransaction(testContext.projectName, user.id)
+        suppose("Service can create invest transactionInfo") {
+            testContext.transactionInfo = transactionInfoService.createInvestTransaction(
+                    testContext.projectName, user.id)
         }
 
-        verify("Invest transaction is created") {
-            val optionalTx = transactionRepository.findById(testContext.transaction.id)
+        verify("Invest transactionInfo is created") {
+            val optionalTx = transactionInfoRepository.findById(testContext.transactionInfo.id)
             assertThat(optionalTx).isPresent
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.INVEST)
@@ -93,6 +97,6 @@ class TransactionServiceTest : JpaServiceTestBase() {
         val orgName = "Org"
         val projectName = "Das project"
         val amount = 100_23L
-        lateinit var transaction: Transaction
+        lateinit var transactionInfo: TransactionInfo
     }
 }

@@ -3,7 +3,6 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
 import com.ampnet.crowdfundingbackend.enums.Currency
-import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
@@ -17,12 +16,11 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationReposit
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
-import com.ampnet.crowdfundingbackend.service.TransactionService
+import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.WalletService
-import com.ampnet.crowdfundingbackend.service.pojo.CreateTransactionRequest
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,7 +33,7 @@ class WalletServiceImpl(
     private val projectRepository: ProjectRepository,
     private val organizationRepository: OrganizationRepository,
     private val blockchainService: BlockchainService,
-    private val transactionService: TransactionService
+    private val transactionInfoService: TransactionInfoService
 ) : WalletService {
 
     companion object : KLogging()
@@ -59,7 +57,7 @@ class WalletServiceImpl(
     }
 
     @Transactional
-    override fun generateTransactionToCreateProjectWallet(project: Project, userId: Int): TransactionData {
+    override fun generateTransactionToCreateProjectWallet(project: Project, userId: Int): TransactionDataAndInfo {
         throwExceptionIfProjectHasWallet(project)
         val walletHash = project.createdBy.wallet?.hash
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
@@ -68,10 +66,8 @@ class WalletServiceImpl(
 
         val request = GenerateProjectWalletRequest(project, organizationWalletHash, walletHash)
         val data = blockchainService.generateProjectWalletTransaction(request)
-        val tx = transactionService.createProjectTransaction(project.name, userId)
-        // TODO: return tx
-
-        return data
+        val info = transactionInfoService.createProjectTransaction(project.name, userId)
+        return TransactionDataAndInfo(data, info)
     }
 
     @Transactional
@@ -82,8 +78,8 @@ class WalletServiceImpl(
         val wallet = createWallet(txHash, WalletType.PROJECT)
         project.wallet = wallet
         projectRepository.save(project)
-        // TODO: delete transaction
-//        transactionService.deleteTransaction(id)
+        // TODO: delete transactionInfo
+//        transactionInfoService.deleteTransaction(id)
         return wallet
     }
 
@@ -91,17 +87,14 @@ class WalletServiceImpl(
     override fun generateTransactionToCreateOrganizationWallet(
         organization: Organization,
         userId: Int
-    ): TransactionData {
+    ): TransactionDataAndInfo {
         throwExceptionIfOrganizationAlreadyHasWallet(organization)
         val walletHash = organization.createdByUser.wallet?.hash
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
 
         val data = blockchainService.generateAddOrganizationTransaction(walletHash, organization.name)
-        val txRequest = CreateTransactionRequest(TransactionType.CREATE_ORG, organization.name, "Description", userId)
-        val tx = transactionService.createOrgTransaction(organization.name, userId)
-        // TODO: return tx
-
-        return data
+        val info = transactionInfoService.createOrgTransaction(organization.name, userId)
+        return TransactionDataAndInfo(data, info)
     }
 
     @Transactional
@@ -111,8 +104,8 @@ class WalletServiceImpl(
         val wallet = createWallet(txHash, WalletType.ORG)
         organization.wallet = wallet
         organizationRepository.save(organization)
-        // TODO: delete transaction
-//        transactionService.deleteTransaction(id)
+        // TODO: delete transactionInfo
+//        transactionInfoService.deleteTransaction(id)
         return wallet
     }
 

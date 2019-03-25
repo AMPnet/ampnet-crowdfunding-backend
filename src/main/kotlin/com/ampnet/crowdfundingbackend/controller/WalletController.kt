@@ -85,8 +85,7 @@ class WalletController(
 
         if (project.createdBy.id == user.id) {
             val transaction = walletService.generateTransactionToCreateProjectWallet(project, user.id)
-            val link = ControllerUtils.appendLinkWithTransactionRequestParam("/wallet/project/$projectId/transaction")
-            val response = TransactionResponse(transaction, link)
+            val response = TransactionResponse(transaction)
             return ResponseEntity.ok(response)
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
@@ -139,9 +138,7 @@ class WalletController(
         // TODO: rethink about define who can create organization wallet
         if (organization.createdByUser.id == user.id) {
             val transaction = walletService.generateTransactionToCreateOrganizationWallet(organization, user.id)
-            val link = ControllerUtils
-                .appendLinkWithTransactionRequestParam("/wallet/organization/$organizationId/transaction")
-            val response = TransactionResponse(transaction, link)
+            val response = TransactionResponse(transaction)
             return ResponseEntity.ok(response)
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()

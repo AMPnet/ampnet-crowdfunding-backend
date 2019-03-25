@@ -2,7 +2,7 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionAndLinkResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -32,7 +32,7 @@ class IssuingAuthorityController(
         @RequestParam(name = "from") from: String,
         @RequestParam(name = "email") email: String,
         @RequestParam(name = "amount") amount: Long
-    ): ResponseEntity<TransactionResponse> {
+    ): ResponseEntity<TransactionAndLinkResponse> {
         logger.info { "Received mint request from=$from to email=$email in amount=$amount" }
         val userWalletHash = getUserWalletHashFromEmail(email)
 
@@ -40,7 +40,7 @@ class IssuingAuthorityController(
         val link = transactionTypeLink + IssuerTransactionType.mint
         logger.info { "Successfully generated mint transaction" }
 
-        return ResponseEntity.ok(TransactionResponse(transaction, link))
+        return ResponseEntity.ok(TransactionAndLinkResponse(transaction, link))
     }
 
     @GetMapping("/issuer/burn")
@@ -48,7 +48,7 @@ class IssuingAuthorityController(
         @RequestParam(name = "from") from: String,
         @RequestParam(name = "email") email: String,
         @RequestParam(name = "amount") amount: Long
-    ): ResponseEntity<TransactionResponse> {
+    ): ResponseEntity<TransactionAndLinkResponse> {
         logger.info { "Received burn request from=$from for email=$email in amount=$amount" }
         val userWalletHash = getUserWalletHashFromEmail(email)
 
@@ -56,7 +56,7 @@ class IssuingAuthorityController(
         val link = transactionTypeLink + IssuerTransactionType.burn
         logger.info { "Successfully generated burn transaction" }
 
-        return ResponseEntity.ok(TransactionResponse(transaction, link))
+        return ResponseEntity.ok(TransactionAndLinkResponse(transaction, link))
     }
 
     @PostMapping("/issuer/transaction/{type}")

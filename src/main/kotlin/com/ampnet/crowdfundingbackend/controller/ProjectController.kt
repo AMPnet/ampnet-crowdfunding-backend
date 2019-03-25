@@ -122,9 +122,7 @@ class ProjectController(
 
         val request = ProjectInvestmentRequest(project, user, amount)
         val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
-        val link = ControllerUtils.appendLinkWithTransactionRequestParam("/project/invest")
-
-        return ResponseEntity.ok(TransactionResponse(transaction, link))
+        return ResponseEntity.ok(TransactionResponse(transaction))
     }
 
     @PostMapping("/project/invest")
@@ -144,8 +142,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
-        val link = ControllerUtils.appendLinkWithTransactionRequestParam("/project/invest/confirm")
-        return ResponseEntity.ok(TransactionResponse(transaction, link))
+        return ResponseEntity.ok(TransactionResponse(transaction))
     }
 
     @PostMapping("/project/invest/confirm")

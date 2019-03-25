@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionRespon
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
 import com.ampnet.crowdfundingbackend.persistence.model.Document
@@ -381,8 +382,9 @@ class ProjectControllerTest : ControllerTestBase() {
                 .andReturn()
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("/project/invest${ControllerUtils.transactionRequestParam}")
+            assertThat(transactionResponse.tx).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.txId).isNotNull()
+            assertThat(transactionResponse.info.txType).isEqualTo(TransactionType.INVEST_ALLOWANCE)
         }
     }
 
@@ -433,9 +435,9 @@ class ProjectControllerTest : ControllerTestBase() {
                 .andReturn()
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link)
-                .isEqualTo("/project/invest/confirm${ControllerUtils.transactionRequestParam}")
+            assertThat(transactionResponse.tx).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.txId).isNotNull()
+            assertThat(transactionResponse.info.txType).isEqualTo(TransactionType.INVEST)
         }
     }
 

@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -24,7 +25,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
-import java.util.UUID
 
 class WalletControllerTest : ControllerTestBase() {
 
@@ -185,15 +185,15 @@ class WalletControllerTest : ControllerTestBase() {
         }
 
         verify("User can get transaction to sign") {
-            val path = "$projectWalletPath/${testData.project.id}/transaction"
             val result = mockMvc.perform(
                     get("$projectWalletPath/${testData.project.id}/transaction"))
                     .andExpect(status().isOk)
                     .andReturn()
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("$path${ControllerUtils.transactionRequestParam}")
+            assertThat(transactionResponse.tx).isEqualTo(testData.transactionData)
+            assertThat(transactionResponse.txId).isNotNull()
+            assertThat(transactionResponse.info.txType).isEqualTo(TransactionType.CREATE_PROJECT)
         }
     }
 
@@ -479,8 +479,9 @@ class WalletControllerTest : ControllerTestBase() {
                     .andReturn()
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(transactionResponse.transactionData).isEqualTo(testData.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("$path${ControllerUtils.transactionRequestParam}")
+            assertThat(transactionResponse.tx).isEqualTo(testData.transactionData)
+            assertThat(transactionResponse.txId).isNotNull()
+            assertThat(transactionResponse.info.txType).isEqualTo(TransactionType.CREATE_ORG)
         }
     }
 
@@ -560,6 +561,5 @@ class WalletControllerTest : ControllerTestBase() {
         val publicKey = "0xC2D7CF95645D33006175B78989035C7c9061d3F9"
         var balance: Long = -1
         val signedTransaction = "SignedTransaction"
-        var token = UUID.randomUUID().toString()
     }
 }

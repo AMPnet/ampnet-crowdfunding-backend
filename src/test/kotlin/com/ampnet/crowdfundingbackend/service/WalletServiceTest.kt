@@ -10,7 +10,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.service.impl.TransactionServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -30,7 +30,7 @@ class WalletServiceTest : JpaServiceTestBase() {
                 mailService, passwordEncoder, applicationProperties)
     }
     private val walletService: WalletService by lazy {
-        val transactionService = TransactionServiceImpl(transactionRepository)
+        val transactionService = TransactionInfoServiceImpl(transactionInfoRepository)
         WalletServiceImpl(walletRepository, userRepository, projectRepository, organizationRepository,
             mockedBlockchainService, transactionService)
     }
@@ -249,7 +249,7 @@ class WalletServiceTest : JpaServiceTestBase() {
         verify("Service can generate transaction") {
             val transaction = walletService.generateTransactionToCreateOrganizationWallet(
                     testContext.organization, user.id)
-            assertThat(transaction).isEqualTo(defaultTransactionData)
+            assertThat(transaction.transactionData).isEqualTo(defaultTransactionData)
         }
     }
 

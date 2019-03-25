@@ -11,8 +11,8 @@ import javax.persistence.Id
 import javax.persistence.Table
 
 @Entity
-@Table(name = "tx")
-data class Transaction(
+@Table(name = "transaction_info")
+data class TransactionInfo(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

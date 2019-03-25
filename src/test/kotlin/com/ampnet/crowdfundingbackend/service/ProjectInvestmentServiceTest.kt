@@ -8,7 +8,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.ProjectInvestmentServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.TransactionServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
@@ -23,7 +23,7 @@ import java.time.ZonedDateTime
 class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
     private val projectInvestmentService: ProjectInvestmentService by lazy {
-        val transactionService = TransactionServiceImpl(transactionRepository)
+        val transactionService = TransactionInfoServiceImpl(transactionInfoRepository)
         val walletService = WalletServiceImpl(walletRepository, userRepository, projectRepository,
                 organizationRepository, mockedBlockchainService, transactionService)
         ProjectInvestmentServiceImpl(walletService, mockedBlockchainService, transactionService)
@@ -204,7 +204,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         verify("Service will generate transaction") {
             val transactionData = projectInvestmentService
                 .generateInvestInProjectTransaction(testContext.investmentRequest)
-            assertThat(transactionData).isEqualTo(testContext.defaultTransactionData)
+            assertThat(transactionData.transactionData).isEqualTo(testContext.defaultTransactionData)
         }
     }
 
@@ -304,7 +304,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
         verify("Service will generate confirm transaction") {
             val transactionData = projectInvestmentService.generateConfirmInvestment(user, testContext.project)
-            assertThat(transactionData).isEqualTo(testContext.defaultTransactionData)
+            assertThat(transactionData.transactionData).isEqualTo(testContext.defaultTransactionData)
         }
     }
 

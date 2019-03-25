@@ -9,11 +9,11 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
-import com.ampnet.crowdfundingbackend.service.TransactionService
+import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
@@ -22,12 +22,12 @@ import java.time.ZonedDateTime
 class ProjectInvestmentServiceImpl(
     private val walletService: WalletService,
     private val blockchainService: BlockchainService,
-    private val transactionService: TransactionService
+    private val transactionInfoService: TransactionInfoService
 ) : ProjectInvestmentService {
 
     @Transactional
     @Throws(InvalidRequestException::class, ResourceNotFoundException::class)
-    override fun generateInvestInProjectTransaction(request: ProjectInvestmentRequest): TransactionData {
+    override fun generateInvestInProjectTransaction(request: ProjectInvestmentRequest): TransactionDataAndInfo {
         verifyProjectIsStillActive(request.project)
         verifyInvestmentAmountIsValid(request.project, request.amount)
 
@@ -39,32 +39,32 @@ class ProjectInvestmentServiceImpl(
 
         val investRequest = ProjectInvestmentTxRequest(userWallet.hash, projectWallet.hash, request.amount)
         val data = blockchainService.generateProjectInvestmentTransaction(investRequest)
-        val tx = transactionService.createInvestAllowanceTransaction(
+        val info = transactionInfoService.createInvestAllowanceTransaction(
                 request.project.name, request.amount, request.investor.id)
-        return data
+        return TransactionDataAndInfo(data, info)
     }
 
     @Transactional
     override fun investInProject(signedTransaction: String): String {
-        // TODO: delete transaction
-//        transactionService.deleteTransaction(id)
+        // TODO: delete transactionInfo
+//        transactionInfoService.deleteTransaction(id)
         return blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST)
     }
 
     @Transactional
-    override fun generateConfirmInvestment(user: User, project: Project): TransactionData {
+    override fun generateConfirmInvestment(user: User, project: Project): TransactionDataAndInfo {
         val userWallet = getUserWallet(user)
         val projectWallet = getProjectWallet(project)
 
         val data = blockchainService.generateConfirmInvestment(userWallet.hash, projectWallet.hash)
-        val tx = transactionService.createInvestTransaction(project.name, user.id)
-        return data
+        val info = transactionInfoService.createInvestTransaction(project.name, user.id)
+        return TransactionDataAndInfo(data, info)
     }
 
     @Transactional
     override fun confirmInvestment(signedTransaction: String): String {
-        // TODO: delete transaction
-//        transactionService.deleteTransaction(id)
+        // TODO: delete transactionInfo
+//        transactionInfoService.deleteTransaction(id)
         return blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST_CONFIRM)
     }
 

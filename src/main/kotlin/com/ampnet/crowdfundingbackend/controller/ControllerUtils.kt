@@ -9,8 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder
 
 internal object ControllerUtils {
 
-    const val transactionRequestParam = "?d="
-
     fun getUserFromSecurityContext(userService: UserService): User {
         val userPrincipal = getUserPrincipalFromSecurityContext()
         return userService.find(userPrincipal.email)
@@ -20,6 +18,4 @@ internal object ControllerUtils {
 
     fun getUserPrincipalFromSecurityContext(): UserPrincipal =
             SecurityContextHolder.getContext().authentication.principal as UserPrincipal
-
-    fun appendLinkWithTransactionRequestParam(link: String) = "$link$transactionRequestParam"
 }

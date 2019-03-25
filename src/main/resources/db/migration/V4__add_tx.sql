@@ -1,4 +1,4 @@
-CREATE TABLE tx (
+CREATE TABLE transaction_info (
   id SERIAL PRIMARY KEY,
   type VARCHAR(16) NOT NULL,
   title VARCHAR NOT NULL,
