@@ -44,12 +44,8 @@ class ProjectInvestmentServiceImpl(
         return TransactionDataAndInfo(data, info)
     }
 
-    @Transactional
-    override fun investInProject(signedTransaction: String): String {
-        // TODO: delete transactionInfo
-//        transactionInfoService.deleteTransaction(id)
-        return blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST)
-    }
+    override fun investInProject(signedTransaction: String): String =
+            blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST)
 
     @Transactional
     override fun generateConfirmInvestment(user: User, project: Project): TransactionDataAndInfo {
@@ -61,12 +57,8 @@ class ProjectInvestmentServiceImpl(
         return TransactionDataAndInfo(data, info)
     }
 
-    @Transactional
-    override fun confirmInvestment(signedTransaction: String): String {
-        // TODO: delete transactionInfo
-//        transactionInfoService.deleteTransaction(id)
-        return blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST_CONFIRM)
-    }
+    override fun confirmInvestment(signedTransaction: String): String =
+            blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST_CONFIRM)
 
     private fun verifyProjectIsStillActive(project: Project) {
         if (project.active.not()) {

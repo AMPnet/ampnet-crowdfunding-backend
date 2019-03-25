@@ -66,7 +66,7 @@ class WalletServiceImpl(
 
         val request = GenerateProjectWalletRequest(project, organizationWalletHash, walletHash)
         val data = blockchainService.generateProjectWalletTransaction(request)
-        val info = transactionInfoService.createProjectTransaction(project.name, userId)
+        val info = transactionInfoService.createProjectTransaction(project, userId)
         return TransactionDataAndInfo(data, info)
     }
 
@@ -78,8 +78,6 @@ class WalletServiceImpl(
         val wallet = createWallet(txHash, WalletType.PROJECT)
         project.wallet = wallet
         projectRepository.save(project)
-        // TODO: delete transactionInfo
-//        transactionInfoService.deleteTransaction(id)
         return wallet
     }
 
@@ -93,7 +91,7 @@ class WalletServiceImpl(
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
 
         val data = blockchainService.generateAddOrganizationTransaction(walletHash, organization.name)
-        val info = transactionInfoService.createOrgTransaction(organization.name, userId)
+        val info = transactionInfoService.createOrgTransaction(organization, userId)
         return TransactionDataAndInfo(data, info)
     }
 
@@ -104,8 +102,6 @@ class WalletServiceImpl(
         val wallet = createWallet(txHash, WalletType.ORG)
         organization.wallet = wallet
         organizationRepository.save(organization)
-        // TODO: delete transactionInfo
-//        transactionInfoService.deleteTransaction(id)
         return wallet
     }
 

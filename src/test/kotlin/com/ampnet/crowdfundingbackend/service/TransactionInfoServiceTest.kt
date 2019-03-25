@@ -1,6 +1,8 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.enums.TransactionType
+import com.ampnet.crowdfundingbackend.persistence.model.Organization
+import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
@@ -17,18 +19,27 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
         databaseCleanerService.deleteAllUsers()
         createUser("admin@test.com", "Admin", "User")
     }
+    private val organization: Organization by lazy {
+        databaseCleanerService.deleteAllOrganizations()
+        createOrganization("Das Organ", user)
+    }
+    private val project: Project by lazy {
+        databaseCleanerService.deleteAllProjects()
+        createProject("Projectos", organization, user)
+    }
 
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun init() {
         testContext = TestContext()
+        databaseCleanerService.deleteAllTransactionInfo()
     }
 
     @Test
     fun mustCreateOrgTransaction() {
         suppose("Service can create org transactionInfo") {
-            testContext.transactionInfo = transactionInfoService.createOrgTransaction(testContext.orgName, user.id)
+            testContext.transactionInfo = transactionInfoService.createOrgTransaction(organization, user.id)
         }
 
         verify("Org transactionInfo is created") {
@@ -37,15 +48,14 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.CREATE_ORG)
             assertThat(tx.userId).isEqualTo(user.id)
-            assertThat(tx.description).contains(testContext.orgName)
+            assertThat(tx.description).contains(organization.name)
         }
     }
 
     @Test
     fun mustCreateProjectTransaction() {
         suppose("Service can create project transactionInfo") {
-            testContext.transactionInfo = transactionInfoService.createProjectTransaction(
-                    testContext.projectName, user.id)
+            testContext.transactionInfo = transactionInfoService.createProjectTransaction(project, user.id)
         }
 
         verify("Project transactionInfo is created") {
@@ -54,7 +64,7 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.CREATE_PROJECT)
             assertThat(tx.userId).isEqualTo(user.id)
-            assertThat(tx.description).contains(testContext.projectName)
+            assertThat(tx.description).contains(project.name)
         }
     }
 
@@ -62,7 +72,7 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
     fun mustCreateInvestAllowanceTransaction() {
         suppose("Service can create invest allowance transactionInfo") {
             testContext.transactionInfo = transactionInfoService.createInvestAllowanceTransaction(
-                    testContext.projectName, testContext.amount, user.id)
+                    project.name, testContext.amount, user.id)
         }
 
         verify("Invest allowance transactionInfo is created") {
@@ -71,7 +81,7 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.INVEST_ALLOWANCE)
             assertThat(tx.userId).isEqualTo(user.id)
-            assertThat(tx.description).contains(testContext.projectName)
+            assertThat(tx.description).contains(project.name)
             assertThat(tx.description).contains("100.23")
         }
     }
@@ -80,7 +90,7 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
     fun mustCreateInvestTransaction() {
         suppose("Service can create invest transactionInfo") {
             testContext.transactionInfo = transactionInfoService.createInvestTransaction(
-                    testContext.projectName, user.id)
+                    project.name, user.id)
         }
 
         verify("Invest transactionInfo is created") {
@@ -89,13 +99,11 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
             val tx = optionalTx.get()
             assertThat(tx.type).isEqualTo(TransactionType.INVEST)
             assertThat(tx.userId).isEqualTo(user.id)
-            assertThat(tx.description).contains(testContext.projectName)
+            assertThat(tx.description).contains(project.name)
         }
     }
 
     private class TestContext {
-        val orgName = "Org"
-        val projectName = "Das project"
         val amount = 100_23L
         lateinit var transactionInfo: TransactionInfo
     }
