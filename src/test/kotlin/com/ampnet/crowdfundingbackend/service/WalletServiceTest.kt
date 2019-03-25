@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.service.impl.TransactionServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -29,8 +30,9 @@ class WalletServiceTest : JpaServiceTestBase() {
                 mailService, passwordEncoder, applicationProperties)
     }
     private val walletService: WalletService by lazy {
+        val transactionService = TransactionServiceImpl(transactionRepository)
         WalletServiceImpl(walletRepository, userRepository, projectRepository, organizationRepository,
-            mockedBlockchainService)
+            mockedBlockchainService, transactionService)
     }
     private lateinit var user: User
     private lateinit var testContext: TestContext
@@ -174,7 +176,7 @@ class WalletServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw InternalException") {
             val exception = assertThrows<ResourceNotFoundException> {
-                walletService.generateTransactionToCreateProjectWallet(testContext.project)
+                walletService.generateTransactionToCreateProjectWallet(testContext.project, user.id)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
@@ -192,7 +194,7 @@ class WalletServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw InternalException") {
             val exception = assertThrows<ResourceNotFoundException> {
-                walletService.generateTransactionToCreateProjectWallet(testContext.project)
+                walletService.generateTransactionToCreateProjectWallet(testContext.project, user.id)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
@@ -206,7 +208,7 @@ class WalletServiceTest : JpaServiceTestBase() {
 
         verify("Service can generate create organization transaction") {
             val exception = assertThrows<ResourceNotFoundException> {
-                walletService.generateTransactionToCreateOrganizationWallet(testContext.organization)
+                walletService.generateTransactionToCreateOrganizationWallet(testContext.organization, user.id)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
@@ -223,7 +225,7 @@ class WalletServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception that organization already has a wallet") {
             val exception = assertThrows<ResourceAlreadyExistsException> {
-                walletService.generateTransactionToCreateOrganizationWallet(testContext.organization)
+                walletService.generateTransactionToCreateOrganizationWallet(testContext.organization, user.id)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_EXISTS)
         }
@@ -245,7 +247,8 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service can generate transaction") {
-            val transaction = walletService.generateTransactionToCreateOrganizationWallet(testContext.organization)
+            val transaction = walletService.generateTransactionToCreateOrganizationWallet(
+                    testContext.organization, user.id)
             assertThat(transaction).isEqualTo(defaultTransactionData)
         }
     }

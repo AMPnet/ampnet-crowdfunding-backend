@@ -10,8 +10,8 @@ import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 interface WalletService {
     fun getWalletBalance(wallet: Wallet): Long
     fun createUserWallet(user: User, request: WalletCreateRequest): Wallet
-    fun generateTransactionToCreateProjectWallet(project: Project): TransactionData
+    fun generateTransactionToCreateProjectWallet(project: Project, userId: Int): TransactionData
     fun createProjectWallet(project: Project, signedTransaction: String): Wallet
-    fun generateTransactionToCreateOrganizationWallet(organization: Organization): TransactionData
+    fun generateTransactionToCreateOrganizationWallet(organization: Organization, userId: Int): TransactionData
     fun createOrganizationWallet(organization: Organization, signedTransaction: String): Wallet
 }

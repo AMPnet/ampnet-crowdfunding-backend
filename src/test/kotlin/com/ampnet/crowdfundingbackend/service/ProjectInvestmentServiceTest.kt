@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.ProjectInvestmentServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.TransactionServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
@@ -22,9 +23,10 @@ import java.time.ZonedDateTime
 class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
     private val projectInvestmentService: ProjectInvestmentService by lazy {
-        val walletService = WalletServiceImpl(
-                walletRepository, userRepository, projectRepository, organizationRepository, mockedBlockchainService)
-        ProjectInvestmentServiceImpl(walletService, mockedBlockchainService)
+        val transactionService = TransactionServiceImpl(transactionRepository)
+        val walletService = WalletServiceImpl(walletRepository, userRepository, projectRepository,
+                organizationRepository, mockedBlockchainService, transactionService)
+        ProjectInvestmentServiceImpl(walletService, mockedBlockchainService, transactionService)
     }
     private val organization: Organization by lazy {
         databaseCleanerService.deleteAllOrganizations()

@@ -84,7 +84,7 @@ class WalletController(
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
 
         if (project.createdBy.id == user.id) {
-            val transaction = walletService.generateTransactionToCreateProjectWallet(project)
+            val transaction = walletService.generateTransactionToCreateProjectWallet(project, user.id)
             val link = ControllerUtils.appendLinkWithTransactionRequestParam("/wallet/project/$projectId/transaction")
             val response = TransactionResponse(transaction, link)
             return ResponseEntity.ok(response)
@@ -138,7 +138,7 @@ class WalletController(
 
         // TODO: rethink about define who can create organization wallet
         if (organization.createdByUser.id == user.id) {
-            val transaction = walletService.generateTransactionToCreateOrganizationWallet(organization)
+            val transaction = walletService.generateTransactionToCreateOrganizationWallet(organization, user.id)
             val link = ControllerUtils
                 .appendLinkWithTransactionRequestParam("/wallet/organization/$organizationId/transaction")
             val response = TransactionResponse(transaction, link)
