@@ -33,7 +33,9 @@ jobs:
       # Temporary to find problem: permission denied for relation flyway_schema_history
       - run:
           name: List all tables in database crowdfunding_test
-          command: psql -h localhost -U postgres -d crowdfunding_test -a -c "SELECT * FROM pg_catalog.pg_tables;"
+          command: |
+            psql -h localhost -U postgres -d crowdfunding_test -a -c "SELECT * FROM pg_catalog.pg_tables;" -o query.txt
+            cat query.txt
 
       - run:
           name: Run all tests
