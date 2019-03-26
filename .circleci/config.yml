@@ -30,6 +30,11 @@ jobs:
       - run: sudo apt install -y postgresql-client || true
       - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
 
+      # Temporary to find problem: permission denied for relation flyway_schema_history
+      - run:
+          name: List all tables in database crowdfunding_test
+          command: psql -h localhost -U postgres -d crowdfunding_test -a -c "SELECT * FROM pg_catalog.pg_tables;"
+
       - run:
           name: Run all tests
           command: gradle test

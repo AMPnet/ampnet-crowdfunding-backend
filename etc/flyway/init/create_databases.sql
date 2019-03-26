@@ -14,4 +14,3 @@ DROP ROLE IF EXISTS cf_role;
 CREATE ROLE cf_role;
 GRANT cf_role TO crowdfunding;
 GRANT cf_role TO crowdfunding_test;
-GRANT ALL PRIVILEGES ON DATABASE crowdfunding_test TO cf_role;
