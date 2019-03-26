@@ -58,6 +58,6 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
     INT_GRPC("08", "50", "Failed gRPC call"),
 
     // Transaction: 09
-    TX_MISSING("09", "01", "Missing transaction"),
+    TX_MISSING("09", "01", "Non existing transaction"),
     TX_COMPANION_ID_MISSING("09", "02", "Missing companion id")
 }

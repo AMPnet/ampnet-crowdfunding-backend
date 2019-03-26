@@ -69,5 +69,5 @@ class BroadcastTransactionController(
     }
 
     private fun getTransactionInfo(txId: Int) = transactionInfoService.findTransactionInfo(txId)
-            ?: throw ResourceNotFoundException(ErrorCode.TX_MISSING, "Missing transaction with id: $txId")
+            ?: throw ResourceNotFoundException(ErrorCode.TX_MISSING, "Non existing transaction with id: $txId")
 }
