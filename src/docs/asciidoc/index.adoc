@@ -557,29 +557,11 @@ include::{snippets}/SearchControllerTest/mustReturnListOfOrganizationsAndProject
 
 == Broadcast API
 
-=== Broadcast transaction to create organization wallet
+=== Broadcast signed transaction
 .Request
 include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToCreateOrganizationWallet/http-request.adoc[]
 .Response
 include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToCreateOrganizationWallet/http-response.adoc[]
-
-=== Broadcast transaction to create project wallet
-.Request
-include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-request.adoc[]
-.Response
-include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-response.adoc[]
-
-=== Broadcast transaction invest allowance
-.Request
-include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToPostSignedInvestAllowanceTransaction/http-request.adoc[]
-.Response
-include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToPostSignedInvestAllowanceTransaction/http-response.adoc[]
-
-=== Broadcast transaction invest
-.Request
-include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToPostSignedInvestTransaction/http-request.adoc[]
-.Response
-include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToPostSignedInvestTransaction/http-response.adoc[]
 
 === Broadcast non existing transaction
 .Request

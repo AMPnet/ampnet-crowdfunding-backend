@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListRespon
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
