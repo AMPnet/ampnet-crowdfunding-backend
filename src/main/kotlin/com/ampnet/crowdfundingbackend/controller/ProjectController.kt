@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListRespon
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -122,17 +121,7 @@ class ProjectController(
 
         val request = ProjectInvestmentRequest(project, user, amount)
         val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
-        val link = ControllerUtils.appendLinkWithTransactionRequestParam("/project/invest")
-
-        return ResponseEntity.ok(TransactionResponse(transaction, link))
-    }
-
-    @PostMapping("/project/invest")
-    fun postTransaction(@RequestParam("d") signedTransaction: String): ResponseEntity<TxHashResponse> {
-        logger.debug { "Received request to post signed transaction for project investment" }
-        val txHash = projectInvestmentService.investInProject(signedTransaction)
-        logger.info { "Successfully posted signed transaction for project investment. TxHash: $txHash" }
-        return ResponseEntity.ok(TxHashResponse(txHash))
+        return ResponseEntity.ok(TransactionResponse(transaction))
     }
 
     @GetMapping("/project/{projectId}/invest/confirm")
@@ -144,16 +133,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
-        val link = ControllerUtils.appendLinkWithTransactionRequestParam("/project/invest/confirm")
-        return ResponseEntity.ok(TransactionResponse(transaction, link))
-    }
-
-    @PostMapping("/project/invest/confirm")
-    fun postConfirmTransaction(@RequestParam("d") signedTransaction: String): ResponseEntity<TxHashResponse> {
-        logger.debug { "Received request to post signed transaction for project confirm investment" }
-        val txHash = projectInvestmentService.confirmInvestment(signedTransaction)
-        logger.info { "Successfully posted signed transaction for project confirm investment. TxHash: $txHash" }
-        return ResponseEntity.ok(TxHashResponse(txHash))
+        return ResponseEntity.ok(TransactionResponse(transaction))
     }
 
     private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {

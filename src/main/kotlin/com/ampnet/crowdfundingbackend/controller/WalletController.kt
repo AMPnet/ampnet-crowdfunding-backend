@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
@@ -84,26 +83,11 @@ class WalletController(
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
 
         if (project.createdBy.id == user.id) {
-            val transaction = walletService.generateTransactionToCreateProjectWallet(project)
-            val link = ControllerUtils.appendLinkWithTransactionRequestParam("/wallet/project/$projectId/transaction")
-            val response = TransactionResponse(transaction, link)
+            val transaction = walletService.generateTransactionToCreateProjectWallet(project, user.id)
+            val response = TransactionResponse(transaction)
             return ResponseEntity.ok(response)
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-    }
-
-    @PostMapping("/wallet/project/{projectId}/transaction")
-    fun createProjectWallet(
-        @PathVariable projectId: Int,
-        @RequestParam("d") signedTransaction: String
-    ): ResponseEntity<WalletResponse> {
-        logger.debug { "Received request to create project($projectId) wallet" }
-
-        val project = projectService.getProjectByIdWithWallet(projectId)
-                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
-        val wallet = walletService.createProjectWallet(project, signedTransaction)
-        val response = WalletResponse(wallet, 0)
-        return ResponseEntity.ok(response)
     }
 
     @GetMapping("wallet/organization/{organizationId}")
@@ -138,27 +122,10 @@ class WalletController(
 
         // TODO: rethink about define who can create organization wallet
         if (organization.createdByUser.id == user.id) {
-            val transaction = walletService.generateTransactionToCreateOrganizationWallet(organization)
-            val link = ControllerUtils
-                .appendLinkWithTransactionRequestParam("/wallet/organization/$organizationId/transaction")
-            val response = TransactionResponse(transaction, link)
+            val transaction = walletService.generateTransactionToCreateOrganizationWallet(organization, user.id)
+            val response = TransactionResponse(transaction)
             return ResponseEntity.ok(response)
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-    }
-
-    @PostMapping("/wallet/organization/{organizationId}/transaction")
-    fun createOrganizationWallet(
-        @PathVariable organizationId: Int,
-        @RequestParam("d") signedTransaction: String
-    ): ResponseEntity<WalletResponse> {
-        logger.debug { "Received request to create organization($organizationId) wallet" }
-
-        val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
-                ?: throw ResourceNotFoundException(
-                    ErrorCode.ORG_MISSING, "Missing organization with id $organizationId")
-        val wallet = walletService.createOrganizationWallet(organization, signedTransaction)
-        val response = WalletResponse(wallet, 0)
-        return ResponseEntity.ok(response)
     }
 }

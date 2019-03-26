@@ -16,10 +16,11 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationReposit
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,7 +32,8 @@ class WalletServiceImpl(
     private val userRepository: UserRepository,
     private val projectRepository: ProjectRepository,
     private val organizationRepository: OrganizationRepository,
-    private val blockchainService: BlockchainService
+    private val blockchainService: BlockchainService,
+    private val transactionInfoService: TransactionInfoService
 ) : WalletService {
 
     companion object : KLogging()
@@ -54,8 +56,8 @@ class WalletServiceImpl(
         return wallet
     }
 
-    @Transactional(readOnly = true)
-    override fun generateTransactionToCreateProjectWallet(project: Project): TransactionData {
+    @Transactional
+    override fun generateTransactionToCreateProjectWallet(project: Project, userId: Int): TransactionDataAndInfo {
         throwExceptionIfProjectHasWallet(project)
         val walletHash = project.createdBy.wallet?.hash
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
@@ -63,7 +65,9 @@ class WalletServiceImpl(
             ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "Organization wallet is missing")
 
         val request = GenerateProjectWalletRequest(project, organizationWalletHash, walletHash)
-        return blockchainService.generateProjectWalletTransaction(request)
+        val data = blockchainService.generateProjectWalletTransaction(request)
+        val info = transactionInfoService.createProjectTransaction(project, userId)
+        return TransactionDataAndInfo(data, info)
     }
 
     @Transactional
@@ -77,13 +81,18 @@ class WalletServiceImpl(
         return wallet
     }
 
-    @Transactional(readOnly = true)
-    override fun generateTransactionToCreateOrganizationWallet(organization: Organization): TransactionData {
+    @Transactional
+    override fun generateTransactionToCreateOrganizationWallet(
+        organization: Organization,
+        userId: Int
+    ): TransactionDataAndInfo {
         throwExceptionIfOrganizationAlreadyHasWallet(organization)
         val walletHash = organization.createdByUser.wallet?.hash
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
 
-        return blockchainService.generateAddOrganizationTransaction(walletHash, organization.name)
+        val data = blockchainService.generateAddOrganizationTransaction(walletHash, organization.name)
+        val info = transactionInfoService.createOrgTransaction(organization, userId)
+        return TransactionDataAndInfo(data, info)
     }
 
     @Transactional

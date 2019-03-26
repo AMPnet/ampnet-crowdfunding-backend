@@ -7,9 +7,9 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListRespon
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
 import com.ampnet.crowdfundingbackend.persistence.model.Document
@@ -17,7 +17,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -381,28 +380,9 @@ class ProjectControllerTest : ControllerTestBase() {
                 .andReturn()
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link).isEqualTo("/project/invest${ControllerUtils.transactionRequestParam}")
-        }
-    }
-
-    @Test
-    fun mustBeAbleToPostSignedInvestTransaction() {
-        suppose("Blockchain service will accept signed transaction for project investment") {
-            Mockito.`when`(
-                blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.PRJ_INVEST)
-            ).thenReturn(testContext.txHash)
-        }
-
-        verify("User can post signed transaction to invest in project") {
-            val result = mockMvc.perform(
-                post("$projectPath/invest")
-                    .param(transactionParam, testContext.signedTransaction))
-                .andExpect(status().isOk)
-                .andReturn()
-
-            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(txHashResponse.txHash).isEqualTo(testContext.txHash)
+            assertThat(transactionResponse.tx).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.txId).isNotNull()
+            assertThat(transactionResponse.info.txType).isEqualTo(TransactionType.INVEST_ALLOWANCE)
         }
     }
 
@@ -433,9 +413,9 @@ class ProjectControllerTest : ControllerTestBase() {
                 .andReturn()
 
             val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(transactionResponse.transactionData).isEqualTo(testContext.transactionData)
-            assertThat(transactionResponse.link)
-                .isEqualTo("/project/invest/confirm${ControllerUtils.transactionRequestParam}")
+            assertThat(transactionResponse.tx).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.txId).isNotNull()
+            assertThat(transactionResponse.info.txType).isEqualTo(TransactionType.INVEST)
         }
     }
 
@@ -469,26 +449,6 @@ class ProjectControllerTest : ControllerTestBase() {
                 get("$projectPath/${testContext.project.id}/invest/confirm"))
                 .andReturn()
             verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
-        }
-    }
-
-    @Test
-    fun mustBeAbleToPostSignedConfirmInvestTransaction() {
-        suppose("Blockchain service will accept signed transaction for project investment") {
-            Mockito.`when`(
-                blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.PRJ_INVEST_CONFIRM)
-            ).thenReturn(testContext.txHash)
-        }
-
-        verify("User can post signed transaction to invest in project") {
-            val result = mockMvc.perform(
-                post("$projectPath/invest/confirm")
-                    .param(transactionParam, testContext.signedTransaction))
-                .andExpect(status().isOk)
-                .andReturn()
-
-            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(txHashResponse.txHash).isEqualTo(testContext.txHash)
         }
     }
 
@@ -538,8 +498,6 @@ class ProjectControllerTest : ControllerTestBase() {
         var projectId: Int = -1
         val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         val walletBalance = 100L
-        val signedTransaction = "SignedTransaction"
-        val txHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
         val userWalletHash = "0x29bC6a8219c798394726f8e86E040A878da1daAA"
         val transactionData = TransactionData("data", "to", 22, 33, 44, 1000, "pubg")
     }

@@ -349,7 +349,7 @@ include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProje
 .Response
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-response.adoc[]
 
-==== Create project wallet
+==== Generate transaction to create project wallet
 
 ===== Generate create project wallet transaction
 .Request
@@ -357,19 +357,7 @@ include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTrans
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-response.adoc[]
 
-====== Successfully create
-.Request
-include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustBeAbleToCreateProjectWalletWithTransaction/http-response.adoc[]
-
-====== Project wallet exists
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalProjectWallet/http-response.adoc[]
-
-====== Cannot create project wallet
+===== Cannot create project wallet
 User can create project wallet only for his project
 
 .Request
@@ -377,13 +365,7 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCre
 .Response
 include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
-====== Missing project
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletForNonExistingProject/http-response.adoc[]
-
-====== Invalid address
+===== Invalid address
 .Request
 include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateWalletWithInvalidAddress/http-request.adoc[]
 .Response
@@ -411,21 +393,12 @@ include::{snippets}/WalletControllerTest/mustThrowExceptionIfOrganizationIsMissi
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-response.adoc[]
-response.adoc[]
 
-==== Create Organization wallet
-
-===== Get transaction for creating organization wallet
+==== Get transaction for creating organization wallet
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateOrganizationWallet/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateOrganizationWallet/http-response.adoc[]
-
-===== Create organization wallet
-.Request
-include::{snippets}/WalletControllerTest/mustBeAbleToCreateOrganizationWallet/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustBeAbleToCreateOrganizationWallet/http-response.adoc[]
 
 == Organization API
 Collection of endpoints for managing organization
@@ -568,25 +541,11 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateInvestmentTransact
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateInvestmentTransaction/http-response.adoc[]
 
-==== Send signed transaction to greenvest
-.Request
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedInvestTransaction/http-request.adoc[]
-.Response
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedInvestTransaction/http-response.adoc[]
-
-=== Approve Greenvestment
-
 ==== Generate transaction to approve greenvestment in project
 .Request
 include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateConfirmInvestmentTransaction/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGenerateConfirmInvestmentTransaction/http-response.adoc[]
-
-==== Send signed transaction to approve greenvestment
-.Request
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedConfirmInvestTransaction/http-request.adoc[]
-.Response
-include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedConfirmInvestTransaction/http-response.adoc[]
 
 == Search API
 
@@ -595,3 +554,17 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToPostSignedConfirmInvestTra
 include::{snippets}/SearchControllerTest/mustReturnListOfOrganizationsAndProjects/http-request.adoc[]
 .Response
 include::{snippets}/SearchControllerTest/mustReturnListOfOrganizationsAndProjects/http-response.adoc[]
+
+== Broadcast API
+
+=== Broadcast signed transaction
+.Request
+include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToCreateOrganizationWallet/http-request.adoc[]
+.Response
+include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToCreateOrganizationWallet/http-response.adoc[]
+
+=== Broadcast non existing transaction
+.Request
+include::{snippets}/BroadcastTransactionControllerTest/mustNotBeAbleToPostNonExistingTransaction/http-request.adoc[]
+.Response
+include::{snippets}/BroadcastTransactionControllerTest/mustNotBeAbleToPostNonExistingTransaction/http-response.adoc[]

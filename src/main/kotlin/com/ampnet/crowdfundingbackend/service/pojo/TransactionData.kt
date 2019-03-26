@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
 import com.ampnet.crowdfunding.proto.RawTxResponse
+import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
 
 data class TransactionData(
     val data: String,
@@ -21,3 +22,8 @@ data class TransactionData(
             rawTxResponse.publicKey
     )
 }
+
+data class TransactionDataAndInfo(
+    val transactionData: TransactionData,
+    val transactionInfo: TransactionInfo
+)

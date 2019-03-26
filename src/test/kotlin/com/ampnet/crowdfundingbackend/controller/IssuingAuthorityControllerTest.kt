@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionAndLinkResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -51,7 +51,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
                 .andReturn()
 
             testContext.transactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(testContext.transactionResponse.transactionData).isEqualTo(testContext.transactionData)
+            assertThat(testContext.transactionResponse.tx).isEqualTo(testContext.transactionData)
             assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction/mint")
         }
 
@@ -90,7 +90,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
                 .andReturn()
 
             testContext.transactionResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(testContext.transactionResponse.transactionData).isEqualTo(testContext.transactionData)
+            assertThat(testContext.transactionResponse.tx).isEqualTo(testContext.transactionData)
             assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction/burn")
         }
 
@@ -202,7 +202,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
         val transactionData = TransactionData("data", "to", 22, 33, 44, amount, "pubg")
         val signedTransaction = "SignedTransaction"
         val txHash = "0xa2addee8b62501fb423c8e69a6867a02eaa021a16f66583050a5dd643ad7e41b"
-        lateinit var transactionResponse: TransactionResponse
+        lateinit var transactionResponse: TransactionAndLinkResponse
         lateinit var user: User
     }
 }

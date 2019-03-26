@@ -22,6 +22,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembers
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -72,6 +73,8 @@ abstract class ControllerTestBase : TestBase() {
     private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     protected lateinit var blockchainService: BlockchainService
+    @Autowired
+    protected lateinit var transactionInfoRepository: TransactionInfoRepository
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 
