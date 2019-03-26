@@ -125,14 +125,6 @@ class ProjectController(
         return ResponseEntity.ok(TransactionResponse(transaction))
     }
 
-    @PostMapping("/project/invest")
-    fun postTransaction(@RequestParam("d") signedTransaction: String): ResponseEntity<TxHashResponse> {
-        logger.debug { "Received request to post signed transaction for project investment" }
-        val txHash = projectInvestmentService.investInProject(signedTransaction)
-        logger.info { "Successfully posted signed transaction for project investment. TxHash: $txHash" }
-        return ResponseEntity.ok(TxHashResponse(txHash))
-    }
-
     @GetMapping("/project/{projectId}/invest/confirm")
     fun generateConfirmInvestTransaction(
         @PathVariable("projectId") projectId: Int
@@ -143,14 +135,6 @@ class ProjectController(
 
         val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
         return ResponseEntity.ok(TransactionResponse(transaction))
-    }
-
-    @PostMapping("/project/invest/confirm")
-    fun postConfirmTransaction(@RequestParam("d") signedTransaction: String): ResponseEntity<TxHashResponse> {
-        logger.debug { "Received request to post signed transaction for project confirm investment" }
-        val txHash = projectInvestmentService.confirmInvestment(signedTransaction)
-        logger.info { "Successfully posted signed transaction for project confirm investment. TxHash: $txHash" }
-        return ResponseEntity.ok(TxHashResponse(txHash))
     }
 
     private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {
