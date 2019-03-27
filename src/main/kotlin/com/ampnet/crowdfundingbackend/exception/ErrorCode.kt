@@ -11,15 +11,10 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
     REG_SOCIAL("01", "07", "Social exception"),
 
     // Authentication: 02
-    AUTH_MISSING_USER("02", "01", "Non existing user login"),
-    AUTH_INVALID_CRED("02", "02", "Invalid credentials"),
-    AUTH_INVALID_LOGIN_METHOD("02", "03", "Invalid login method"),
+    AUTH_INVALID_LOGIN_METHOD("02", "01", "Invalid login method"),
 
     // Users: 03
     USER_MISSING("03", "01", "Non existing user"),
-    USER_NOT_ADMIN("03", "02", "User does not have admin role"),
-    USER_INCOMPLETE_PROFILE("03", "03", "User profile is incomplete"),
-    USER_OTHER("03", "04", "User cannot access other user profile"),
 
     // Countries: 04
     COUNTRY_MISSING("04", "01", "No country with specified ID"),
@@ -37,7 +32,7 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
         "Failed invite user to organization without organization user role, privilege PW_USERS"),
     ORG_DUPLICATE_USER("06", "04", "User is already a member of this organization"),
     ORG_DUPLICATE_INVITE("06", "05", "User is already invited"),
-    ORG_DUPLICATE_NAME("06", "06", "Organization with this name alrady exists"),
+    ORG_DUPLICATE_NAME("06", "06", "Organization with this name already exists"),
 
     // Project: 07
     PRJ_MISSING("07", "01", "Non existing project"),
@@ -50,8 +45,7 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
     PRJ_MIN_ABOVE_MAX("07", "08",
         "Min investment per user is higher than max investment per user"),
     PRJ_MAX_FUNDS_TOO_HIGH("07", "09", "Expected funding is too high"),
-    PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "09", "Max funding per user is too high"),
-    PRJ_INVEST_FAILED("07", "10", "Could not invest to project"),
+    PRJ_MAX_FUNDS_PER_USER_TOO_HIGH("07", "10", "Max funding per user is too high"),
 
     // Internal: 08
     INT_IPFS("08", "01", "Could not upload document to IPFS"),
