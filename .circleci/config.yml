@@ -12,11 +12,9 @@ executors:
       JVM_OPTS: -Xmx3200m
       TERM: dumb
 
-jobs:
-  test:
-    executor: java-executor
+commands:
+  gradle-depenencies:
     steps:
-      - checkout
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "build.gradle" }}
@@ -27,15 +25,28 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
+  initialize-database:
+    steps:
       - run: sudo apt install -y postgresql-client || true
       - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
 
-      # Temporary to find problem: permission denied for relation flyway_schema_history
-      - run:
-          name: List all tables in database crowdfunding_test
-          command: |
-            psql -h localhost -U postgres -d crowdfunding_test -a -c "SELECT * FROM pg_catalog.pg_tables;" -o query.txt
-            cat query.txt
+  # Temporary to find problem: permission denied for relation flyway_schema_history
+  check-database-tables:
+    description: "List all tables in database crowdfunding_test"
+    steps:
+      - run: |
+          psql -h localhost -U postgres -d crowdfunding_test -a -c "SELECT * FROM pg_catalog.pg_tables;" -o query.txt
+          cat query.txt
+
+
+jobs:
+  test:
+    executor: java-executor
+    steps:
+      - checkout
+      - gradle-depenencies
+      - initialize-database
+      - check-database-tables
 
       - run:
           name: Run all tests
@@ -61,18 +72,9 @@ jobs:
           fingerprints:
             - "96:2c:54:e3:52:7c:c8:89:e3:0f:58:44:d8:be:71:fb"
       - checkout
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}
-            - v1-dependencies-
-      - run: gradle dependencies
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-
-      - run: sudo apt install -y postgresql-client || true
-      - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
+      - gradle-depenencies
+      - initialize-database
+      - check-database-tables
 
       - run: gradle build
 
