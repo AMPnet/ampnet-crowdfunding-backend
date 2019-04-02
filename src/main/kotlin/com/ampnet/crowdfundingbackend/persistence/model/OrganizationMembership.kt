@@ -28,7 +28,14 @@ data class OrganizationMembership(
     @Column(nullable = false)
     var createdAt: ZonedDateTime
 ) {
-    fun getPrivileges(): List<OrganizationPrivilegeType> {
-        return OrganizationRoleType.fromInt(role.id)?.getPrivileges().orEmpty()
-    }
+    private fun getPrivileges(): List<OrganizationPrivilegeType> =
+            OrganizationRoleType.fromInt(role.id)?.getPrivileges().orEmpty()
+
+    fun hasPrivilegeToSeeOrganizationUsers(): Boolean = getPrivileges().contains(OrganizationPrivilegeType.PR_USERS)
+
+    fun hasPrivilegeToWriteOrganizationUsers(): Boolean = getPrivileges().contains(OrganizationPrivilegeType.PW_USERS)
+
+    fun hasPrivilegeToWriteOrganization(): Boolean = getPrivileges().contains(OrganizationPrivilegeType.PW_ORG)
+
+    fun hasPrivilegeToWriteProject(): Boolean = getPrivileges().contains(OrganizationPrivilegeType.PW_PROJECT)
 }

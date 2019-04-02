@@ -8,8 +8,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationRespo
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
-import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -88,8 +86,10 @@ class OrganizationController(
         logger.debug { "Received request to get all users for organization: $id" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        organizationService.getOrganizationMemberships(id).find { it.userId == user.id }?.let {
-            return if (hasPrivilegeToSeeOrganizationUsers(it)) {
+        organizationService.getOrganizationMemberships(id)
+                .find { it.userId == user.id }
+                ?.let { orgMembership ->
+                return if (orgMembership.hasPrivilegeToSeeOrganizationUsers()) {
                 val users = organizationService.findAllUsersFromOrganization(id).map {
                     user -> OrganizationUserResponse(user)
                 }
@@ -139,14 +139,18 @@ class OrganizationController(
         logger.debug { "Received request to add document: ${file.name} to organization: $organizationId" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        organizationService.getOrganizationMemberships(organizationId).find { it.userId == user.id }?.let {
-            if (hasPrivilegeToWriteOrganization(it)) {
-                val documentSaveRequest = DocumentSaveRequest(file, user)
-                val document = organizationService.addDocument(it.organizationId, documentSaveRequest)
-                return ResponseEntity.ok(DocumentResponse(document))
-            }
-            logger.info { "User missing privilege 'OrganizationPrivilegeType.PW_ORG'! Membership: $it" }
-        }
+        organizationService.getOrganizationMemberships(organizationId)
+                .find { it.userId == user.id }
+                ?.let { orgMembership ->
+                    if (orgMembership.hasPrivilegeToWriteOrganization()) {
+                        val documentSaveRequest = DocumentSaveRequest(file, user)
+                        val document = organizationService
+                                .addDocument(orgMembership.organizationId, documentSaveRequest)
+                        return ResponseEntity.ok(DocumentResponse(document))
+                    }
+                    logger.info { "User missing privilege 'OrganizationPrivilegeType.PW_ORG'! " +
+                            "Membership: $orgMembership" }
+                }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
@@ -155,25 +159,18 @@ class OrganizationController(
         organizationId: Int,
         action: () -> (Unit)
     ): ResponseEntity<Unit> {
-        organizationService.getOrganizationMemberships(organizationId).find { it.userId == userId }?.let {
-            return if (hasPrivilegeToWriteOrganizationUsers(it)) {
-                action()
-                return ResponseEntity.ok().build()
-            } else {
-                logger.info { "User does not have organization privilege to write users: PW_USERS" }
-                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-            }
-        }
+        organizationService.getOrganizationMemberships(organizationId)
+                .find { it.userId == userId }
+                ?.let { orgMembership ->
+                    return if (orgMembership.hasPrivilegeToWriteOrganizationUsers()) {
+                        action()
+                        return ResponseEntity.ok().build()
+                    } else {
+                        logger.info { "User does not have organization privilege to write users: PW_USERS" }
+                        ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+                    }
+                }
         logger.info { "User $userId is not a member of organization $organizationId" }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
-
-    private fun hasPrivilegeToSeeOrganizationUsers(membership: OrganizationMembership): Boolean =
-        membership.getPrivileges().contains(OrganizationPrivilegeType.PR_USERS)
-
-    private fun hasPrivilegeToWriteOrganizationUsers(membership: OrganizationMembership): Boolean =
-            membership.getPrivileges().contains(OrganizationPrivilegeType.PW_USERS)
-
-    private fun hasPrivilegeToWriteOrganization(membership: OrganizationMembership): Boolean =
-            membership.getPrivileges().contains(OrganizationPrivilegeType.PW_ORG)
 }
