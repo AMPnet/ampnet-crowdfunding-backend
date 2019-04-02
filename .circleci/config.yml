@@ -37,7 +37,6 @@ jobs:
       - checkout
       - gradle-depenencies
       - initialize-database
-      - check-database-tables
 
       - run:
           name: Run all tests
@@ -64,7 +63,6 @@ jobs:
       - checkout
       - gradle-depenencies
       - initialize-database
-      - check-database-tables
 
       - run: gradle build
       - run:
