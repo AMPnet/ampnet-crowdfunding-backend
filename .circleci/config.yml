@@ -30,13 +30,6 @@ commands:
       - run: sudo apt install -y postgresql-client || true
       - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
 
-  # Temporary to find solution for problem: permission denied for relation flyway_schema_history
-  check-database-tables:
-    description: "Grant all privileges on test database to test user and role"
-    steps:
-      - run: psql -h localhost -U postgres -d crowdfunding_test -a -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO crowdfunding_test;"
-      - run: psql -h localhost -U postgres -d crowdfunding_test -a -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cf_role;"
-
 jobs:
   test:
     executor: java-executor
