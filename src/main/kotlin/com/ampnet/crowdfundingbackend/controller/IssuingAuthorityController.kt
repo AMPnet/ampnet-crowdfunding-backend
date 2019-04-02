@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionR
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionAndLinkResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
@@ -37,7 +38,7 @@ class IssuingAuthorityController(
         val userWalletHash = getUserWalletHashFromEmail(email)
 
         val transaction = blockchainService.generateMintTransaction(from, userWalletHash, amount)
-        val link = transactionTypeLink + IssuerTransactionType.mint
+        val link = transactionTypeLink + IssuerTransactionType.MINT.value
         logger.info { "Successfully generated mint transaction" }
 
         return ResponseEntity.ok(TransactionAndLinkResponse(transaction, link))
@@ -53,7 +54,7 @@ class IssuingAuthorityController(
         val userWalletHash = getUserWalletHashFromEmail(email)
 
         val transaction = blockchainService.generateBurnTransaction(from, userWalletHash, amount)
-        val link = transactionTypeLink + IssuerTransactionType.burn
+        val link = transactionTypeLink + IssuerTransactionType.BURN.value
         logger.info { "Successfully generated burn transaction" }
 
         return ResponseEntity.ok(TransactionAndLinkResponse(transaction, link))
@@ -62,13 +63,13 @@ class IssuingAuthorityController(
     @PostMapping("/issuer/transaction/{type}")
     fun postTransaction(
         @RequestBody request: SignedTransactionRequest,
-        @PathVariable(value = "type") type: IssuerTransactionType
+        @PathVariable(value = "type") type: String
     ): ResponseEntity<TxHashResponse> {
-        // TODO: think about using the same RequestParam d, same as for vault transactions
         logger.info { "Received request to post issuer transaction, type = $type" }
         val postTransactionType = when (type) {
-            IssuerTransactionType.burn -> PostTransactionType.ISSUER_BURN
-            IssuerTransactionType.mint -> PostTransactionType.ISSUER_MINT
+            IssuerTransactionType.BURN.value -> PostTransactionType.ISSUER_BURN
+            IssuerTransactionType.MINT.value -> PostTransactionType.ISSUER_MINT
+            else -> throw InvalidRequestException(ErrorCode.INT_INVALID_VALUE, "Invalid type value")
         }
         val txHash = blockchainService.postTransaction(request.data, postTransactionType)
         logger.info { "Issuer successfully posted transaction, type = $type. TxHash = $txHash" }
@@ -83,7 +84,7 @@ class IssuingAuthorityController(
             ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have a wallet")
     }
 
-    enum class IssuerTransactionType {
-        mint, burn
+    enum class IssuerTransactionType(val value: String) {
+        MINT("mint"), BURN("burn")
     }
 }
