@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListRespon
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
-import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
@@ -67,8 +66,8 @@ class ProjectController(
         logger.debug { "Received request to create project: $request" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        getUserMembershipInOrganization(user.id, request.organizationId)?.let {
-            return if (hasPrivilegeToWriteProject(it)) {
+        getUserMembershipInOrganization(user.id, request.organizationId)?.let { orgMembership ->
+            return if (orgMembership.hasPrivilegeToWriteProject()) {
                 val project = createProject(request, user)
                 ResponseEntity.ok(project)
             } else {
@@ -96,11 +95,11 @@ class ProjectController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
-        getUserMembershipInOrganization(user.id, project.organization.id)?.let {
-            return if (hasPrivilegeToWriteProject(it)) {
+        getUserMembershipInOrganization(user.id, project.organization.id)?.let { orgMembership ->
+            return if (orgMembership.hasPrivilegeToWriteProject()) {
                 val request = DocumentSaveRequest(file, user)
                 val document = projectService.addDocument(project.id, request)
-                return ResponseEntity.ok(DocumentResponse(document))
+                ResponseEntity.ok(DocumentResponse(document))
             } else {
                 logger.info { "User does not have organization privilege to write users: PW_PROJECT" }
                 ResponseEntity.status(HttpStatus.FORBIDDEN).build()
@@ -159,9 +158,6 @@ class ProjectController(
 
     private fun getUserMembershipInOrganization(userId: Int, organizationId: Int): OrganizationMembership? =
             organizationService.getOrganizationMemberships(organizationId).find { it.userId == userId }
-
-    private fun hasPrivilegeToWriteProject(membership: OrganizationMembership): Boolean =
-            membership.getPrivileges().contains(OrganizationPrivilegeType.PW_PROJECT)
 
     private fun getProjectById(projectId: Int): Project =
         projectService.getProjectById(projectId)

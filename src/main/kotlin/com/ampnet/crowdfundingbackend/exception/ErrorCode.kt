@@ -49,6 +49,7 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
 
     // Internal: 08
     INT_IPFS("08", "01", "Could not upload document to IPFS"),
+    INT_INVALID_VALUE("08", "02", "Invalid value in request"),
     INT_GRPC("08", "50", "Failed gRPC call"),
 
     // Transaction: 09

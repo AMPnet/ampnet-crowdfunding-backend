@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepo
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateTransactionRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class TransactionInfoServiceImpl(
@@ -24,6 +25,7 @@ class TransactionInfoServiceImpl(
     private val investTitle = "Invest"
     private val investDescription = "You are signing transaction to confirm investment to project: %s"
 
+    @Transactional
     override fun createOrgTransaction(organization: Organization, userId: Int): TransactionInfo {
         val description = createOrgDescription.format(organization.name)
         val request = CreateTransactionRequest(
@@ -31,6 +33,7 @@ class TransactionInfoServiceImpl(
         return createTransaction(request)
     }
 
+    @Transactional
     override fun createProjectTransaction(project: Project, userId: Int): TransactionInfo {
         val description = createProjectDescription.format(project.name)
         val request = CreateTransactionRequest(
@@ -38,6 +41,7 @@ class TransactionInfoServiceImpl(
         return createTransaction(request)
     }
 
+    @Transactional
     override fun createInvestAllowanceTransaction(projectName: String, amount: Long, userId: Int): TransactionInfo {
         val description = investAllowanceDescription.format(projectName, amount.toDouble().div(100))
         val request = CreateTransactionRequest(
@@ -45,6 +49,7 @@ class TransactionInfoServiceImpl(
         return createTransaction(request)
     }
 
+    @Transactional
     override fun createInvestTransaction(projectName: String, userId: Int): TransactionInfo {
         val description = investDescription.format(projectName)
         val request = CreateTransactionRequest(
@@ -52,10 +57,12 @@ class TransactionInfoServiceImpl(
         return createTransaction(request)
     }
 
+    @Transactional
     override fun deleteTransaction(id: Int) {
         transactionInfoRepository.deleteById(id)
     }
 
+    @Transactional(readOnly = true)
     override fun findTransactionInfo(id: Int): TransactionInfo? =
             ServiceUtils.wrapOptional(transactionInfoRepository.findById(id))
 
