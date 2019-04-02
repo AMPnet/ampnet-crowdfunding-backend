@@ -99,7 +99,7 @@ class ProjectController(
             return if (orgMembership.hasPrivilegeToWriteProject()) {
                 val request = DocumentSaveRequest(file, user)
                 val document = projectService.addDocument(project.id, request)
-                return ResponseEntity.ok(DocumentResponse(document))
+                ResponseEntity.ok(DocumentResponse(document))
             } else {
                 logger.info { "User does not have organization privilege to write users: PW_PROJECT" }
                 ResponseEntity.status(HttpStatus.FORBIDDEN).build()

@@ -164,7 +164,7 @@ class OrganizationController(
                 ?.let { orgMembership ->
                     return if (orgMembership.hasPrivilegeToWriteOrganizationUsers()) {
                         action()
-                        return ResponseEntity.ok().build()
+                        ResponseEntity.ok().build()
                     } else {
                         logger.info { "User does not have organization privilege to write users: PW_USERS" }
                         ResponseEntity.status(HttpStatus.FORBIDDEN).build()
