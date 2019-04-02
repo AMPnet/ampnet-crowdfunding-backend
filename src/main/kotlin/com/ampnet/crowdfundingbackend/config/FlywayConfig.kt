@@ -23,7 +23,7 @@ class FlywayConfig {
     fun flyway(): Flyway {
         val flywayConfig = Flyway.configure()
             .dataSource(databaseUrl, username, password)
-//            .initSql("SET ROLE $role")
+            .initSql("SET ROLE $role")
         val flyway = flywayConfig.load()
         flyway.migrate()
         return flyway
