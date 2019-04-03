@@ -4,9 +4,11 @@ executors:
   java-executor:
     docker:
       - image: circleci/openjdk:8-jdk
-      - image: circleci/postgres:10.5
+      - image: circleci/postgres:10.7-ram
         environment:
-          POSTGRES_USER: postgres
+          POSTGRES_USER: crowdfunding_test
+          POSTGRES_DB: crowdfunding_test
+          POSTGRES_PASSWORD: password
     working_directory: ~/repo
     environment:
       JVM_OPTS: -Xmx3200m
@@ -25,26 +27,12 @@ commands:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
-  initialize-database:
-    steps:
-      - run: sudo apt install -y postgresql-client || true
-      - run: psql -h localhost -U postgres -a -f etc/flyway/init/create_databases.sql
-
-  # Temporary to find solution for problem: permission denied for relation flyway_schema_history
-  check-database-tables:
-    description: "Grant all privileges on test database to test user and role"
-    steps:
-      - run: psql -h localhost -U postgres -d crowdfunding_test -a -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO crowdfunding_test;"
-      - run: psql -h localhost -U postgres -d crowdfunding_test -a -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cf_role;"
-
 jobs:
   test:
     executor: java-executor
     steps:
       - checkout
       - gradle-depenencies
-      - initialize-database
-      - check-database-tables
 
       - run:
           name: Run all tests
@@ -70,8 +58,6 @@ jobs:
             - "96:2c:54:e3:52:7c:c8:89:e3:0f:58:44:d8:be:71:fb"
       - checkout
       - gradle-depenencies
-      - initialize-database
-      - check-database-tables
 
       - run: gradle build
       - run:
