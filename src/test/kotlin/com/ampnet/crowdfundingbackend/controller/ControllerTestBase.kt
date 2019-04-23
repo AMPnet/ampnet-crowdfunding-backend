@@ -193,14 +193,14 @@ abstract class ControllerTestBase : TestBase() {
 
     protected fun saveDocument(
         name: String,
-        hash: String,
+        link: String,
         type: String,
         size: Int,
         createdBy: User
     ): Document {
         val document = Document::class.java.getDeclaredConstructor().newInstance()
         document.name = name
-        document.hash = hash
+        document.link = link
         document.type = type
         document.size = size
         document.createdBy = createdBy

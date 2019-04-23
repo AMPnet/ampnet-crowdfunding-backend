@@ -22,7 +22,7 @@ class DocumentServiceImpl(
         logger.debug { "Successfully stored document on cloud: $fileLink" }
 
         val document = Document::class.java.getDeclaredConstructor().newInstance()
-        document.hash = fileLink
+        document.link = fileLink
         document.name = request.name
         document.size = request.size
         document.createdAt = ZonedDateTime.now()

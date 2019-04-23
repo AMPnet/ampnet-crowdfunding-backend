@@ -19,7 +19,7 @@ data class Document(
     val id: Int,
 
     @Column(nullable = false)
-    var hash: String,
+    var link: String,
 
     @Column(nullable = false)
     var name: String,

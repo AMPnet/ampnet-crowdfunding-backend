@@ -5,7 +5,7 @@ import java.time.ZonedDateTime
 
 data class DocumentResponse(
     val id: Int,
-    val hash: String,
+    val link: String,
     val name: String,
     val type: String,
     val size: Int,
@@ -13,7 +13,7 @@ data class DocumentResponse(
 ) {
     constructor(document: Document) : this(
             document.id,
-            document.hash,
+            document.link,
             document.name,
             document.type,
             document.size,

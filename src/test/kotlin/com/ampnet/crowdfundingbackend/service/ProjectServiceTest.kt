@@ -129,7 +129,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("Main image is added to project") {
-            testContext.image = "hash-main-image"
+            testContext.image = "link-main-image"
             projectService.addMainImage(testContext.project, testContext.image)
         }
 
@@ -152,7 +152,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("Two images are added to project gallery") {
-            testContext.gallery = listOf("hash-1", "hash-2")
+            testContext.gallery = listOf("link-1", "link-2")
             projectService.addImagesToGallery(testContext.project, testContext.gallery)
         }
 
@@ -175,11 +175,11 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("The has gallery") {
-            testContext.gallery = listOf("hash-1", "hash-2")
+            testContext.gallery = listOf("link-1", "link-2")
             projectService.addImagesToGallery(testContext.project, testContext.gallery)
         }
         suppose("Additional image is added to gallery") {
-            testContext.image = "hash-new"
+            testContext.image = "link-new"
             projectService.addImagesToGallery(testContext.project, listOf(testContext.image))
         }
 

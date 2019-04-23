@@ -121,7 +121,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.organization = createOrganization("test organization", user)
         }
         suppose("Organization has document") {
-            createOrganizationDocument(testContext.organization, user, "name", testContext.documentHash)
+            createOrganizationDocument(testContext.organization, user, "name", testContext.documentLink)
         }
         suppose("Organization has a wallet") {
             databaseCleanerService.deleteAllWallets()
@@ -423,7 +423,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
 //            Mockito.`when`(ipfsService.storeData(testContext.multipartFile.bytes, testContext.multipartFile.name))
-//                    .thenReturn(IpfsFile(testContext.documentHash, testContext.multipartFile.name, null))
+//                    .thenReturn(IpfsFile(testContext.documentLink, testContext.multipartFile.name, null))
         }
 
         verify("User can add document to organization") {
@@ -440,7 +440,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
 
             // TODO: fix
-//            assertThat(documentResponse.hash).isEqualTo(testContext.documentHash)
+//            assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
         }
         verify("Document is stored in database and connected to organization") {
             val organizationWithDocument = organizationService.findOrganizationById(testContext.organization.id)
@@ -452,7 +452,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
 
             // TODO: fix
-//            assertThat(document.hash).isEqualTo(testContext.documentHash)
+//            assertThat(document.link).isEqualTo(testContext.documentLink)
         }
     }
 
@@ -470,11 +470,11 @@ class OrganizationControllerTest : ControllerTestBase() {
         organization: Organization,
         createdBy: User,
         name: String,
-        hash: String,
+        link: String,
         type: String = "document/type",
         size: Int = 100
     ): Document {
-        val savedDocument = saveDocument(name, hash, type, size, createdBy)
+        val savedDocument = saveDocument(name, link, type, size, createdBy)
         val documents = organization.documents.orEmpty().toMutableList()
         documents.add(savedDocument)
         organization.documents = documents
@@ -487,7 +487,7 @@ class OrganizationControllerTest : ControllerTestBase() {
         var organizationId: Int = -1
         lateinit var organization: Organization
         lateinit var user2: User
-        val documentHash = "hashos"
+        val documentLink = "link"
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
     }

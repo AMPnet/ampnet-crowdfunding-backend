@@ -103,7 +103,7 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.project = createProject("My project", organization, user)
         }
         suppose("Project has a document") {
-            testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentHash)
+            testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentLink)
         }
         suppose("Project has a wallet") {
             createWalletForProject(testContext.project, testContext.walletHash)
@@ -121,7 +121,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(projectResponse.documents).hasSize(1)
             val documentResponse = projectResponse.documents[0]
             assertThat(documentResponse.id).isEqualTo(testContext.document.id)
-            assertThat(documentResponse.hash).isEqualTo(testContext.document.hash)
+            assertThat(documentResponse.link).isEqualTo(testContext.document.link)
             assertThat(documentResponse.type).isEqualTo(testContext.document.type)
             assertThat(documentResponse.size).isEqualTo(testContext.document.size)
             assertThat(documentResponse.name).isEqualTo(testContext.document.name)
@@ -317,7 +317,7 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
 //            Mockito.`when`(ipfsService.storeData(testContext.multipartFile.bytes, testContext.multipartFile.name))
-//                    .thenReturn(IpfsFile(testContext.documentHash, testContext.multipartFile.name, null))
+//                    .thenReturn(IpfsFile(testContext.documentLink, testContext.multipartFile.name, null))
         }
 
         verify("User can add document") {
@@ -334,7 +334,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
 
             // TODO: fix
-//            assertThat(documentResponse.hash).isEqualTo(testContext.documentHash)
+//            assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
         }
         verify("Document is stored in database and connected to project") {
             val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
@@ -348,7 +348,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
 
             // TODO: fix
-//            assertThat(document.hash).isEqualTo(testContext.documentHash)
+//            assertThat(document.link).isEqualTo(testContext.documentLink)
         }
     }
 
@@ -478,11 +478,11 @@ class ProjectControllerTest : ControllerTestBase() {
         project: Project,
         createdBy: User,
         name: String,
-        hash: String,
+        link: String,
         type: String = "document/type",
         size: Int = 100
     ): Document {
-        val savedDocument = saveDocument(name, hash, type, size, createdBy)
+        val savedDocument = saveDocument(name, link, type, size, createdBy)
         val documents = project.documents.orEmpty().toMutableList()
         documents.add(savedDocument)
         project.documents = documents
@@ -497,7 +497,7 @@ class ProjectControllerTest : ControllerTestBase() {
         lateinit var projectResponse: ProjectResponse
         lateinit var multipartFile: MockMultipartFile
         lateinit var document: Document
-        val documentHash = "hashos"
+        val documentLink = "link"
         var projectId: Int = -1
         val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         val walletBalance = 100L

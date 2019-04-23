@@ -246,7 +246,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             assertThat(organizationWithDocument).isNotNull
             assertThat(organizationWithDocument!!.id).isEqualTo(organization.id)
             assertThat(organizationWithDocument.documents).hasSize(3)
-            assertThat(organizationWithDocument.documents!!.map { it.hash }).containsAll(listOf("0x01", "0x02", "0x03"))
+            assertThat(organizationWithDocument.documents!!.map { it.link }).containsAll(listOf("0x01", "0x02", "0x03"))
         }
     }
 
@@ -283,7 +283,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             assertThat(document.type).isEqualTo(testContext.documentSaveRequest.type)
 
             // TODO: fix
-//            assertThat(document.hash).isEqualTo(testContext.documentHash)
+//            assertThat(document.link).isEqualTo(testContext.documentHash)
             assertThat(document.createdBy.id).isEqualTo(user.id)
             assertThat(document.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
         }
@@ -293,7 +293,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             assertThat(organizationWithDocuments!!.documents).hasSize(3)
 
             // TODO: fix
-//            assertThat(organizationWithDocuments.documents!!.map { it.hash }).contains(testContext.documentHash)
+//            assertThat(organizationWithDocuments.documents!!.map { it.link }).contains(testContext.documentHash)
         }
     }
 
@@ -310,7 +310,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
     private fun verifyDocument(receivedDocument: Document, savedDocument: Document) {
         assertThat(receivedDocument.id).isEqualTo(savedDocument.id)
-        assertThat(receivedDocument.hash).isEqualTo(savedDocument.hash)
+        assertThat(receivedDocument.link).isEqualTo(savedDocument.link)
         assertThat(receivedDocument.name).isEqualTo(savedDocument.name)
         assertThat(receivedDocument.size).isEqualTo(savedDocument.size)
         assertThat(receivedDocument.type).isEqualTo(savedDocument.type)
@@ -338,7 +338,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     ): Document {
         val document = Document::class.java.newInstance()
         document.name = name
-        document.hash = hash
+        document.link = hash
         document.type = type
         document.size = size
         document.createdBy = createdBy
