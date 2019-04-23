@@ -10,7 +10,6 @@ import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
-import com.ampnet.crowdfundingbackend.ipfs.IpfsService
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
@@ -47,11 +46,10 @@ import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
-@ActiveProfiles("MailMockConfig, IpfsMockConfig, BlockchainServiceMockConfig")
+@ActiveProfiles("MailMockConfig, BlockchainServiceMockConfig")
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
-    protected val transactionParam = "d"
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
@@ -67,8 +65,6 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var projectRepository: ProjectRepository
     @Autowired
     protected lateinit var organizationRepository: OrganizationRepository
-    @Autowired
-    protected lateinit var ipfsService: IpfsService
     @Autowired
     private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired

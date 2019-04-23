@@ -3,7 +3,6 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
-import com.ampnet.crowdfundingbackend.ipfs.IpfsServiceImpl
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
@@ -15,15 +14,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito
 import java.time.ZonedDateTime
 
 class ProjectServiceTest : JpaServiceTestBase() {
 
-    private val ipfsService: IpfsServiceImpl = Mockito.mock(IpfsServiceImpl::class.java)
-
     private val projectService: ProjectServiceImpl by lazy {
-        val documentServiceImpl = DocumentServiceImpl(documentRepository, ipfsService)
+        val documentServiceImpl = DocumentServiceImpl(documentRepository)
         ProjectServiceImpl(projectRepository, documentServiceImpl)
     }
     private val user: User by lazy {

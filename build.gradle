@@ -92,7 +92,6 @@ dependencies {
     compile('org.flywaydb:flyway-core:5.2.4')
     compile('org.postgresql:postgresql:42.2.5')
     compile('io.github.microutils:kotlin-logging:1.6.25')
-    compile('com.github.ipfs:java-ipfs-http-client:v1.2.3')
 
     compile('net.devh:grpc-client-spring-boot-starter:2.2.1.RELEASE') exclude group: 'io.grpc', module: 'grpc-netty'
     compile("io.grpc:grpc-netty-shaded:${grpcVersion}")
