@@ -92,6 +92,7 @@ dependencies {
     compile('org.flywaydb:flyway-core:5.2.4')
     compile('org.postgresql:postgresql:42.2.5')
     compile('io.github.microutils:kotlin-logging:1.6.25')
+    compile('software.amazon.awssdk:s3:2.5.27')
 
     compile('net.devh:grpc-client-spring-boot-starter:2.2.1.RELEASE') exclude group: 'io.grpc', module: 'grpc-netty'
     compile("io.grpc:grpc-netty-shaded:${grpcVersion}")
@@ -167,7 +168,7 @@ jacocoTestReport {
     }
     sourceDirectories.from = files(["${project.projectDir}/src/main/kotlin"])
     classDirectories.from = fileTree(dir: "${buildDir}/classes/kotlin/main", 
-        excludes: ['**/model/**', '**/pojo/**', '**/blockchain/**', '**/ipfs/**'])
+        excludes: ['**/model/**', '**/pojo/**', '**/blockchain/**'])
 }
 
 jacocoTestCoverageVerification {

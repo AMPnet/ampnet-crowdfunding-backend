@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration
 class ApplicationProperties {
     var jwt: JwtProperties = JwtProperties()
     val mail: MailProperties = MailProperties()
+    val fileStorage: FileStorageProperties = FileStorageProperties()
 }
 
 class JwtProperties {
@@ -22,3 +23,8 @@ class MailProperties {
     var enabled: Boolean = false
 }
 
+class FileStorageProperties {
+    lateinit var url: String
+    lateinit var bucket: String
+    lateinit var folder: String
+}

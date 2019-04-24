@@ -313,11 +313,12 @@ class ProjectControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllOrganizationMemberships()
             addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
-        suppose("IPFS will store document") {
+        suppose("File service will store document") {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
-//            Mockito.`when`(ipfsService.storeData(testContext.multipartFile.bytes, testContext.multipartFile.name))
-//                    .thenReturn(IpfsFile(testContext.documentLink, testContext.multipartFile.name, null))
+            Mockito.`when`(
+                    fileStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+            ).thenReturn(testContext.documentLink)
         }
 
         verify("User can add document") {
@@ -332,9 +333,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
             assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
-
-            // TODO: fix
-//            assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
+            assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
         }
         verify("Document is stored in database and connected to project") {
             val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
@@ -346,9 +345,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(document.name).isEqualTo(testContext.multipartFile.name)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
-
-            // TODO: fix
-//            assertThat(document.link).isEqualTo(testContext.documentLink)
+            assertThat(document.link).isEqualTo(testContext.documentLink)
         }
     }
 

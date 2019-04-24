@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.service.DocumentService
+import com.ampnet.crowdfundingbackend.service.FileStorageService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -10,7 +11,8 @@ import java.time.ZonedDateTime
 
 @Service
 class DocumentServiceImpl(
-    private val documentRepository: DocumentRepository
+    private val documentRepository: DocumentRepository,
+    private val fileStorageService: FileStorageService
 ) : DocumentService {
 
     companion object : KLogging()
@@ -18,7 +20,7 @@ class DocumentServiceImpl(
     override fun saveDocument(request: DocumentSaveRequest): Document {
         logger.debug { "Storing document: $request" }
 
-        val fileLink = storeOnCloud()
+        val fileLink = storeOnCloud(request.name, request.data)
         logger.debug { "Successfully stored document on cloud: $fileLink" }
 
         val document = Document::class.java.getDeclaredConstructor().newInstance()
@@ -31,7 +33,7 @@ class DocumentServiceImpl(
         return documentRepository.save(document)
     }
 
-    private fun storeOnCloud(): String {
-        return "link"
+    private fun storeOnCloud(name: String, content: ByteArray): String {
+        return fileStorageService.saveFile(name, content)
     }
 }

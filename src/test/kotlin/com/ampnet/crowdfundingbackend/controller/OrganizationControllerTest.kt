@@ -419,11 +419,12 @@ class OrganizationControllerTest : ControllerTestBase() {
         suppose("User is an admin of organization") {
             addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
         }
-        suppose("IPFS will store document") {
+        suppose("File storage will store document") {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
-//            Mockito.`when`(ipfsService.storeData(testContext.multipartFile.bytes, testContext.multipartFile.name))
-//                    .thenReturn(IpfsFile(testContext.documentLink, testContext.multipartFile.name, null))
+            Mockito.`when`(
+                    fileStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+            ).thenReturn(testContext.documentLink)
         }
 
         verify("User can add document to organization") {
@@ -438,9 +439,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
             assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
-
-            // TODO: fix
-//            assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
+            assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
         }
         verify("Document is stored in database and connected to organization") {
             val organizationWithDocument = organizationService.findOrganizationById(testContext.organization.id)
@@ -450,9 +449,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(document.name).isEqualTo(testContext.multipartFile.name)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
-
-            // TODO: fix
-//            assertThat(document.link).isEqualTo(testContext.documentLink)
+            assertThat(document.link).isEqualTo(testContext.documentLink)
         }
     }
 
