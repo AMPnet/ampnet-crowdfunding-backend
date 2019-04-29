@@ -86,22 +86,12 @@ class OrganizationController(
         logger.debug { "Received request to get all users for organization: $id" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        organizationService.getOrganizationMemberships(id)
-                .find { it.userId == user.id }
-                ?.let { orgMembership ->
-                return if (orgMembership.hasPrivilegeToSeeOrganizationUsers()) {
-                val users = organizationService.findAllUsersFromOrganization(id).map {
-                    user -> OrganizationUserResponse(user)
-                }
-                ResponseEntity.ok(OrganizationUsersListResponse(users))
-            } else {
-                logger.info { "User does not have organization privilege to read users: PR_USERS" }
-                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, id) {
+            val users = organizationService.findAllUsersFromOrganization(id).map {
+                user -> OrganizationUserResponse(user)
             }
+            OrganizationUsersListResponse(users)
         }
-
-        logger.info { "User ${user.id} is not a member of organization $id" }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
     @PostMapping("/organization/{id}/invite")
@@ -112,9 +102,10 @@ class OrganizationController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         logger.debug { "Received request to invited user to organization $id by user: ${user.email}" }
 
-        return ifUserHasPrivilegeWriteUserInOrganizationThenDo(user.id, id) {
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, id) {
             val serviceRequest = OrganizationInviteServiceRequest(request, id, user)
             organizationService.inviteUserToOrganization(serviceRequest)
+            Unit
         }
     }
 
@@ -126,7 +117,7 @@ class OrganizationController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         logger.debug { "Received request to invited user to organization $organizationId by user: ${user.email}" }
 
-        return ifUserHasPrivilegeWriteUserInOrganizationThenDo(user.id, organizationId) {
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, organizationId) {
             organizationService.revokeInvitationToJoinOrganization(organizationId, revokeUserId)
         }
     }
@@ -139,32 +130,24 @@ class OrganizationController(
         logger.debug { "Received request to add document: ${file.name} to organization: $organizationId" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        organizationService.getOrganizationMemberships(organizationId)
-                .find { it.userId == user.id }
-                ?.let { orgMembership ->
-                    if (orgMembership.hasPrivilegeToWriteOrganization()) {
-                        val documentSaveRequest = DocumentSaveRequest(file, user)
-                        val document = organizationService
-                                .addDocument(orgMembership.organizationId, documentSaveRequest)
-                        return ResponseEntity.ok(DocumentResponse(document))
-                    }
-                    logger.info { "User missing privilege 'OrganizationPrivilegeType.PW_ORG'! " +
-                            "Membership: $orgMembership" }
-                }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, organizationId) {
+            val documentSaveRequest = DocumentSaveRequest(file, user)
+            val document = organizationService.addDocument(organizationId, documentSaveRequest)
+            DocumentResponse(document)
+        }
     }
 
-    private fun ifUserHasPrivilegeWriteUserInOrganizationThenDo(
+    private fun <T> ifUserHasPrivilegeWriteUserInOrganizationThenReturn(
         userId: Int,
         organizationId: Int,
-        action: () -> (Unit)
-    ): ResponseEntity<Unit> {
+        action: () -> (T)
+    ): ResponseEntity<T> {
         organizationService.getOrganizationMemberships(organizationId)
                 .find { it.userId == userId }
                 ?.let { orgMembership ->
                     return if (orgMembership.hasPrivilegeToWriteOrganizationUsers()) {
-                        action()
-                        ResponseEntity.ok().build()
+                        val response = action()
+                        ResponseEntity.ok(response)
                     } else {
                         logger.info { "User does not have organization privilege to write users: PW_USERS" }
                         ResponseEntity.status(HttpStatus.FORBIDDEN).build()
