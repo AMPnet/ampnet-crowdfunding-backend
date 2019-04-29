@@ -40,5 +40,10 @@ class StorageServiceImpl(
         return link
     }
 
+    override fun deleteImage(link: String) {
+        logger.debug { "Deleting image: $link" }
+        cloudStorageService.deleteFile(link)
+    }
+
     private fun storeOnCloud(name: String, content: ByteArray): String = cloudStorageService.saveFile(name, content)
 }

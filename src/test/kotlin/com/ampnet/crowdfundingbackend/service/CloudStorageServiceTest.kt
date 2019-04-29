@@ -38,6 +38,12 @@ class CloudStorageServiceTest {
         assertThat(link).isNotBlank()
     }
 
+    @Disabled("Not for automated testing")
+    @Test
+    fun testDelete() {
+        service.deleteFile("https://ampnet-storage.ams3.digitaloceanspaces.com/test/test.txt")
+    }
+
     @Test
     fun getKeyForNameTest() {
         val name = "test.txt"
@@ -58,5 +64,12 @@ class CloudStorageServiceTest {
         val link = service.getFileLink(key)
         val expectedLink = "https://ampnet-storage.ams3.digitaloceanspaces.com/test/$key"
         assertThat(link).isEqualTo(expectedLink)
+    }
+
+    @Test
+    fun getKeyFromLink() {
+        val link = "https://ampnet-storage.ams3.digitaloceanspaces.com/test/test.txt-1556032201"
+        val key = service.getKeyFromLink(link)
+        assertThat(key).isEqualTo("test/test.txt-1556032201")
     }
 }

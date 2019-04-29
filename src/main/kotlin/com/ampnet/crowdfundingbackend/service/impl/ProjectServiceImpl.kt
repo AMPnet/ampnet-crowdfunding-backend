@@ -82,7 +82,7 @@ class ProjectServiceImpl(
         val gallery = project.gallery.orEmpty().toMutableList()
         if (gallery.remove(imageLink)) {
             setProjectGallery(project, gallery)
-            // TODO: remove from cloud
+            storageService.deleteImage(imageLink)
         }
     }
 
