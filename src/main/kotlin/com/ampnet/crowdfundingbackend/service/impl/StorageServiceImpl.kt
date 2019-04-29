@@ -18,7 +18,7 @@ class StorageServiceImpl(
     companion object : KLogging()
 
     override fun saveDocument(request: DocumentSaveRequest): Document {
-        logger.debug { "Storing document: $request" }
+        logger.debug { "Storing document: ${request.name}" }
 
         val fileLink = storeOnCloud(request.name, request.data)
         logger.debug { "Successfully stored document on cloud: $fileLink" }
@@ -33,6 +33,12 @@ class StorageServiceImpl(
         return documentRepository.save(document)
     }
 
-    private fun storeOnCloud(name: String, content: ByteArray): String = cloudStorageService.saveFile(name, content)
+    override fun saveImage(name: String, content: ByteArray): String {
+        logger.debug { "Storing image: $name" }
+        val link = storeOnCloud(name, content)
+        logger.debug { "Successfully stored image on cloud: $link" }
+        return link
+    }
 
+    private fun storeOnCloud(name: String, content: ByteArray): String = cloudStorageService.saveFile(name, content)
 }

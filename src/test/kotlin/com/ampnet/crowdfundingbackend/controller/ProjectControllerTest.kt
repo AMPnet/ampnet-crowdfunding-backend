@@ -26,6 +26,7 @@ import org.mockito.Mockito
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -350,6 +351,100 @@ class ProjectControllerTest : ControllerTestBase() {
     }
 
     @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToAddMainImage() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("File service will store image") {
+            testContext.multipartFile = MockMultipartFile("image", "image.png",
+                    "image/png", "ImageData".toByteArray())
+            Mockito.`when`(
+                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+            ).thenReturn(testContext.imageLink)
+        }
+
+        verify("User can add main image") {
+            mockMvc.perform(
+                    RestDocumentationRequestBuilders.fileUpload("$projectPath/${testContext.project.id}/image/main")
+                            .file(testContext.multipartFile))
+                    .andExpect(status().isOk)
+        }
+        verify("Document is stored in database and connected to project") {
+            val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            assertThat(optionalProject.get().mainImage).isEqualTo(testContext.imageLink)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToAddGalleryImage() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("File service will store image") {
+            testContext.multipartFile = MockMultipartFile("image", "image.png",
+                    "image/png", "ImageData".toByteArray())
+            Mockito.`when`(
+                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+            ).thenReturn(testContext.imageLink)
+        }
+
+        verify("User can add main image") {
+            mockMvc.perform(
+                    RestDocumentationRequestBuilders.fileUpload("$projectPath/${testContext.project.id}/image/gallery")
+                            .file(testContext.multipartFile))
+                    .andExpect(status().isOk)
+        }
+        verify("Document is stored in database and connected to project") {
+            val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            assertThat(optionalProject.get().gallery).contains(testContext.imageLink)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToRemoveGalleryImage() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Project has gallery images") {
+            testContext.project.gallery = listOf("image-link-1", "image-link-2", "image-link-3")
+            projectRepository.save(testContext.project)
+        }
+
+        verify("User can add main image") {
+            mockMvc.perform(
+                    delete("$projectPath/${testContext.project.id}/image/gallery")
+                            .param("image-link", "image-link-1"))
+                    .andExpect(status().isOk)
+        }
+        verify("Document is stored in database and connected to project") {
+            val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            assertThat(optionalProject.get().gallery).contains("image-link-2", "image-link-3")
+            assertThat(optionalProject.get().gallery).doesNotContain("image-link-1")
+        }
+    }
+
+    @Test
     @WithMockCrowdfoundUser(email = "user@with.wallet")
     fun mustBeAbleToGenerateInvestmentTransaction() {
         suppose("Project exists") {
@@ -495,6 +590,7 @@ class ProjectControllerTest : ControllerTestBase() {
         lateinit var multipartFile: MockMultipartFile
         lateinit var document: Document
         val documentLink = "link"
+        val imageLink = "image-link"
         var projectId: Int = -1
         val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         val walletBalance = 100L

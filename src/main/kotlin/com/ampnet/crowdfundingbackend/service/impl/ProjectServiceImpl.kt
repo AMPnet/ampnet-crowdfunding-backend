@@ -63,17 +63,27 @@ class ProjectServiceImpl(
     }
 
     @Transactional
-    override fun addMainImage(project: Project, mainImage: String) {
-        project.mainImage = mainImage
+    override fun addMainImage(project: Project, name: String, content: ByteArray) {
+        val link = storageService.saveImage(name, content)
+        project.mainImage = link
         projectRepository.save(project)
     }
 
     @Transactional
-    override fun addImagesToGallery(project: Project, images: List<String>) {
+    override fun addImageToGallery(project: Project, name: String, content: ByteArray) {
         val gallery = project.gallery.orEmpty().toMutableList()
-        gallery.addAll(images)
-        project.gallery = gallery
-        projectRepository.save(project)
+        val link = storageService.saveImage(name, content)
+        gallery.add(link)
+        setProjectGallery(project, gallery)
+    }
+
+    @Transactional
+    override fun removeImageFromGallery(project: Project, imageLink: String) {
+        val gallery = project.gallery.orEmpty().toMutableList()
+        if (gallery.remove(imageLink)) {
+            setProjectGallery(project, gallery)
+            // TODO: remove from cloud
+        }
     }
 
     @Transactional
@@ -133,5 +143,10 @@ class ProjectServiceImpl(
         project.createdBy = request.createdBy
         project.active = request.active
         return project
+    }
+
+    private fun setProjectGallery(project: Project, gallery: List<String>) {
+        project.gallery = gallery
+        projectRepository.save(project)
     }
 }

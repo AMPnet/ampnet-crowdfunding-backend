@@ -23,6 +23,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -65,17 +66,9 @@ class ProjectController(
         logger.debug { "Received request to create project: $request" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        getUserMembershipInOrganization(user.id, request.organizationId)?.let { orgMembership ->
-            return if (orgMembership.hasPrivilegeToWriteProject()) {
-                val project = createProject(request, user)
-                ResponseEntity.ok(project)
-            } else {
-                logger.info { "User does not have organization privilege to write users: PW_PROJECT" }
-                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-            }
+        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, request.organizationId) {
+            createProject(request, user)
         }
-        logger.info { "User ${user.id} is not a member of organization ${request.organizationId}" }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
     @GetMapping("/project/organization/{organizationId}")
@@ -94,18 +87,53 @@ class ProjectController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
-        getUserMembershipInOrganization(user.id, project.organization.id)?.let { orgMembership ->
-            return if (orgMembership.hasPrivilegeToWriteProject()) {
-                val request = DocumentSaveRequest(file, user)
-                val document = projectService.addDocument(project.id, request)
-                ResponseEntity.ok(DocumentResponse(document))
-            } else {
-                logger.info { "User does not have organization privilege to write users: PW_PROJECT" }
-                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-            }
+        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
+            val request = DocumentSaveRequest(file, user)
+            val document = projectService.addDocument(project.id, request)
+            DocumentResponse(document)
         }
-        logger.info { "User ${user.id} is not a member of organization ${project.organization.id}" }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
+    @PostMapping("/project/{projectId}/image/main")
+    fun addMainImage(
+        @PathVariable("projectId") projectId: Int,
+        @RequestParam("image") image: MultipartFile
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to add document to project: $projectId" }
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
+            projectService.addMainImage(project, image.name, image.bytes)
+        }
+    }
+
+    @PostMapping("/project/{projectId}/image/gallery")
+    fun addGalleryImage(
+        @PathVariable("projectId") projectId: Int,
+        @RequestParam("image") image: MultipartFile
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to add document to project: $projectId" }
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
+            projectService.addImageToGallery(project, image.name, image.bytes)
+        }
+    }
+
+    @DeleteMapping("/project/{projectId}/image/gallery")
+    fun removeImageFromGallery(
+        @PathVariable("projectId") projectId: Int,
+        @RequestParam("image-link", required = true) imageLink: String
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to add document to project: $projectId" }
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
+            projectService.removeImageFromGallery(project, imageLink)
+        }
     }
 
     @GetMapping("/project/{projectId}/invest")
@@ -161,4 +189,22 @@ class ProjectController(
     private fun getProjectById(projectId: Int): Project =
         projectService.getProjectById(projectId)
             ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
+
+    private fun <T> ifUserHasPrivilegeWriteUserInProjectThenReturn(
+        userId: Int,
+        organizationId: Int,
+        action: () -> (T)
+    ): ResponseEntity<T> {
+        getUserMembershipInOrganization(userId, organizationId)?.let { orgMembership ->
+            return if (orgMembership.hasPrivilegeToWriteProject()) {
+                val response = action()
+                ResponseEntity.ok(response)
+            } else {
+                logger.info { "User does not have organization privilege to write users: PW_PROJECT" }
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+            }
+        }
+        logger.info { "User $userId is not a member of organization $organizationId" }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
 }

@@ -30,6 +30,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
         databaseCleanerService.deleteAllUsers()
         createUser("test@email.com", "Test", "User")
     }
+    private val imageContent = "data".toByteArray()
 
     private lateinit var organization: Organization
     private lateinit var testContext: TestContext
@@ -133,14 +134,17 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("Main image is added to project") {
-            testContext.image = "link-main-image"
-            projectService.addMainImage(testContext.project, testContext.image)
+            testContext.imageLink = "link-main-image"
+            Mockito.`when`(
+                    cloudStorageService.saveFile(testContext.imageLink, imageContent)
+            ).thenReturn(testContext.imageLink)
+            projectService.addMainImage(testContext.project, testContext.imageLink, imageContent)
         }
 
         verify("Image is stored in project") {
             val optionalProject = projectRepository.findById(testContext.project.id)
             assertThat(optionalProject).isPresent
-            assertThat(optionalProject.get().mainImage).isEqualTo(testContext.image)
+            assertThat(optionalProject.get().mainImage).isEqualTo(testContext.imageLink)
         }
     }
 
@@ -157,7 +161,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
         }
         suppose("Two images are added to project gallery") {
             testContext.gallery = listOf("link-1", "link-2")
-            projectService.addImagesToGallery(testContext.project, testContext.gallery)
+            testContext.gallery.forEach {
+                Mockito.`when`(cloudStorageService.saveFile(it, imageContent)).thenReturn(it)
+                projectService.addImageToGallery(testContext.project, it, imageContent)
+            }
         }
 
         verify("The project gallery contains added images") {
@@ -180,11 +187,15 @@ class ProjectServiceTest : JpaServiceTestBase() {
         }
         suppose("The has gallery") {
             testContext.gallery = listOf("link-1", "link-2")
-            projectService.addImagesToGallery(testContext.project, testContext.gallery)
+            testContext.project.gallery = testContext.gallery
+            projectRepository.save(testContext.project)
         }
         suppose("Additional image is added to gallery") {
-            testContext.image = "link-new"
-            projectService.addImagesToGallery(testContext.project, listOf(testContext.image))
+            testContext.imageLink = "link-new"
+            Mockito.`when`(
+                    cloudStorageService.saveFile(testContext.imageLink, imageContent)
+            ).thenReturn(testContext.imageLink)
+            projectService.addImageToGallery(testContext.project, testContext.imageLink, imageContent)
         }
 
         verify("Gallery has additional image") {
@@ -192,7 +203,36 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(optionalProject).isPresent
             val gallery = optionalProject.get().gallery
             assertThat(gallery).containsAll(testContext.gallery)
-            assertThat(gallery).contains(testContext.image)
+            assertThat(gallery).contains(testContext.imageLink)
+        }
+    }
+
+    @Test
+    fun mustBeAbleToRemoveImageFromGallery() {
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(organization,
+                    "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+        }
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.createProjectRequest = createProjectRequest("Image")
+            testContext.project = projectService.createProject(testContext.createProjectRequest)
+        }
+        suppose("The has gallery") {
+            testContext.gallery = listOf("link-1", "link-2")
+            testContext.project.gallery = testContext.gallery
+            projectRepository.save(testContext.project)
+        }
+        suppose("Image is removed from gallery") {
+            projectService.removeImageFromGallery(testContext.project, "link-1")
+        }
+
+        verify("Gallery has additional image") {
+            val optionalProject = projectRepository.findById(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            val gallery = optionalProject.get().gallery
+            assertThat(gallery).doesNotContain("link-1")
+            assertThat(gallery).contains("link-2")
         }
     }
 
@@ -338,7 +378,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
     private class TestContext {
         lateinit var createProjectRequest: CreateProjectServiceRequest
         lateinit var project: Project
-        lateinit var image: String
+        lateinit var imageLink: String
         lateinit var gallery: List<String>
     }
 }
