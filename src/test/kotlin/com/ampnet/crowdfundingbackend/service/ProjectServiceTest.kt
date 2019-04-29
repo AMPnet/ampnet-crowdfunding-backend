@@ -6,8 +6,8 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.service.impl.DocumentServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.FileStorageServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.ProjectServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -20,11 +20,11 @@ import java.time.ZonedDateTime
 
 class ProjectServiceTest : JpaServiceTestBase() {
 
-    private val fileStorageService: FileStorageServiceImpl = Mockito.mock(FileStorageServiceImpl::class.java)
+    private val cloudStorageService: CloudStorageServiceImpl = Mockito.mock(CloudStorageServiceImpl::class.java)
 
     private val projectService: ProjectServiceImpl by lazy {
-        val documentServiceImpl = DocumentServiceImpl(documentRepository, fileStorageService)
-        ProjectServiceImpl(projectRepository, documentServiceImpl)
+        val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)
+        ProjectServiceImpl(projectRepository, storageServiceImpl)
     }
     private val user: User by lazy {
         databaseCleanerService.deleteAllUsers()

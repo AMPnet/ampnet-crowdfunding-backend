@@ -3,7 +3,7 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
-import com.ampnet.crowdfundingbackend.service.FileStorageService
+import com.ampnet.crowdfundingbackend.service.CloudStorageService
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
@@ -16,7 +16,7 @@ import java.net.URI
 import java.time.ZonedDateTime
 
 @Service
-class FileStorageServiceImpl(applicationProperties: ApplicationProperties) : FileStorageService {
+class CloudStorageServiceImpl(applicationProperties: ApplicationProperties) : CloudStorageService {
 
     private val endpoint = applicationProperties.fileStorage.url
     private val bucketName = applicationProperties.fileStorage.bucket

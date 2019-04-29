@@ -18,7 +18,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteR
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
-import com.ampnet.crowdfundingbackend.service.DocumentService
+import com.ampnet.crowdfundingbackend.service.StorageService
 import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -39,7 +39,7 @@ class OrganizationServiceImpl(
     private val userRepository: UserRepository,
     private val mailService: MailService,
     private val blockchainService: BlockchainService,
-    private val documentService: DocumentService
+    private val storageService: StorageService
 ) : OrganizationService {
 
     companion object : KLogging()
@@ -204,7 +204,7 @@ class OrganizationServiceImpl(
         val organization = organizationRepository.findByIdWithDocuments(organizationId).orElseThrow {
             throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
         }
-        val document = documentService.saveDocument(request)
+        val document = storageService.saveDocument(request)
         addDocumentToOrganization(organization, document)
         return document
     }

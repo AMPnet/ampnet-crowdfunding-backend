@@ -7,8 +7,8 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.service.impl.DocumentServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.FileStorageServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -24,12 +24,12 @@ import java.time.ZonedDateTime
 class OrganizationServiceTest : JpaServiceTestBase() {
 
     private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
-    private val fileStorageService: FileStorageServiceImpl = Mockito.mock(FileStorageServiceImpl::class.java)
+    private val cloudStorageService: CloudStorageServiceImpl = Mockito.mock(CloudStorageServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
-        val documentServiceImpl = DocumentServiceImpl(documentRepository, fileStorageService)
+        val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)
         OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, inviteRepository,
-                roleRepository, userRepository, mailService, mockedBlockchainService, documentServiceImpl)
+                roleRepository, userRepository, mailService, mockedBlockchainService, storageServiceImpl)
     }
 
     private val user: User by lazy {
@@ -274,7 +274,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             testContext.documentSaveRequest =
                     DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
             Mockito.`when`(
-                fileStorageService.saveFile(testContext.documentSaveRequest.name, testContext.documentSaveRequest.data)
+                cloudStorageService.saveFile(testContext.documentSaveRequest.name, testContext.documentSaveRequest.data)
             ).thenReturn(testContext.documentLink)
         }
 

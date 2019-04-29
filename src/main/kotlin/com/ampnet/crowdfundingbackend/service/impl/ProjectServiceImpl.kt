@@ -6,7 +6,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
-import com.ampnet.crowdfundingbackend.service.DocumentService
+import com.ampnet.crowdfundingbackend.service.StorageService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -18,7 +18,7 @@ import java.time.ZonedDateTime
 @Service
 class ProjectServiceImpl(
     private val projectRepository: ProjectRepository,
-    private val documentService: DocumentService
+    private val storageService: StorageService
 ) : ProjectService {
 
     companion object : KLogging()
@@ -83,7 +83,7 @@ class ProjectServiceImpl(
             throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
         }
 
-        val document = documentService.saveDocument(request)
+        val document = storageService.saveDocument(request)
         addDocumentToProject(project, document)
         return document
     }

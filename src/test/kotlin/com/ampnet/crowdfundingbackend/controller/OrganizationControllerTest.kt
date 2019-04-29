@@ -423,7 +423,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
             Mockito.`when`(
-                    fileStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
             ).thenReturn(testContext.documentLink)
         }
 
