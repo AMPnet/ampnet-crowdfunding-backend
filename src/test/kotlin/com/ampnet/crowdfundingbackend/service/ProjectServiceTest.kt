@@ -219,19 +219,19 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("The has gallery") {
-            testContext.gallery = listOf("link-1", "link-2")
+            testContext.gallery = listOf("link-1", "link-2", "link-3")
             testContext.project.gallery = testContext.gallery
             projectRepository.save(testContext.project)
         }
         suppose("Image is removed from gallery") {
-            projectService.removeImageFromGallery(testContext.project, "link-1")
+            projectService.removeImagesFromGallery(testContext.project, listOf("link-1", "link-3"))
         }
 
         verify("Gallery has additional image") {
             val optionalProject = projectRepository.findById(testContext.project.id)
             assertThat(optionalProject).isPresent
             val gallery = optionalProject.get().gallery
-            assertThat(gallery).doesNotContain("link-1")
+            assertThat(gallery).doesNotContain("link-1", "link-3")
             assertThat(gallery).contains("link-2")
         }
     }

@@ -13,6 +13,6 @@ interface ProjectService {
     fun getAllProjectsForOrganization(organizationId: Int): List<Project>
     fun addMainImage(project: Project, name: String, content: ByteArray)
     fun addImageToGallery(project: Project, name: String, content: ByteArray)
-    fun removeImageFromGallery(project: Project, imageLink: String)
+    fun removeImagesFromGallery(project: Project, images: List<String>)
     fun addDocument(projectId: Int, request: DocumentSaveRequest): Document
 }

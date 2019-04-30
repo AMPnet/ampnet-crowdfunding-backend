@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.ImageLinkListRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -431,9 +433,11 @@ class ProjectControllerTest : ControllerTestBase() {
         }
 
         verify("User can add main image") {
+            val request = ImageLinkListRequest(listOf("image-link-1"))
             mockMvc.perform(
                     delete("$projectPath/${testContext.project.id}/image/gallery")
-                            .param("image-link", "image-link-1"))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8)
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk)
         }
         verify("Document is stored in database and connected to project") {

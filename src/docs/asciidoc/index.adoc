@@ -533,6 +533,26 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToAddDocumentForProject/http
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToAddDocumentForProject/http-response.adoc[]
 
+=== Project images
+
+==== Add main image
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToAddMainImage/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToAddMainImage/http-response.adoc[]
+
+==== Add gallery image
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToAddGalleryImage/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToAddGalleryImage/http-response.adoc[]
+
+==== Delete gallery image
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveGalleryImage/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveGalleryImage/http-response.adoc[]
+
 === Greenvest
 
 ==== Generate transaction to greenvest in project

@@ -78,12 +78,14 @@ class ProjectServiceImpl(
     }
 
     @Transactional
-    override fun removeImageFromGallery(project: Project, imageLink: String) {
+    override fun removeImagesFromGallery(project: Project, images: List<String>) {
         val gallery = project.gallery.orEmpty().toMutableList()
-        if (gallery.remove(imageLink)) {
-            setProjectGallery(project, gallery)
-            storageService.deleteImage(imageLink)
+        images.forEach {
+            if (gallery.remove(it)) {
+                storageService.deleteImage(it)
+            }
         }
+        setProjectGallery(project, gallery)
     }
 
     @Transactional

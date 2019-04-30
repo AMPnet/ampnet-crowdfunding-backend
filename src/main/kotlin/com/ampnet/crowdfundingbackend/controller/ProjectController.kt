@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.ImageLinkListRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
@@ -99,7 +100,7 @@ class ProjectController(
         @PathVariable("projectId") projectId: Int,
         @RequestParam("image") image: MultipartFile
     ): ResponseEntity<Unit> {
-        logger.debug { "Received request to add document to project: $projectId" }
+        logger.debug { "Received request to add main image to project: $projectId" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
@@ -113,7 +114,7 @@ class ProjectController(
         @PathVariable("projectId") projectId: Int,
         @RequestParam("image") image: MultipartFile
     ): ResponseEntity<Unit> {
-        logger.debug { "Received request to add document to project: $projectId" }
+        logger.debug { "Received request to add gallery image to project: $projectId" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
@@ -125,14 +126,14 @@ class ProjectController(
     @DeleteMapping("/project/{projectId}/image/gallery")
     fun removeImageFromGallery(
         @PathVariable("projectId") projectId: Int,
-        @RequestParam("image-link", required = true) imageLink: String
+        @RequestBody request: ImageLinkListRequest
     ): ResponseEntity<Unit> {
-        logger.debug { "Received request to add document to project: $projectId" }
+        logger.debug { "Received request to delete gallery images for project: $projectId" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
-            projectService.removeImageFromGallery(project, imageLink)
+            projectService.removeImagesFromGallery(project, request.images)
         }
     }
 
