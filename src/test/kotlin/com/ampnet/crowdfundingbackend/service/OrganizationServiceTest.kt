@@ -4,12 +4,11 @@ import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
-import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
-import com.ampnet.crowdfundingbackend.ipfs.IpfsServiceImpl
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.DocumentServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.FileStorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -25,10 +24,10 @@ import java.time.ZonedDateTime
 class OrganizationServiceTest : JpaServiceTestBase() {
 
     private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
-    private val ipfsService: IpfsServiceImpl = Mockito.mock(IpfsServiceImpl::class.java)
+    private val fileStorageService: FileStorageServiceImpl = Mockito.mock(FileStorageServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
-        val documentServiceImpl = DocumentServiceImpl(documentRepository, ipfsService)
+        val documentServiceImpl = DocumentServiceImpl(documentRepository, fileStorageService)
         OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, inviteRepository,
                 roleRepository, userRepository, mailService, mockedBlockchainService, documentServiceImpl)
     }
@@ -224,7 +223,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustGetOrganizationWithDocument() {
         suppose("Organization has document") {
-            testContext.document = createOrganizationDocument(organization, user, "test doc", "0x00")
+            testContext.document = createOrganizationDocument(organization, user, "test doc", "link")
         }
 
         verify("Service returns organization with document") {
@@ -239,9 +238,9 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustGetOrganizationWithMultipleDocuments() {
         suppose("Organization has 3 documents") {
-            createOrganizationDocument(organization, user, "Doc 1", "0x01")
-            createOrganizationDocument(organization, user, "Doc 2", "0x02")
-            createOrganizationDocument(organization, user, "Doc 3", "0x03")
+            createOrganizationDocument(organization, user, "Doc 1", "link1")
+            createOrganizationDocument(organization, user, "Doc 2", "link2")
+            createOrganizationDocument(organization, user, "Doc 3", "link3")
         }
 
         verify("Service returns organization with documents") {
@@ -249,7 +248,8 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             assertThat(organizationWithDocument).isNotNull
             assertThat(organizationWithDocument!!.id).isEqualTo(organization.id)
             assertThat(organizationWithDocument.documents).hasSize(3)
-            assertThat(organizationWithDocument.documents!!.map { it.hash }).containsAll(listOf("0x01", "0x02", "0x03"))
+            assertThat(organizationWithDocument.documents!!.map { it.link })
+                    .containsAll(listOf("link1", "link2", "link3"))
         }
     }
 
@@ -267,15 +267,15 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustAppendNewDocumentToCurrentListOfDocuments() {
         suppose("Organization has 2 documents") {
-            createOrganizationDocument(organization, user, "Doc 1", "0x01")
-            createOrganizationDocument(organization, user, "Doc 2", "0x02")
+            createOrganizationDocument(organization, user, "Doc 1", "link1")
+            createOrganizationDocument(organization, user, "Doc 2", "link2")
         }
-        suppose("IPFS service will successfully store document") {
+        suppose("File storage service will successfully store document") {
             testContext.documentSaveRequest =
                     DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
             Mockito.`when`(
-                ipfsService.storeData(testContext.documentSaveRequest.data, testContext.documentSaveRequest.name)
-            ).thenReturn(IpfsFile(testContext.documentHash, testContext.documentSaveRequest.name, null))
+                fileStorageService.saveFile(testContext.documentSaveRequest.name, testContext.documentSaveRequest.data)
+            ).thenReturn(testContext.documentLink)
         }
 
         verify("Service will append new document") {
@@ -284,7 +284,8 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             assertThat(document.name).isEqualTo(testContext.documentSaveRequest.name)
             assertThat(document.size).isEqualTo(testContext.documentSaveRequest.size)
             assertThat(document.type).isEqualTo(testContext.documentSaveRequest.type)
-            assertThat(document.hash).isEqualTo(testContext.documentHash)
+
+            assertThat(document.link).isEqualTo(testContext.documentLink)
             assertThat(document.createdBy.id).isEqualTo(user.id)
             assertThat(document.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
         }
@@ -292,7 +293,8 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             val organizationWithDocuments = organizationService.findOrganizationById(organization.id)
             assertThat(organizationWithDocuments).isNotNull
             assertThat(organizationWithDocuments!!.documents).hasSize(3)
-            assertThat(organizationWithDocuments.documents!!.map { it.hash }).contains(testContext.documentHash)
+
+            assertThat(organizationWithDocuments.documents!!.map { it.link }).contains(testContext.documentLink)
         }
     }
 
@@ -309,7 +311,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
     private fun verifyDocument(receivedDocument: Document, savedDocument: Document) {
         assertThat(receivedDocument.id).isEqualTo(savedDocument.id)
-        assertThat(receivedDocument.hash).isEqualTo(savedDocument.hash)
+        assertThat(receivedDocument.link).isEqualTo(savedDocument.link)
         assertThat(receivedDocument.name).isEqualTo(savedDocument.name)
         assertThat(receivedDocument.size).isEqualTo(savedDocument.size)
         assertThat(receivedDocument.type).isEqualTo(savedDocument.type)
@@ -331,13 +333,13 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         organization: Organization,
         createdBy: User,
         name: String,
-        hash: String,
+        link: String,
         type: String = "document/type",
         size: Int = 100
     ): Document {
         val document = Document::class.java.newInstance()
         document.name = name
-        document.hash = hash
+        document.link = link
         document.type = type
         document.size = size
         document.createdBy = createdBy
@@ -357,6 +359,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         lateinit var secondOrganization: Organization
         lateinit var document: Document
         lateinit var documentSaveRequest: DocumentSaveRequest
-        val documentHash = "hashos"
+        val documentLink = "link"
     }
 }

@@ -10,7 +10,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsers
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.ipfs.IpfsFile
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
@@ -122,7 +121,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.organization = createOrganization("test organization", user)
         }
         suppose("Organization has document") {
-            createOrganizationDocument(testContext.organization, user, "name", testContext.documentHash)
+            createOrganizationDocument(testContext.organization, user, "name", testContext.documentLink)
         }
         suppose("Organization has a wallet") {
             databaseCleanerService.deleteAllWallets()
@@ -420,11 +419,12 @@ class OrganizationControllerTest : ControllerTestBase() {
         suppose("User is an admin of organization") {
             addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
         }
-        suppose("IPFS will store document") {
+        suppose("File storage will store document") {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
-            Mockito.`when`(ipfsService.storeData(testContext.multipartFile.bytes, testContext.multipartFile.name))
-                    .thenReturn(IpfsFile(testContext.documentHash, testContext.multipartFile.name, null))
+            Mockito.`when`(
+                    fileStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+            ).thenReturn(testContext.documentLink)
         }
 
         verify("User can add document to organization") {
@@ -439,7 +439,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
             assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
-            assertThat(documentResponse.hash).isEqualTo(testContext.documentHash)
+            assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
         }
         verify("Document is stored in database and connected to organization") {
             val organizationWithDocument = organizationService.findOrganizationById(testContext.organization.id)
@@ -449,7 +449,7 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(document.name).isEqualTo(testContext.multipartFile.name)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
-            assertThat(document.hash).isEqualTo(testContext.documentHash)
+            assertThat(document.link).isEqualTo(testContext.documentLink)
         }
     }
 
@@ -467,11 +467,11 @@ class OrganizationControllerTest : ControllerTestBase() {
         organization: Organization,
         createdBy: User,
         name: String,
-        hash: String,
+        link: String,
         type: String = "document/type",
         size: Int = 100
     ): Document {
-        val savedDocument = saveDocument(name, hash, type, size, createdBy)
+        val savedDocument = saveDocument(name, link, type, size, createdBy)
         val documents = organization.documents.orEmpty().toMutableList()
         documents.add(savedDocument)
         organization.documents = documents
@@ -484,7 +484,7 @@ class OrganizationControllerTest : ControllerTestBase() {
         var organizationId: Int = -1
         lateinit var organization: Organization
         lateinit var user2: User
-        val documentHash = "hashos"
+        val documentLink = "link"
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
     }

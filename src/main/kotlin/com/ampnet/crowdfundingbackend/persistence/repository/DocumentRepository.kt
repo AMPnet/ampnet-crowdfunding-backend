@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query
 import java.util.Optional
 
 interface DocumentRepository : JpaRepository<Document, Int> {
-    fun findByHash(hash: String): Optional<Document>
+    fun findByLink(link: String): Optional<Document>
 
     @Query("SELECT doc FROM Document doc LEFT JOIN FETCH doc.createdBy WHERE doc.id = ?1")
     fun findByIdWithUser(id: Int): Optional<Document>

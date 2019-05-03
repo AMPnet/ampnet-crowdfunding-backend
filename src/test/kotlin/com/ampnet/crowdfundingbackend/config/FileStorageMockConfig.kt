@@ -1,19 +1,19 @@
 package com.ampnet.crowdfundingbackend.config
 
-import com.ampnet.crowdfundingbackend.ipfs.IpfsService
+import com.ampnet.crowdfundingbackend.service.FileStorageService
 import org.mockito.Mockito
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
 
-@Profile("IpfsMockConfig")
+@Profile("FileStorageMockConfig")
 @Configuration
-class IpfsMockConfig {
+class FileStorageMockConfig {
 
     @Bean
     @Primary
-    fun getIpfsService(): IpfsService {
-        return Mockito.mock(IpfsService::class.java)
+    fun getFileStorageService(): FileStorageService {
+        return Mockito.mock(FileStorageService::class.java)
     }
 }

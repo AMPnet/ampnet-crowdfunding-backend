@@ -47,7 +47,6 @@ class ProjectController(
     fun getProject(@PathVariable id: Int): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to get project with id: $id" }
 
-        // TODO: add document to response
         projectService.getProjectByIdWithAllData(id)?.let { project ->
             logger.debug { "Project found: ${project.id}" }
 

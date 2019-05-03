@@ -10,7 +10,6 @@ import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
-import com.ampnet.crowdfundingbackend.ipfs.IpfsService
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
@@ -25,6 +24,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import com.ampnet.crowdfundingbackend.service.FileStorageService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.BeforeEach
@@ -47,11 +47,10 @@ import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
-@ActiveProfiles("MailMockConfig, IpfsMockConfig, BlockchainServiceMockConfig")
+@ActiveProfiles("MailMockConfig, BlockchainServiceMockConfig, FileStorageMockConfig")
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
-    protected val transactionParam = "d"
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
@@ -68,13 +67,13 @@ abstract class ControllerTestBase : TestBase() {
     @Autowired
     protected lateinit var organizationRepository: OrganizationRepository
     @Autowired
-    protected lateinit var ipfsService: IpfsService
-    @Autowired
     private lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     protected lateinit var blockchainService: BlockchainService
     @Autowired
     protected lateinit var transactionInfoRepository: TransactionInfoRepository
+    @Autowired
+    protected lateinit var fileStorageService: FileStorageService
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 
@@ -197,14 +196,14 @@ abstract class ControllerTestBase : TestBase() {
 
     protected fun saveDocument(
         name: String,
-        hash: String,
+        link: String,
         type: String,
         size: Int,
         createdBy: User
     ): Document {
         val document = Document::class.java.getDeclaredConstructor().newInstance()
         document.name = name
-        document.hash = hash
+        document.link = link
         document.type = type
         document.size = size
         document.createdBy = createdBy

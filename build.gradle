@@ -37,7 +37,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.2.1'
+version = '0.3.0'
 description = "crowdfunding-backend"
 
 repositories {
@@ -92,7 +92,7 @@ dependencies {
     compile('org.flywaydb:flyway-core:5.2.4')
     compile('org.postgresql:postgresql:42.2.5')
     compile('io.github.microutils:kotlin-logging:1.6.25')
-    compile('com.github.ipfs:java-ipfs-http-client:v1.2.3')
+    compile('software.amazon.awssdk:s3:2.5.27')
 
     compile('net.devh:grpc-client-spring-boot-starter:2.2.1.RELEASE') exclude group: 'io.grpc', module: 'grpc-netty'
     compile("io.grpc:grpc-netty-shaded:${grpcVersion}")
@@ -137,6 +137,8 @@ jib {
     }
     container {
         useCurrentTimestamp = true
+        environment = ["AWS_ACCESS_KEY_ID": "${System.env.AWS_ACCESS_KEY_ID}".toString(),
+                       "AWS_SECRET_ACCESS_KEY": "${System.env.AWS_SECRET_ACCESS_KEY}".toString()]
     }
 }
 
@@ -168,7 +170,7 @@ jacocoTestReport {
     }
     sourceDirectories.from = files(["${project.projectDir}/src/main/kotlin"])
     classDirectories.from = fileTree(dir: "${buildDir}/classes/kotlin/main", 
-        excludes: ['**/model/**', '**/pojo/**', '**/blockchain/**', '**/ipfs/**'])
+        excludes: ['**/model/**', '**/pojo/**', '**/blockchain/**'])
 }
 
 jacocoTestCoverageVerification {

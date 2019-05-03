@@ -3,11 +3,11 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
-import com.ampnet.crowdfundingbackend.ipfs.IpfsServiceImpl
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.DocumentServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.FileStorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.ProjectServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -20,10 +20,10 @@ import java.time.ZonedDateTime
 
 class ProjectServiceTest : JpaServiceTestBase() {
 
-    private val ipfsService: IpfsServiceImpl = Mockito.mock(IpfsServiceImpl::class.java)
+    private val fileStorageService: FileStorageServiceImpl = Mockito.mock(FileStorageServiceImpl::class.java)
 
     private val projectService: ProjectServiceImpl by lazy {
-        val documentServiceImpl = DocumentServiceImpl(documentRepository, ipfsService)
+        val documentServiceImpl = DocumentServiceImpl(documentRepository, fileStorageService)
         ProjectServiceImpl(projectRepository, documentServiceImpl)
     }
     private val user: User by lazy {
@@ -133,7 +133,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("Main image is added to project") {
-            testContext.image = "hash-main-image"
+            testContext.image = "link-main-image"
             projectService.addMainImage(testContext.project, testContext.image)
         }
 
@@ -156,7 +156,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("Two images are added to project gallery") {
-            testContext.gallery = listOf("hash-1", "hash-2")
+            testContext.gallery = listOf("link-1", "link-2")
             projectService.addImagesToGallery(testContext.project, testContext.gallery)
         }
 
@@ -179,11 +179,11 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
         suppose("The has gallery") {
-            testContext.gallery = listOf("hash-1", "hash-2")
+            testContext.gallery = listOf("link-1", "link-2")
             projectService.addImagesToGallery(testContext.project, testContext.gallery)
         }
         suppose("Additional image is added to gallery") {
-            testContext.image = "hash-new"
+            testContext.image = "link-new"
             projectService.addImagesToGallery(testContext.project, listOf(testContext.image))
         }
 
