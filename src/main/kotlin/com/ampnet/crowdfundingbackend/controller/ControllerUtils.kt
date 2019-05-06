@@ -6,6 +6,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.UserService
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.multipart.MultipartFile
 
 internal object ControllerUtils {
 
@@ -18,4 +19,6 @@ internal object ControllerUtils {
 
     fun getUserPrincipalFromSecurityContext(): UserPrincipal =
             SecurityContextHolder.getContext().authentication.principal as UserPrincipal
+
+    fun getFileName(file: MultipartFile): String = file.originalFilename ?: file.name
 }

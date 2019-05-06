@@ -38,7 +38,7 @@ class CloudStorageServiceImpl(applicationProperties: ApplicationProperties) : Cl
     }
 
     override fun saveFile(name: String, content: ByteArray): String {
-        val key = "$name-${ZonedDateTime.now().toEpochSecond()}"
+        val key = getKeyFromName(name)
         try {
             s3client.putObject(
                     PutObjectRequest.builder().acl(acl).bucket(bucketName).key("$folder/$key").build(),

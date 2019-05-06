@@ -119,7 +119,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
-            projectService.addMainImage(project, image.name, image.bytes)
+            projectService.addMainImage(project, ControllerUtils.getFileName(image), image.bytes)
         }
     }
 
@@ -133,7 +133,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
-            projectService.addImageToGallery(project, image.name, image.bytes)
+            projectService.addImageToGallery(project, ControllerUtils.getFileName(image), image.bytes)
         }
     }
 

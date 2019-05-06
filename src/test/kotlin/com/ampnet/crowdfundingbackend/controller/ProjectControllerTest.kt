@@ -319,7 +319,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
             Mockito.`when`(
-                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
             ).thenReturn(testContext.documentLink)
         }
 
@@ -332,7 +333,7 @@ class ProjectControllerTest : ControllerTestBase() {
 
             val documentResponse: DocumentResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(documentResponse.id).isNotNull()
-            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
             assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
@@ -344,7 +345,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(projectWithDocument.documents).hasSize(1)
 
             val document = projectWithDocument.documents!![0]
-            assertThat(document.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(document.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
             assertThat(document.link).isEqualTo(testContext.documentLink)
@@ -395,7 +396,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("image", "image.png",
                     "image/png", "ImageData".toByteArray())
             Mockito.`when`(
-                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
             ).thenReturn(testContext.imageLink)
         }
 
@@ -427,7 +429,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("image", "image.png",
                     "image/png", "ImageData".toByteArray())
             Mockito.`when`(
-                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
             ).thenReturn(testContext.imageLink)
         }
 
