@@ -28,4 +28,5 @@ interface OrganizationService {
     fun followOrganization(userId: Int, organizationId: Int): OrganizationFollower
     fun unfollowOrganization(userId: Int, organizationId: Int)
     fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document
+    fun removeDocument(organizationId: Int, documentId: Int)
 }

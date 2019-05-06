@@ -482,11 +482,19 @@ include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganizatio
 .Response
 include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
 
-=== Add document for organization
+=== Documents
+
+==== Add document for organization
 .Request
 include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrganization/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrganization/http-response.adoc[]
+
+==== Remove organization document
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationDocument/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationDocument/http-response.adoc[]
 
 == Project API
 Collection of endpoints for managing project
@@ -527,11 +535,19 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganiz
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]
 
-=== Add document for project
+=== Documents
+
+==== Add document for project
 .Request
 include::{snippets}/ProjectControllerTest/mustBeAbleToAddDocumentForProject/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToAddDocumentForProject/http-response.adoc[]
+
+==== Remove project document
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveProjectDocument/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveProjectDocument/http-response.adoc[]
 
 === Project images
 

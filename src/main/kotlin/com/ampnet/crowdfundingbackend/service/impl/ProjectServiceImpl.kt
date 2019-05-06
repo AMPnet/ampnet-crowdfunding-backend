@@ -100,6 +100,21 @@ class ProjectServiceImpl(
         return document
     }
 
+    @Transactional
+    override fun removeDocument(projectId: Int, documentId: Int) {
+        val project = projectRepository.findById(projectId).orElseThrow {
+            logger.info { "Trying to add document to missing project. Project: $projectId" }
+            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
+        }
+
+        val storedDocuments = project.documents.orEmpty().toMutableList()
+        storedDocuments.firstOrNull { it.id == documentId }.let {
+            storedDocuments.remove(it)
+            project.documents = storedDocuments
+            projectRepository.save(project)
+        }
+    }
+
     private fun validateCreateProjectRequest(request: CreateProjectServiceRequest) {
         if (request.endDate.isBefore(request.startDate)) {
             throw InvalidRequestException(ErrorCode.PRJ_DATE, "End date cannot be before start date")

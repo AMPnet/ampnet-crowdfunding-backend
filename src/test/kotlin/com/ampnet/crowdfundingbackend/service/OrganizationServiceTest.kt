@@ -299,6 +299,16 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     }
 
     @Test
+    fun mustNotBeAbleToRemoveOrganizationDocumentForNonExistingOrganization() {
+        verify("Service will throw an exception for non existing organization") {
+            val exception = assertThrows<ResourceNotFoundException> {
+                organizationService.removeDocument(0, 0)
+            }
+            assertThat(exception.errorCode).isEqualTo(ErrorCode.ORG_MISSING)
+        }
+    }
+
+    @Test
     fun mustNotBeAbleToCreateOrganizationWithSameName() {
         verify("Service will throw an exception for same name exception") {
             val exception = assertThrows<ResourceAlreadyExistsException> {
@@ -337,21 +347,12 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         type: String = "document/type",
         size: Int = 100
     ): Document {
-        val document = Document::class.java.newInstance()
-        document.name = name
-        document.link = link
-        document.type = type
-        document.size = size
-        document.createdBy = createdBy
-        document.createdAt = ZonedDateTime.now()
-        val savedDocument = documentRepository.save(document)
-
+        val document = saveDocument(name, link, createdBy, type, size)
         val documents = organization.documents.orEmpty().toMutableList()
-        documents.add(savedDocument)
-
+        documents.add(document)
         organization.documents = documents
         organizationRepository.save(organization)
-        return savedDocument
+        return document
     }
 
     private class TestContext {

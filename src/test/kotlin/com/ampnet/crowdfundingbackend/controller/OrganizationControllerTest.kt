@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -453,6 +454,33 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToDeleteOrganizationDocument() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", user)
+        }
+        suppose("Organization has 2 documents") {
+            testContext.document =
+                    createOrganizationDocument(testContext.organization, user, "name", testContext.documentLink)
+            createOrganizationDocument(testContext.organization, user, "second.pdf", "second-link.pdf")
+        }
+        suppose("User is an admin of organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+
+        verify("User admin can delete document") {
+            mockMvc.perform(
+                    delete("$organizationPath/${testContext.organization.id}/document/${testContext.document.id}"))
+                    .andExpect(status().isOk)
+        }
+        verify("Document is deleted") {
+            val organizationWithDocument = organizationService.findOrganizationById(testContext.organization.id)
+            assertThat(organizationWithDocument?.documents).hasSize(1).doesNotContain(testContext.document)
+        }
+    }
+
     private fun inviteUserToOrganization(userId: Int, organizationId: Int, invitedBy: Int, role: OrganizationRoleType) {
         val invitation = OrganizationInvite::class.java.getConstructor().newInstance()
         invitation.userId = userId
@@ -485,6 +513,7 @@ class OrganizationControllerTest : ControllerTestBase() {
         lateinit var organization: Organization
         lateinit var user2: User
         val documentLink = "link"
+        lateinit var document: Document
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
     }
