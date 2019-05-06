@@ -3,12 +3,14 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
-import com.ampnet.crowdfundingbackend.service.FileStorageService
+import com.ampnet.crowdfundingbackend.service.CloudStorageService
+import mu.KLogging
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
@@ -16,12 +18,15 @@ import java.net.URI
 import java.time.ZonedDateTime
 
 @Service
-class FileStorageServiceImpl(applicationProperties: ApplicationProperties) : FileStorageService {
+class CloudStorageServiceImpl(applicationProperties: ApplicationProperties) : CloudStorageService {
+
+    companion object : KLogging()
 
     private val endpoint = applicationProperties.fileStorage.url
     private val bucketName = applicationProperties.fileStorage.bucket
     private val folder = applicationProperties.fileStorage.folder
     private val acl = ObjectCannedACL.PUBLIC_READ
+    private val digitalOceanSpacesLink = "digitaloceanspaces.com/"
 
     // Credentials are provided via Env variables: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
     private val s3client: S3Client by lazy {
@@ -41,7 +46,18 @@ class FileStorageServiceImpl(applicationProperties: ApplicationProperties) : Fil
             )
             return getFileLink(key)
         } catch (ex: Exception) {
+            logger.warn(ex) { "Could not save file on cloud" }
             throw InternalException(ErrorCode.INT_FILE_STORAGE, "Could not store file with key: $key on cloud")
+        }
+    }
+
+    override fun deleteFile(link: String) {
+        val key = getKeyFromLink(link)
+        try {
+            s3client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(key).build())
+        } catch (ex: Exception) {
+            logger.warn(ex) { "Could not delete file on cloud" }
+            throw InternalException(ErrorCode.INT_FILE_STORAGE, "Could not delete file with key: $key on cloud")
         }
     }
 
@@ -63,4 +79,6 @@ class FileStorageServiceImpl(applicationProperties: ApplicationProperties) : Fil
         val timestamp = ZonedDateTime.now().toEpochSecond()
         return name.replaceFirst(".", "-$timestamp.")
     }
+
+    fun getKeyFromLink(link: String): String = link.split(digitalOceanSpacesLink)[1]
 }

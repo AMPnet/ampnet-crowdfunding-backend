@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.config.ApplicationProperties
-import com.ampnet.crowdfundingbackend.service.impl.FileStorageServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -16,12 +16,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [ApplicationProperties::class])
 @EnableConfigurationProperties
-class FileStorageServiceTest {
+class CloudStorageServiceTest {
 
     @Autowired
     private lateinit var applicationProperties: ApplicationProperties
 
-    private val service: FileStorageServiceImpl by lazy { FileStorageServiceImpl(applicationProperties) }
+    private val service: CloudStorageServiceImpl by lazy { CloudStorageServiceImpl(applicationProperties) }
 
     @Disabled("Not for automated testing")
     @Test
@@ -36,6 +36,12 @@ class FileStorageServiceTest {
         val fileContent = "Some test data"
         val link = service.saveFile(fileName, fileContent.toByteArray())
         assertThat(link).isNotBlank()
+    }
+
+    @Disabled("Not for automated testing")
+    @Test
+    fun testDelete() {
+        service.deleteFile("https://ampnet-storage.ams3.digitaloceanspaces.com/test/test.txt")
     }
 
     @Test
@@ -58,5 +64,12 @@ class FileStorageServiceTest {
         val link = service.getFileLink(key)
         val expectedLink = "https://ampnet-storage.ams3.digitaloceanspaces.com/test/$key"
         assertThat(link).isEqualTo(expectedLink)
+    }
+
+    @Test
+    fun getKeyFromLink() {
+        val link = "https://ampnet-storage.ams3.digitaloceanspaces.com/test/test.txt-1556032201"
+        val key = service.getKeyFromLink(link)
+        assertThat(key).isEqualTo("test/test.txt-1556032201")
     }
 }

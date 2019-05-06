@@ -2,23 +2,23 @@ package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
-import com.ampnet.crowdfundingbackend.service.DocumentService
-import com.ampnet.crowdfundingbackend.service.FileStorageService
+import com.ampnet.crowdfundingbackend.service.StorageService
+import com.ampnet.crowdfundingbackend.service.CloudStorageService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import mu.KLogging
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
 
 @Service
-class DocumentServiceImpl(
+class StorageServiceImpl(
     private val documentRepository: DocumentRepository,
-    private val fileStorageService: FileStorageService
-) : DocumentService {
+    private val cloudStorageService: CloudStorageService
+) : StorageService {
 
     companion object : KLogging()
 
     override fun saveDocument(request: DocumentSaveRequest): Document {
-        logger.debug { "Storing document: $request" }
+        logger.debug { "Storing document: ${request.name}" }
 
         val fileLink = storeOnCloud(request.name, request.data)
         logger.debug { "Successfully stored document on cloud: $fileLink" }
@@ -33,7 +33,17 @@ class DocumentServiceImpl(
         return documentRepository.save(document)
     }
 
-    private fun storeOnCloud(name: String, content: ByteArray): String {
-        return fileStorageService.saveFile(name, content)
+    override fun saveImage(name: String, content: ByteArray): String {
+        logger.debug { "Storing image: $name" }
+        val link = storeOnCloud(name, content)
+        logger.debug { "Successfully stored image on cloud: $link" }
+        return link
     }
+
+    override fun deleteImage(link: String) {
+        logger.debug { "Deleting image: $link" }
+        cloudStorageService.deleteFile(link)
+    }
+
+    private fun storeOnCloud(name: String, content: ByteArray): String = cloudStorageService.saveFile(name, content)
 }

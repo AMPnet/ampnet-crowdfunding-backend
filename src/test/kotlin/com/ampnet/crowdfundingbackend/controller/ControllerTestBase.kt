@@ -24,7 +24,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
-import com.ampnet.crowdfundingbackend.service.FileStorageService
+import com.ampnet.crowdfundingbackend.service.CloudStorageService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.BeforeEach
@@ -47,7 +47,7 @@ import java.time.ZonedDateTime
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
-@ActiveProfiles("MailMockConfig, BlockchainServiceMockConfig, FileStorageMockConfig")
+@ActiveProfiles("MailMockConfig, BlockchainServiceMockConfig, CloudStorageMockConfig")
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
@@ -73,7 +73,7 @@ abstract class ControllerTestBase : TestBase() {
     @Autowired
     protected lateinit var transactionInfoRepository: TransactionInfoRepository
     @Autowired
-    protected lateinit var fileStorageService: FileStorageService
+    protected lateinit var cloudStorageService: CloudStorageService
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 

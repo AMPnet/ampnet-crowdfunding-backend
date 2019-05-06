@@ -6,7 +6,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
-import com.ampnet.crowdfundingbackend.service.DocumentService
+import com.ampnet.crowdfundingbackend.service.StorageService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -18,7 +18,7 @@ import java.time.ZonedDateTime
 @Service
 class ProjectServiceImpl(
     private val projectRepository: ProjectRepository,
-    private val documentService: DocumentService
+    private val storageService: StorageService
 ) : ProjectService {
 
     companion object : KLogging()
@@ -63,17 +63,29 @@ class ProjectServiceImpl(
     }
 
     @Transactional
-    override fun addMainImage(project: Project, mainImage: String) {
-        project.mainImage = mainImage
+    override fun addMainImage(project: Project, name: String, content: ByteArray) {
+        val link = storageService.saveImage(name, content)
+        project.mainImage = link
         projectRepository.save(project)
     }
 
     @Transactional
-    override fun addImagesToGallery(project: Project, images: List<String>) {
+    override fun addImageToGallery(project: Project, name: String, content: ByteArray) {
         val gallery = project.gallery.orEmpty().toMutableList()
-        gallery.addAll(images)
-        project.gallery = gallery
-        projectRepository.save(project)
+        val link = storageService.saveImage(name, content)
+        gallery.add(link)
+        setProjectGallery(project, gallery)
+    }
+
+    @Transactional
+    override fun removeImagesFromGallery(project: Project, images: List<String>) {
+        val gallery = project.gallery.orEmpty().toMutableList()
+        images.forEach {
+            if (gallery.remove(it)) {
+                storageService.deleteImage(it)
+            }
+        }
+        setProjectGallery(project, gallery)
     }
 
     @Transactional
@@ -83,7 +95,7 @@ class ProjectServiceImpl(
             throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
         }
 
-        val document = documentService.saveDocument(request)
+        val document = storageService.saveDocument(request)
         addDocumentToProject(project, document)
         return document
     }
@@ -133,5 +145,10 @@ class ProjectServiceImpl(
         project.createdBy = request.createdBy
         project.active = request.active
         return project
+    }
+
+    private fun setProjectGallery(project: Project, gallery: List<String>) {
+        project.gallery = gallery
+        projectRepository.save(project)
     }
 }
