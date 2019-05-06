@@ -59,6 +59,13 @@ class CloudStorageServiceTest {
     }
 
     @Test
+    fun getKeyForName() {
+        val name = "test-file.json"
+        val key = service.getKeyFromName(name)
+        assertThat(key).startsWith("test-file-").endsWith(".json")
+    }
+
+    @Test
     fun getLink() {
         val key = "test-32423422.txt"
         val link = service.getFileLink(key)

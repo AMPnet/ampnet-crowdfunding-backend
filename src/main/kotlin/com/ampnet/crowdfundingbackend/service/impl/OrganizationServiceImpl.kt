@@ -209,6 +209,19 @@ class OrganizationServiceImpl(
         return document
     }
 
+    @Transactional
+    override fun removeDocument(organizationId: Int, documentId: Int) {
+        val organization = organizationRepository.findByIdWithDocuments(organizationId).orElseThrow {
+            throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
+        }
+        val storedDocuments = organization.documents.orEmpty().toMutableList()
+        storedDocuments.firstOrNull { it.id == documentId }.let {
+            storedDocuments.remove(it)
+            organization.documents = storedDocuments
+            organizationRepository.save(organization)
+        }
+    }
+
     private fun addDocumentToOrganization(organization: Organization, document: Document) {
         val documents = organization.documents.orEmpty().toMutableList()
         documents += document

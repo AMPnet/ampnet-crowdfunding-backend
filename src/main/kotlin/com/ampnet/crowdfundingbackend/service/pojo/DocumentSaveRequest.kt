@@ -12,7 +12,7 @@ data class DocumentSaveRequest(
 ) {
     constructor(file: MultipartFile, user: User) : this(
             file.bytes,
-            file.name,
+            file.originalFilename ?: file.name,
             file.size.toInt(),
             file.contentType ?: file.originalFilename?.split(".")?.lastOrNull() ?: "Unknown",
             user

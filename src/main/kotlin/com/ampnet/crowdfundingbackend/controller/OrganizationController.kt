@@ -17,6 +17,7 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -134,6 +135,19 @@ class OrganizationController(
             val documentSaveRequest = DocumentSaveRequest(file, user)
             val document = organizationService.addDocument(organizationId, documentSaveRequest)
             DocumentResponse(document)
+        }
+    }
+
+    @DeleteMapping("/organization/{organizationId}/document/{documentId}")
+    fun removeDocument(
+        @PathVariable("organizationId") organizationId: Int,
+        @PathVariable("documentId") documentId: Int
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to delete document: $documentId for organization $organizationId" }
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, organizationId) {
+            organizationService.removeDocument(organizationId, documentId)
         }
     }
 

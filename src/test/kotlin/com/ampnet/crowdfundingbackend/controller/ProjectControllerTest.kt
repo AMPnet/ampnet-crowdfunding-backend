@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
-import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -320,7 +319,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
             Mockito.`when`(
-                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
             ).thenReturn(testContext.documentLink)
         }
 
@@ -333,7 +333,7 @@ class ProjectControllerTest : ControllerTestBase() {
 
             val documentResponse: DocumentResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(documentResponse.id).isNotNull()
-            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
             assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
@@ -345,10 +345,39 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(projectWithDocument.documents).hasSize(1)
 
             val document = projectWithDocument.documents!![0]
-            assertThat(document.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(document.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
             assertThat(document.link).isEqualTo(testContext.documentLink)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToRemoveProjectDocument() {
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.project = createProject("Project", organization, user)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Project has some documents") {
+            testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentLink)
+            createProjectDocument(testContext.project, user, "Sec.pdf", "Sec-some-link.pdf")
+        }
+
+        verify("User admin can delete document") {
+            mockMvc.perform(
+                    delete("$projectPath/${testContext.project.id}/document/${testContext.document.id}"))
+                    .andExpect(status().isOk)
+        }
+        verify("Document is deleted") {
+            val project = projectRepository.findByIdWithAllData(testContext.project.id)
+            assertThat(project).isPresent
+            val documents = project.get().documents
+            assertThat(documents).hasSize(1).doesNotContain(testContext.document)
         }
     }
 
@@ -367,7 +396,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("image", "image.png",
                     "image/png", "ImageData".toByteArray())
             Mockito.`when`(
-                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
             ).thenReturn(testContext.imageLink)
         }
 
@@ -399,7 +429,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("image", "image.png",
                     "image/png", "ImageData".toByteArray())
             Mockito.`when`(
-                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
             ).thenReturn(testContext.imageLink)
         }
 

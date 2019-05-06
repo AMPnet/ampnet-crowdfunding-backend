@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
+import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.Project
@@ -178,5 +179,22 @@ abstract class JpaServiceTestBase : TestBase() {
         project.active = active
         project.createdAt = startDate.minusMinutes(1)
         return projectRepository.save(project)
+    }
+
+    protected fun saveDocument(
+        name: String,
+        link: String,
+        createdBy: User,
+        type: String = "document/type",
+        size: Int = 100
+    ): Document {
+        val document = Document::class.java.getDeclaredConstructor().newInstance()
+        document.name = name
+        document.link = link
+        document.type = type
+        document.size = size
+        document.createdBy = createdBy
+        document.createdAt = ZonedDateTime.now()
+        return documentRepository.save(document)
     }
 }

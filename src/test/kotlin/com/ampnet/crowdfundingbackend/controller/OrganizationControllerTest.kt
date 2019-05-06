@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -423,7 +424,8 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
                     "text/plain", "Some document data".toByteArray())
             Mockito.`when`(
-                    cloudStorageService.saveFile(testContext.multipartFile.name, testContext.multipartFile.bytes)
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
             ).thenReturn(testContext.documentLink)
         }
 
@@ -436,7 +438,7 @@ class OrganizationControllerTest : ControllerTestBase() {
 
             val documentResponse: DocumentResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(documentResponse.id).isNotNull()
-            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(documentResponse.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(documentResponse.size).isEqualTo(testContext.multipartFile.size)
             assertThat(documentResponse.type).isEqualTo(testContext.multipartFile.contentType)
             assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
@@ -446,10 +448,37 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(organizationWithDocument?.documents).hasSize(1)
 
             val document = organizationWithDocument!!.documents!![0]
-            assertThat(document.name).isEqualTo(testContext.multipartFile.name)
+            assertThat(document.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
             assertThat(document.link).isEqualTo(testContext.documentLink)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToDeleteOrganizationDocument() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", user)
+        }
+        suppose("Organization has 2 documents") {
+            testContext.document =
+                    createOrganizationDocument(testContext.organization, user, "name", testContext.documentLink)
+            createOrganizationDocument(testContext.organization, user, "second.pdf", "second-link.pdf")
+        }
+        suppose("User is an admin of organization") {
+            addUserToOrganization(user.id, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+
+        verify("User admin can delete document") {
+            mockMvc.perform(
+                    delete("$organizationPath/${testContext.organization.id}/document/${testContext.document.id}"))
+                    .andExpect(status().isOk)
+        }
+        verify("Document is deleted") {
+            val organizationWithDocument = organizationService.findOrganizationById(testContext.organization.id)
+            assertThat(organizationWithDocument?.documents).hasSize(1).doesNotContain(testContext.document)
         }
     }
 
@@ -485,6 +514,7 @@ class OrganizationControllerTest : ControllerTestBase() {
         lateinit var organization: Organization
         lateinit var user2: User
         val documentLink = "link"
+        lateinit var document: Document
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
     }

@@ -67,7 +67,7 @@ class ProjectController(
         logger.debug { "Received request to create project: $request" }
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, request.organizationId) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, request.organizationId) {
             createProject(request, user)
         }
     }
@@ -88,10 +88,24 @@ class ProjectController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
             val request = DocumentSaveRequest(file, user)
             val document = projectService.addDocument(project.id, request)
             DocumentResponse(document)
+        }
+    }
+
+    @DeleteMapping("/project/{projectId}/document/{documentId}")
+    fun removeDocument(
+        @PathVariable("projectId") projectId: Int,
+        @PathVariable("documentId") documentId: Int
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to delete document: $documentId for project $projectId" }
+        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+            projectService.removeDocument(projectId, documentId)
         }
     }
 
@@ -104,8 +118,9 @@ class ProjectController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
-            projectService.addMainImage(project, image.name, image.bytes)
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+            val imageName = getImageNameFromMultipartFile(image)
+            projectService.addMainImage(project, imageName, image.bytes)
         }
     }
 
@@ -118,8 +133,9 @@ class ProjectController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
-            projectService.addImageToGallery(project, image.name, image.bytes)
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+            val imageName = getImageNameFromMultipartFile(image)
+            projectService.addImageToGallery(project, imageName, image.bytes)
         }
     }
 
@@ -132,7 +148,7 @@ class ProjectController(
         val user = ControllerUtils.getUserFromSecurityContext(userService)
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeWriteUserInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
             projectService.removeImagesFromGallery(project, request.images)
         }
     }
@@ -163,6 +179,9 @@ class ProjectController(
         return ResponseEntity.ok(TransactionResponse(transaction))
     }
 
+    private fun getImageNameFromMultipartFile(multipartFile: MultipartFile): String =
+            multipartFile.originalFilename ?: multipartFile.name
+
     private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {
         val organization = getOrganization(request.organizationId)
         val serviceRequest = CreateProjectServiceRequest(request, organization, user)
@@ -191,7 +210,7 @@ class ProjectController(
         projectService.getProjectById(projectId)
             ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
 
-    private fun <T> ifUserHasPrivilegeWriteUserInProjectThenReturn(
+    private fun <T> ifUserHasPrivilegeToWriteInProjectThenReturn(
         userId: Int,
         organizationId: Int,
         action: () -> (T)
