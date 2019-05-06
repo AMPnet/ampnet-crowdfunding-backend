@@ -119,7 +119,8 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
-            projectService.addMainImage(project, ControllerUtils.getFileName(image), image.bytes)
+            val imageName = getImageNameFromMultipartFile(image)
+            projectService.addMainImage(project, imageName, image.bytes)
         }
     }
 
@@ -133,7 +134,8 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
-            projectService.addImageToGallery(project, ControllerUtils.getFileName(image), image.bytes)
+            val imageName = getImageNameFromMultipartFile(image)
+            projectService.addImageToGallery(project, imageName, image.bytes)
         }
     }
 
@@ -176,6 +178,9 @@ class ProjectController(
         val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
         return ResponseEntity.ok(TransactionResponse(transaction))
     }
+
+    private fun getImageNameFromMultipartFile(multipartFile: MultipartFile): String =
+            multipartFile.originalFilename ?: multipartFile.name
 
     private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {
         val organization = getOrganization(request.organizationId)
