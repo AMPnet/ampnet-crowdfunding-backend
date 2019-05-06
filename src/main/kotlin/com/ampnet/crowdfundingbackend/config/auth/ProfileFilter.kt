@@ -22,13 +22,15 @@ class ProfileFilter : OncePerRequestFilter() {
         filterChain: FilterChain
     ) {
         val authentication = SecurityContextHolder.getContext().authentication
-        if (authentication != null && authentication.isAuthenticated && authentication.principal is UserPrincipal) {
-            val userPrincipal = authentication.principal as UserPrincipal
-            val path = request.requestURI
-            if (!userPrincipal.completeProfile && path != userProfilePath) {
-                logger.debug("User ${userPrincipal.email} with incomplete profile try to reach $path")
-                response.sendError(HttpServletResponse.SC_CONFLICT, incompleteProfileMessage)
-                return
+        if (authentication != null && authentication.isAuthenticated) {
+            val principal = authentication.principal
+            if (principal is UserPrincipal) {
+                val path = request.requestURI
+                if (!principal.completeProfile && path != userProfilePath) {
+                    logger.debug("User ${principal.email} with incomplete profile try to reach $path")
+                    response.sendError(HttpServletResponse.SC_CONFLICT, incompleteProfileMessage)
+                    return
+                }
             }
         }
 
