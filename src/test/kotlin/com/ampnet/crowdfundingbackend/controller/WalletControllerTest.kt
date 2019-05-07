@@ -16,6 +16,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -109,7 +110,7 @@ class WalletControllerTest : ControllerTestBase() {
             assertThat(userWithWallet).isPresent
             assertThat(userWithWallet.get().wallet).isNotNull
 
-            val wallet = userWithWallet.get().wallet!!
+            val wallet = userWithWallet.get().wallet ?: fail("User wallet must not be null")
             assertThat(wallet.id).isEqualTo(testData.walletId)
             assertThat(wallet.hash).isEqualTo(testData.hash)
         }
@@ -173,14 +174,13 @@ class WalletControllerTest : ControllerTestBase() {
             createWalletForOrganization(testData.organization, testData.hash)
         }
         suppose("Blockchain service successfully generates transaction to create project wallet") {
+            val orgWalletHash = getWalletHash(testData.project.organization.wallet)
+            val userWalletHash = getWalletHash(user.wallet)
             testData.transactionData = generateTransactionData(testData.signedTransaction)
-            val request = GenerateProjectWalletRequest(
-                    testData.project,
-                    testData.project.organization.wallet!!.hash,
-                    user.wallet!!.hash
-            )
-            Mockito.`when`(blockchainService.generateProjectWalletTransaction(request))
-                    .thenReturn(testData.transactionData)
+            val request = GenerateProjectWalletRequest(testData.project, orgWalletHash, userWalletHash)
+            Mockito.`when`(
+                    blockchainService.generateProjectWalletTransaction(request)
+            ).thenReturn(testData.transactionData)
         }
 
         verify("User can get transaction to sign") {

@@ -11,6 +11,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -61,10 +62,11 @@ class UserServiceTest : JpaServiceTestBase() {
             assertThat(invite.invitedBy).isEqualTo(admin.id)
             assertThat(invite.role.id).isEqualTo(OrganizationRoleType.ORG_MEMBER.id)
             assertThat(invite.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(invite.organization).isNotNull
-            assertThat(invite.organization!!.id).isEqualTo(organization.id)
-            assertThat(invite.invitedByUser).isNotNull
-            assertThat(invite.invitedByUser!!.id).isEqualTo(admin.id)
+
+            val organization = invite.organization ?: fail("Invite organization must not be null")
+            assertThat(organization.id).isEqualTo(organization.id)
+            val invitedByUser = invite.invitedByUser ?: fail("Invite user must not be null")
+            assertThat(invitedByUser.id).isEqualTo(admin.id)
         }
     }
 

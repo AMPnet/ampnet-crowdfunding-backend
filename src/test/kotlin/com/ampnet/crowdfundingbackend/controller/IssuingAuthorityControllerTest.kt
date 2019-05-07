@@ -9,6 +9,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -34,11 +35,9 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             createWalletForUser(testContext.user, testContext.userWalletHash)
         }
         suppose("Blockchain service will generate mint transaction") {
+            val walletHash = getWalletHash(testContext.user.wallet)
             Mockito.`when`(
-                blockchainService.generateMintTransaction(
-                    testContext.from,
-                    testContext.user.wallet!!.hash,
-                    testContext.amount)
+                blockchainService.generateMintTransaction(testContext.from, walletHash, testContext.amount)
             ).thenReturn(testContext.transactionData)
         }
         verify("User can get mint transaction") {
@@ -73,11 +72,9 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             createWalletForUser(testContext.user, testContext.userWalletHash)
         }
         suppose("Blockchain service will generate burn transaction") {
+            val walletHash = getWalletHash(testContext.user.wallet)
             Mockito.`when`(
-                blockchainService.generateBurnTransaction(
-                    testContext.from,
-                    testContext.user.wallet!!.hash,
-                    testContext.amount)
+                blockchainService.generateBurnTransaction(testContext.from, walletHash, testContext.amount)
             ).thenReturn(testContext.transactionData)
         }
         verify("User can get burn transaction") {

@@ -16,6 +16,7 @@ import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -57,12 +58,10 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service must fetch wallet for user with id") {
-            val user = userService.findWithWallet(user.email)
-            assertThat(user).isNotNull
-            assertThat(user!!.wallet).isNotNull
-            assertThat(user.wallet!!.hash).isEqualTo(defaultAddress)
-            assertThat(user.wallet!!.currency).isEqualTo(Currency.EUR)
-            assertThat(user.wallet!!.type).isEqualTo(WalletType.USER)
+            val wallet = userService.findWithWallet(user.email)?.wallet ?: fail("User must have a wallet")
+            assertThat(wallet.hash).isEqualTo(defaultAddress)
+            assertThat(wallet.currency).isEqualTo(Currency.EUR)
+            assertThat(wallet.type).isEqualTo(WalletType.USER)
         }
     }
 
@@ -82,10 +81,9 @@ class WalletServiceTest : JpaServiceTestBase() {
             assertThat(wallet.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
         }
         verify("Wallet is assigned to the user") {
-            val userWithWallet = userService.findWithWallet(user.email)
-            assertThat(userWithWallet).isNotNull
-            assertThat(userWithWallet!!.wallet).isNotNull
-            assertThat(userWithWallet.wallet!!.hash).isEqualTo(defaultAddressHash)
+            val userWithWallet = userService.findWithWallet(user.email) ?: fail("User must not be null")
+            val walletHash = getWalletHash(userWithWallet.wallet)
+            assertThat(walletHash).isEqualTo(defaultAddressHash)
         }
     }
 
@@ -111,10 +109,8 @@ class WalletServiceTest : JpaServiceTestBase() {
         verify("Wallet is assigned to the project") {
             val optionalProjectWithWallet = projectRepository.findByIdWithWallet(testContext.project.id)
             assertThat(optionalProjectWithWallet).isPresent
-
-            val projectWithWallet = optionalProjectWithWallet.get()
-            assertThat(projectWithWallet.wallet).isNotNull
-            assertThat(projectWithWallet.wallet!!.hash).isEqualTo(defaultAddressHash)
+            val walletHash = getWalletHash(optionalProjectWithWallet.get().wallet)
+            assertThat(walletHash).isEqualTo(defaultAddressHash)
         }
     }
 
@@ -162,7 +158,8 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service can return wallet balance") {
-            val balance = walletService.getWalletBalance(user.wallet!!)
+            val wallet = user.wallet ?: fail("User must have a wallet")
+            val balance = walletService.getWalletBalance(wallet)
             assertThat(balance).isEqualTo(testContext.balance)
         }
     }
@@ -274,10 +271,8 @@ class WalletServiceTest : JpaServiceTestBase() {
         verify("Wallet is assigned to the organization") {
             val optionalOrganization = organizationRepository.findById(testContext.organization.id)
             assertThat(optionalOrganization).isPresent
-
-            val organization = optionalOrganization.get()
-            assertThat(organization.wallet).isNotNull
-            assertThat(organization.wallet!!.hash).isEqualTo(defaultAddressHash)
+            val walletHash = getWalletHash(optionalOrganization.get().wallet)
+            assertThat(walletHash).isEqualTo(defaultAddressHash)
         }
     }
 

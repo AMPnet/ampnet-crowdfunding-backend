@@ -18,6 +18,7 @@ import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -152,9 +153,9 @@ class UserControllerTest : ControllerTestBase() {
             assertThat(userResponse.email).isEqualTo(testUser.email)
         }
         verify("User profile is updated in database") {
-            val user = userService.find(testUser.email)
+            val user = userService.find(testUser.email) ?: fail("User must not be null")
             assertThat(testUser).isNotNull
-            assertThat(user!!.firstName).isEqualTo(testUser.firstName)
+            assertThat(user.firstName).isEqualTo(testUser.firstName)
             assertThat(user.phoneNumber).isEqualTo(testUser.phoneNumber)
         }
     }
@@ -229,8 +230,9 @@ class UserControllerTest : ControllerTestBase() {
             assertThat(organizations).hasSize(1)
             val organization = organizations.first()
             assertThat(organization.id).isEqualTo(testContext.organization.id)
-            assertThat(organization.memberships).hasSize(1)
-            assertThat(organization.memberships!!.first().role.id).isEqualTo(OrganizationRoleType.ORG_MEMBER.id)
+            val memberships = organization.memberships ?: fail("Organization membership must no be null")
+            assertThat(memberships).hasSize(1)
+            assertThat(memberships.first().role.id).isEqualTo(OrganizationRoleType.ORG_MEMBER.id)
         }
         verify("User invitation is deleted") {
             val optionalInvite = organizationInviteRepository

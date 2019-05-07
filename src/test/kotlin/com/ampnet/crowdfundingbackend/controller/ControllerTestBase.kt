@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.fail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.restdocs.RestDocumentationContextProvider
@@ -210,4 +211,6 @@ abstract class ControllerTestBase : TestBase() {
         document.createdAt = ZonedDateTime.now()
         return documentRepository.save(document)
     }
+
+    protected fun getWalletHash(wallet: Wallet?): String = wallet?.hash ?: fail("User wallet must not be null")
 }

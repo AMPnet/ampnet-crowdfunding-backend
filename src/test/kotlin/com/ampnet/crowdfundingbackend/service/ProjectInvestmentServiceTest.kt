@@ -166,7 +166,8 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
         suppose("User does not have enough funds on wallet") {
             testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100)
-            Mockito.`when`(mockedBlockchainService.getBalance(user.wallet!!.hash)).thenReturn(10)
+            val userWalletHash = getWalletHash(user.wallet)
+            Mockito.`when`(mockedBlockchainService.getBalance(userWalletHash)).thenReturn(10)
         }
 
         verify("Service will throw exception investment below project minimum") {
@@ -188,16 +189,20 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
         suppose("User does have enough funds on wallet") {
             testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100_00)
-            Mockito.`when`(mockedBlockchainService.getBalance(user.wallet!!.hash)).thenReturn(100_000_00)
+            val userWalletHash = getWalletHash(user.wallet)
+            Mockito.`when`(mockedBlockchainService.getBalance(userWalletHash)).thenReturn(100_000_00)
         }
         suppose("Project has empty wallet") {
             testContext.project.wallet =
-                createWalletForProject(testContext.project, testContext.defaultProjectAddressHash)
-            Mockito.`when`(mockedBlockchainService.getBalance(testContext.project.wallet!!.hash)).thenReturn(0)
+                    createWalletForProject(testContext.project, testContext.defaultProjectAddressHash)
+            val projectWalletHash = getWalletHash(testContext.project.wallet)
+            Mockito.`when`(mockedBlockchainService.getBalance(projectWalletHash)).thenReturn(0)
         }
         suppose("Blockchain service will generate transaction") {
+            val userWalletHash = getWalletHash(user.wallet)
+            val projectWalletHash = getWalletHash(testContext.project.wallet)
             Mockito.`when`(mockedBlockchainService.generateProjectInvestmentTransaction(
-                ProjectInvestmentTxRequest(user.wallet!!.hash, testContext.project.wallet!!.hash, 100_00))
+                ProjectInvestmentTxRequest(userWalletHash, projectWalletHash, 100_00))
             ).thenReturn(testContext.defaultTransactionData)
         }
 
@@ -219,12 +224,14 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
         suppose("User does have enough funds on wallet") {
             testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100_00)
-            Mockito.`when`(mockedBlockchainService.getBalance(user.wallet!!.hash)).thenReturn(100_000_00)
+            val userWalletHash = getWalletHash(user.wallet)
+            Mockito.`when`(mockedBlockchainService.getBalance(userWalletHash)).thenReturn(100_000_00)
         }
         suppose("Project wallet has expected funding") {
             testContext.project.wallet =
                 createWalletForProject(testContext.project, testContext.defaultProjectAddressHash)
-            Mockito.`when`(mockedBlockchainService.getBalance(testContext.project.wallet!!.hash)).thenReturn(10_000_000)
+            val projectWalletHash = getWalletHash(testContext.project.wallet)
+            Mockito.`when`(mockedBlockchainService.getBalance(projectWalletHash)).thenReturn(10_000_000)
         }
 
         verify("Service will throw exception") {
@@ -238,8 +245,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     @Test
     fun mustBeAbleInvestInProject() {
         suppose("Blockchain service will return hash for post transaction") {
-            Mockito.`when`(
-                mockedBlockchainService
+            Mockito.`when`(mockedBlockchainService
                     .postTransaction(testContext.defaultSignedTransaction, PostTransactionType.PRJ_INVEST)
             ).thenReturn(testContext.defaultTxHash)
         }
@@ -297,8 +303,10 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
                 createWalletForProject(testContext.project, testContext.defaultProjectAddressHash)
         }
         suppose("Blockchain service will generate transaction") {
-            Mockito.`when`(mockedBlockchainService.generateConfirmInvestment(
-                user.wallet!!.hash, testContext.project.wallet!!.hash)
+            val userWalletHash = getWalletHash(user.wallet)
+            val projectWalletHash = getWalletHash(testContext.project.wallet)
+            Mockito.`when`(
+                    mockedBlockchainService.generateConfirmInvestment(userWalletHash, projectWalletHash)
             ).thenReturn(testContext.defaultTransactionData)
         }
 

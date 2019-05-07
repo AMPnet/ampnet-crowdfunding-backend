@@ -20,6 +20,7 @@ import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -341,10 +342,10 @@ class ProjectControllerTest : ControllerTestBase() {
         verify("Document is stored in database and connected to project") {
             val optionalProject = projectRepository.findByIdWithAllData(testContext.project.id)
             assertThat(optionalProject).isPresent
-            val projectWithDocument = optionalProject.get()
-            assertThat(projectWithDocument.documents).hasSize(1)
+            val projectDocuments = optionalProject.get().documents ?: fail("Project documents must not be null")
+            assertThat(projectDocuments).hasSize(1)
 
-            val document = projectWithDocument.documents!![0]
+            val document = projectDocuments[0]
             assertThat(document.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)
