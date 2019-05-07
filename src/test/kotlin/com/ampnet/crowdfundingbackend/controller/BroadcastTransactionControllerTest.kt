@@ -158,7 +158,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         verify("Wallet is created") {
             val optionalProject = projectRepository.findByIdWithWallet(testContext.project.id)
             assertThat(optionalProject).isPresent
-            val projectWallet = optionalProject.get().wallet  ?: fail("Wallet must not be null")
+            val projectWallet = optionalProject.get().wallet ?: fail("Wallet must not be null")
             assertThat(projectWallet.id).isNotNull()
             assertThat(projectWallet.hash).isEqualTo(txHash)
             assertThat(projectWallet.currency).isEqualTo(Currency.EUR)

@@ -18,7 +18,6 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteR
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
