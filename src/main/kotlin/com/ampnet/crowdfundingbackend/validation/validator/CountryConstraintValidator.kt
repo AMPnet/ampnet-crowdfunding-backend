@@ -5,8 +5,8 @@ import com.ampnet.crowdfundingbackend.validation.CountryConstraint
 import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
 
-class CountryConstraintValidator(private val countryRepository: CountryRepository)
-    : ConstraintValidator<CountryConstraint, Int> {
+class CountryConstraintValidator(private val countryRepository: CountryRepository) :
+    ConstraintValidator<CountryConstraint, Int> {
 
     override fun initialize(constraintAnnotation: CountryConstraint?) { }
 

@@ -1,7 +1,7 @@
 buildscript {
     ext {
-        kotlinVersion = '1.3.21'
-        springBootVersion = '2.1.3.RELEASE'
+        kotlinVersion = '1.3.31'
+        springBootVersion = '2.1.4.RELEASE'
         junitVersion = '5.3.2'
         grpcVersion = '1.18.0'
         jjwtVersion = '0.10.6'
@@ -21,7 +21,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.cloud.tools.jib' version '1.0.2'
+    id 'com.google.cloud.tools.jib' version '1.1.2'
 }
 
 apply plugin: 'java'
@@ -37,7 +37,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.3.3'
+version = '0.3.4'
 description = "crowdfunding-backend"
 
 repositories {
@@ -91,13 +91,13 @@ dependencies {
     runtime("io.jsonwebtoken:jjwt-impl:${jjwtVersion}")
     compile('org.flywaydb:flyway-core:5.2.4')
     compile('org.postgresql:postgresql:42.2.5')
-    compile('io.github.microutils:kotlin-logging:1.6.25')
+    compile('io.github.microutils:kotlin-logging:1.6.26')
     compile('software.amazon.awssdk:s3:2.5.27')
 
     compile('net.devh:grpc-client-spring-boot-starter:2.2.1.RELEASE') exclude group: 'io.grpc', module: 'grpc-netty'
     compile("io.grpc:grpc-netty-shaded:${grpcVersion}")
 
-    compile('io.micrometer:micrometer-registry-prometheus:1.1.3')
+    compile('io.micrometer:micrometer-registry-prometheus:1.1.4')
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
@@ -107,7 +107,7 @@ dependencies {
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testCompile('org.subethamail:subethasmtp:3.1.7')
 
-    ktlint "com.github.shyiko:ktlint:0.30.0"
+    ktlint "com.github.shyiko:ktlint:0.31.0"
 }
 compileJava.dependsOn(processResources)
 
