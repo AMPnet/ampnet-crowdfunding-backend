@@ -19,6 +19,7 @@ import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -88,8 +89,8 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
         verify("Organization is stored in database") {
             val organization = organizationService.findOrganizationById(testContext.organizationId)
-            assertThat(organization).isNotNull
-            assertThat(organization!!.name).isEqualTo(testContext.organizationRequest.name)
+                    ?: fail("Organization must no be null")
+            assertThat(organization.name).isEqualTo(testContext.organizationRequest.name)
             assertThat(organization.legalInfo).isEqualTo(testContext.organizationRequest.legalInfo)
             assertThat(organization.createdByUser.id).isEqualTo(user.id)
             assertThat(organization.id).isNotNull()
@@ -103,9 +104,8 @@ class OrganizationControllerTest : ControllerTestBase() {
             val admin = users.first()
             assertThat(admin.id).isEqualTo(user.id)
 
-            val memberships = admin.organizations
-            assertThat(memberships).isNotNull
-            assertThat(memberships!!).hasSize(1)
+            val memberships = admin.organizations ?: fail("Organization memberships must not be null")
+            assertThat(memberships).hasSize(1)
             val membership = memberships[0]
             assertThat(membership.userId).isEqualTo(user.id)
             assertThat(membership.organizationId).isEqualTo(testContext.organizationId)
@@ -191,8 +191,9 @@ class OrganizationControllerTest : ControllerTestBase() {
             createWalletForOrganization(testContext.organization, testContext.walletHash)
         }
         suppose("Blockchain service will successfully approve organization") {
-            Mockito.`when`(blockchainService.activateOrganization(testContext.organization.wallet!!.hash))
-                    .thenReturn("return")
+            Mockito.`when`(
+                    blockchainService.activateOrganization(getWalletHash(testContext.organization.wallet))
+            ).thenReturn("return")
         }
 
         verify("Admin can approve organization") {
@@ -208,11 +209,11 @@ class OrganizationControllerTest : ControllerTestBase() {
         }
         verify("Organization is approved") {
             val organization = organizationService.findOrganizationById(testContext.organization.id)
-            assertThat(organization).isNotNull
-            assertThat(organization!!.approved).isTrue()
+                    ?: fail("Organization must no be null")
+            assertThat(organization.approved).isTrue()
             assertThat(organization.updatedAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(organization.approvedBy).isNotNull
-            assertThat(organization.approvedBy!!.id).isEqualTo(user.id)
+            val userApprovedBy = organization.approvedBy ?: fail("User must not be null")
+            assertThat(userApprovedBy.id).isEqualTo(user.id)
         }
     }
 
@@ -444,10 +445,11 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(documentResponse.link).isEqualTo(testContext.documentLink)
         }
         verify("Document is stored in database and connected to organization") {
-            val organizationWithDocument = organizationService.findOrganizationById(testContext.organization.id)
-            assertThat(organizationWithDocument?.documents).hasSize(1)
+            val organizationDocuments = organizationService.findOrganizationById(testContext.organization.id)?.documents
+                    ?: fail("Organization documents must not be null")
+            assertThat(organizationDocuments).hasSize(1)
 
-            val document = organizationWithDocument!!.documents!![0]
+            val document = organizationDocuments[0]
             assertThat(document.name).isEqualTo(testContext.multipartFile.originalFilename)
             assertThat(document.size).isEqualTo(testContext.multipartFile.size)
             assertThat(document.type).isEqualTo(testContext.multipartFile.contentType)

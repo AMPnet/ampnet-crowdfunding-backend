@@ -86,17 +86,15 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: User): Organization {
-        findOrganizationById(organizationId)?.let {
-            val wallet = it.wallet ?: throw ResourceNotFoundException(
-                    ErrorCode.WALLET_MISSING, "Organization need to have wallet before it can be approved"
-            )
-            it.approved = approve
-            it.updatedAt = ZonedDateTime.now()
-            it.approvedBy = approvedBy
-            blockchainService.activateOrganization(wallet.hash)
-            return it
-        }
-        throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
+        val organization = getOrganization(organizationId)
+        val wallet = organization.wallet ?: throw ResourceNotFoundException(
+                ErrorCode.WALLET_MISSING, "Organization need to have wallet before it can be approved"
+        )
+        organization.approved = approve
+        organization.updatedAt = ZonedDateTime.now()
+        organization.approvedBy = approvedBy
+        blockchainService.activateOrganization(wallet.hash)
+        return organization
     }
 
     @Transactional(readOnly = true)
@@ -140,6 +138,7 @@ class OrganizationServiceImpl(
             ResourceNotFoundException(ErrorCode.USER_MISSING,
                     "User with email: ${request.email} does not exists")
         }
+        val invitedToOrganization = getOrganization(request.organizationId)
 
         inviteRepository.findByOrganizationIdAndUserId(request.organizationId, user.id).ifPresent {
             throw ResourceAlreadyExistsException(ErrorCode.ORG_DUPLICATE_INVITE,
@@ -154,7 +153,7 @@ class OrganizationServiceImpl(
         organizationInvite.createdAt = ZonedDateTime.now()
 
         val savedInvite = inviteRepository.save(organizationInvite)
-        sendMailInvitationToJoinOrganization(request.email, request.invitedByUser, request.organizationId)
+        sendMailInvitationToJoinOrganization(request.email, request.invitedByUser, invitedToOrganization)
         return savedInvite
     }
 
@@ -174,7 +173,10 @@ class OrganizationServiceImpl(
     override fun answerToOrganizationInvitation(userId: Int, join: Boolean, organizationId: Int) {
         inviteRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
             if (join) {
-                addUserToOrganization(it.userId, it.organizationId, OrganizationRoleType.fromInt(it.role.id)!!)
+                val role = OrganizationRoleType.fromInt(it.role.id)
+                        ?: throw ResourceNotFoundException(ErrorCode.USER_ROLE_MISSING,
+                                "Missing role wiht id: ${it.role.id}")
+                addUserToOrganization(it.userId, it.organizationId, role)
             }
             inviteRepository.delete(it)
         }
@@ -201,9 +203,7 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document {
-        val organization = organizationRepository.findByIdWithDocuments(organizationId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
-        }
+        val organization = getOrganization(organizationId)
         val document = storageService.saveDocument(request)
         addDocumentToOrganization(organization, document)
         return document
@@ -211,9 +211,7 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun removeDocument(organizationId: Int, documentId: Int) {
-        val organization = organizationRepository.findByIdWithDocuments(organizationId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
-        }
+        val organization = getOrganization(organizationId)
         val storedDocuments = organization.documents.orEmpty().toMutableList()
         storedDocuments.firstOrNull { it.id == documentId }.let {
             storedDocuments.remove(it)
@@ -222,6 +220,11 @@ class OrganizationServiceImpl(
         }
     }
 
+    private fun getOrganization(organizationId: Int): Organization =
+            findOrganizationById(organizationId)
+                    ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING,
+                            "Missing organization with id: $organizationId")
+
     private fun addDocumentToOrganization(organization: Organization, document: Document) {
         val documents = organization.documents.orEmpty().toMutableList()
         documents += document
@@ -229,13 +232,9 @@ class OrganizationServiceImpl(
         organizationRepository.save(organization)
     }
 
-    private fun sendMailInvitationToJoinOrganization(to: String, invitedBy: User, invitedTo: Int) {
-        organizationRepository.findById(invitedTo).ifPresent {
-            logger.debug { "Sending invitation mail to user: $to for organization: ${it.name}" }
-            mailService.sendOrganizationInvitationMail(to, invitedBy.getFullName(), it.name)
-            return@ifPresent
-        }
-        logger.warn { "Trying to send invitation for non-existing organization: $invitedTo by user: $invitedBy" }
+    private fun sendMailInvitationToJoinOrganization(to: String, invitedBy: User, invitedTo: Organization) {
+        logger.debug { "Sending invitation mail to user: $to for organization: ${invitedTo.name}" }
+        mailService.sendOrganizationInvitationMail(to, invitedBy.getFullName(), invitedTo.name)
     }
 
     private fun getRole(role: OrganizationRoleType): Role {

@@ -29,6 +29,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepo
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.fail
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -197,4 +198,6 @@ abstract class JpaServiceTestBase : TestBase() {
         document.createdAt = ZonedDateTime.now()
         return documentRepository.save(document)
     }
+
+    protected fun getWalletHash(wallet: Wallet?): String = wallet?.hash ?: fail("User wallet must not be null")
 }

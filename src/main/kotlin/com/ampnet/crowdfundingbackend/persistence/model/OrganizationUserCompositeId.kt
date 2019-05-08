@@ -16,7 +16,7 @@ class OrganizationUserCompositeId() : Serializable {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as OrganizationUserCompositeId
+        if (other !is OrganizationUserCompositeId) return false
 
         if (organizationId != other.organizationId) return false
         if (userId != other.userId) return false

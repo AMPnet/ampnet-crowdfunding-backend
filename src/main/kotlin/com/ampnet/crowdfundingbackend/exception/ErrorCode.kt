@@ -15,6 +15,7 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
 
     // Users: 03
     USER_MISSING("03", "01", "Non existing user"),
+    USER_ROLE_MISSING("03", "02", "Missing user role"),
 
     // Countries: 04
     COUNTRY_MISSING("04", "01", "No country with specified ID"),

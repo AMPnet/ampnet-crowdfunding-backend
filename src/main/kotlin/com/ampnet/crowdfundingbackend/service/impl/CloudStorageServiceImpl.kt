@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.S3Exception
 import java.net.URI
 import java.time.ZonedDateTime
 
@@ -45,7 +46,7 @@ class CloudStorageServiceImpl(applicationProperties: ApplicationProperties) : Cl
                     RequestBody.fromBytes(content)
             )
             return getFileLink(key)
-        } catch (ex: Exception) {
+        } catch (ex: S3Exception) {
             logger.warn(ex) { "Could not save file on cloud" }
             throw InternalException(ErrorCode.INT_FILE_STORAGE, "Could not store file with key: $key on cloud")
         }
@@ -55,7 +56,7 @@ class CloudStorageServiceImpl(applicationProperties: ApplicationProperties) : Cl
         val key = getKeyFromLink(link)
         try {
             s3client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(key).build())
-        } catch (ex: Exception) {
+        } catch (ex: S3Exception) {
             logger.warn(ex) { "Could not delete file on cloud" }
             throw InternalException(ErrorCode.INT_FILE_STORAGE, "Could not delete file with key: $key on cloud")
         }

@@ -12,6 +12,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -80,8 +81,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         verify("Organization wallet is created") {
             val optionalOrganization = organizationRepository.findById(organization.id)
             assertThat(optionalOrganization).isPresent
-            assertThat(optionalOrganization.get().wallet).isNotNull
-            val organizationWallet = optionalOrganization.get().wallet!!
+            val organizationWallet = optionalOrganization.get().wallet ?: fail("Wallet must not be null")
             assertThat(organizationWallet.id).isNotNull()
             assertThat(organizationWallet.hash).isEqualTo(txHash)
             assertThat(organizationWallet.currency).isEqualTo(Currency.EUR)
@@ -158,8 +158,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         verify("Wallet is created") {
             val optionalProject = projectRepository.findByIdWithWallet(testContext.project.id)
             assertThat(optionalProject).isPresent
-            assertThat(optionalProject.get().wallet).isNotNull
-            val projectWallet = optionalProject.get().wallet!!
+            val projectWallet = optionalProject.get().wallet ?: fail("Wallet must not be null")
             assertThat(projectWallet.id).isNotNull()
             assertThat(projectWallet.hash).isEqualTo(txHash)
             assertThat(projectWallet.currency).isEqualTo(Currency.EUR)

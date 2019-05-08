@@ -17,6 +17,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -80,10 +81,8 @@ class RegistrationControllerTest : ControllerTestBase() {
             testUser.id = userResponse.id
         }
         verify("The user is stored in database") {
-            val userInRepo = userService.find(testUser.email)
-            assertThat(userInRepo).isNotNull
-
-            assert(userInRepo!!.email == testUser.email)
+            val userInRepo = userService.find(testUser.id) ?: fail("User must not be null")
+            assert(userInRepo.email == testUser.email)
             assertThat(testUser.id).isEqualTo(userInRepo.id)
             assert(passwordEncoder.matches(testUser.password, userInRepo.password))
             assert(userInRepo.firstName == testUser.firstName)
@@ -96,9 +95,8 @@ class RegistrationControllerTest : ControllerTestBase() {
             assertThat(userInRepo.enabled).isFalse()
         }
         verify("The user confirmation token is created") {
-            val userInRepo = userService.find(testUser.email)
-            assertThat(userInRepo).isNotNull
-            val mailToken = mailTokenRepository.findByUserId(userInRepo!!.id)
+            val userInRepo = userService.find(testUser.id) ?: fail("User must not be null")
+            val mailToken = mailTokenRepository.findByUserId(userInRepo.id)
             assertThat(mailToken).isPresent
             assertThat(mailToken.get().token).isNotNull()
             assertThat(mailToken.get().createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
@@ -315,9 +313,8 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
         }
         verify("The user is confirmed in database") {
-            val user = userService.find(testUser.id)
-            assertThat(user).isNotNull
-            assertThat(user!!.enabled).isTrue()
+            val user = userService.find(testUser.id) ?: fail("User must not be null")
+            assertThat(user.enabled).isTrue()
         }
     }
 
@@ -374,9 +371,8 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
         }
         verify("The user confirmation token is created") {
-            val userInRepo = userService.find(testUser.email)
-            assertThat(userInRepo).isNotNull
-            val mailToken = mailTokenRepository.findByUserId(userInRepo!!.id)
+            val userInRepo = userService.find(testUser.id) ?: fail("User must not be null")
+            val mailToken = mailTokenRepository.findByUserId(userInRepo.id)
             assertThat(mailToken).isPresent
             assertThat(mailToken.get().token).isNotNull()
             assertThat(mailToken.get().createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
@@ -395,9 +391,8 @@ class RegistrationControllerTest : ControllerTestBase() {
                     .andExpect(status().isOk)
         }
         verify("The user is confirmed in database") {
-            val userInRepo = userService.find(testUser.email)
-            assertThat(userInRepo).isNotNull
-            assertThat(userInRepo!!.enabled).isTrue()
+            val userInRepo = userService.find(testUser.id) ?: fail("User must not be null")
+            assertThat(userInRepo.enabled).isTrue()
         }
     }
 
@@ -466,9 +461,8 @@ class RegistrationControllerTest : ControllerTestBase() {
     private fun createUnconfirmedUser() {
         databaseCleanerService.deleteAllUsers()
         saveTestUser()
-        val user = userService.find(testUser.id)
-        assertThat(user).isNotNull
-        assertThat(user!!.enabled).isFalse()
+        val user = userService.find(testUser.id) ?: fail("User must not be null")
+        assertThat(user.enabled).isFalse()
     }
 
     private fun generateSignupJson(): String {
@@ -511,10 +505,8 @@ class RegistrationControllerTest : ControllerTestBase() {
         }
 
         verify("The user is stored in database") {
-            val userInRepo = userService.find(expectedSocialUser.email)
-            assertThat(userInRepo).isNotNull
-
-            assert(userInRepo!!.email == expectedSocialUser.email)
+            val userInRepo = userService.find(expectedSocialUser.email) ?: fail("User must not be null")
+            assert(userInRepo.email == expectedSocialUser.email)
             assert(userInRepo.firstName == expectedSocialUser.firstName)
             assert(userInRepo.lastName == expectedSocialUser.lastName)
             if (expectedSocialUser.countryId != null) {

@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -228,10 +229,11 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
         verify("Service returns organization with document") {
             val organizationWithDocument = organizationService.findOrganizationById(organization.id)
-            assertThat(organizationWithDocument).isNotNull
-            assertThat(organizationWithDocument!!.id).isEqualTo(organization.id)
+                    ?: fail("Organization must not be null")
+            assertThat(organizationWithDocument.id).isEqualTo(organization.id)
             assertThat(organizationWithDocument.documents).hasSize(1)
-            verifyDocument(organizationWithDocument.documents!!.first(), testContext.document)
+            val document = organizationWithDocument.documents?.first() ?: fail("Organization must have one document")
+            verifyDocument(document, testContext.document)
         }
     }
 
@@ -245,10 +247,10 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
         verify("Service returns organization with documents") {
             val organizationWithDocument = organizationService.findOrganizationById(organization.id)
-            assertThat(organizationWithDocument).isNotNull
-            assertThat(organizationWithDocument!!.id).isEqualTo(organization.id)
+                    ?: fail("Organization must not be null")
+            assertThat(organizationWithDocument.id).isEqualTo(organization.id)
             assertThat(organizationWithDocument.documents).hasSize(3)
-            assertThat(organizationWithDocument.documents!!.map { it.link })
+            assertThat(organizationWithDocument.documents?.map { it.link })
                     .containsAll(listOf("link1", "link2", "link3"))
         }
     }
@@ -291,10 +293,9 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
         verify("Organization has 3 documents") {
             val organizationWithDocuments = organizationService.findOrganizationById(organization.id)
-            assertThat(organizationWithDocuments).isNotNull
-            assertThat(organizationWithDocuments!!.documents).hasSize(3)
-
-            assertThat(organizationWithDocuments.documents!!.map { it.link }).contains(testContext.documentLink)
+                    ?: fail("Organization documents must not be null")
+            assertThat(organizationWithDocuments.documents).hasSize(3)
+            assertThat(organizationWithDocuments.documents?.map { it.link }).contains(testContext.documentLink)
         }
     }
 

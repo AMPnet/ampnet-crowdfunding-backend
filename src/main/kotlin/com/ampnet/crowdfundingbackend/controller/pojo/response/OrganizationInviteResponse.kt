@@ -6,14 +6,14 @@ import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 data class OrganizationInviteResponse(
     val organizationId: Int,
     val organizationName: String,
-    val role: OrganizationRoleType,
+    val role: OrganizationRoleType?,
     val invitedByUser: String
 ) {
     constructor(invite: OrganizationInvite) : this(
             invite.organizationId,
-            invite.organization!!.name,
-            OrganizationRoleType.fromInt(invite.role.id)!!,
-            invite.invitedByUser!!.getFullName()
+            invite.organization?.name ?: "Missing value",
+            OrganizationRoleType.fromInt(invite.role.id),
+            invite.invitedByUser?.getFullName() ?: "Missing value"
     )
 }
 

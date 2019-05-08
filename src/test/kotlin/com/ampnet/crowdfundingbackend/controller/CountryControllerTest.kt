@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.CountryResponse
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -60,9 +61,8 @@ class CountryControllerTest : ControllerTestBase() {
         }
     }
 
-    private fun verifyCroatiaCountryResponse(countryResponse: CountryResponse?) {
-        assertThat(countryResponse).isNotNull
-        assertThat(countryResponse!!.id).isEqualTo(croatiaId)
+    private fun verifyCroatiaCountryResponse(countryResponseOptional: CountryResponse?) {
+        val countryResponse = countryResponseOptional ?: fail("CountryResponse must not be null")
         assertThat(countryResponse.iso).isEqualTo("HR")
         assertThat(countryResponse.name).isEqualTo("CROATIA")
         assertThat(countryResponse.nicename).isEqualTo("Croatia")

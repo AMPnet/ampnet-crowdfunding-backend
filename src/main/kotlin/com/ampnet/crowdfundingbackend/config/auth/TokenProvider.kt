@@ -29,7 +29,8 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
     private val key: SecretKey = Keys.hmacShaKeyFor(applicationProperties.jwt.signingKey.toByteArray())
 
     fun generateToken(authentication: Authentication): String {
-        val principal = authentication.principal as UserPrincipal
+        val principal = authentication.principal as? UserPrincipal
+                ?: throw TokenException("Authentication principal must be UserPrincipal")
         return Jwts.builder()
                 .serializeToJsonWith(JacksonSerializer(objectMapper))
                 .setSubject(principal.email)
@@ -67,7 +68,8 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
     }
 
     private fun getUserPrincipal(claims: Claims): UserPrincipal {
-        val principalClaims = claims[userKey] as String
+        val principalClaims = claims[userKey] as? String
+                ?: throw TokenException("Token principal claims in invalid format")
         try {
             return objectMapper.readValue(principalClaims)
         } catch (ex: MissingKotlinParameterException) {
