@@ -3,6 +3,7 @@
     <property name="LOG_DIR" value="/var/log" />
     <property name="LOG_FILE" value="crowndfunding-backend.log" />
     <property name="LOG_ERROR_FILE" value="crowndfunding-backend-error.log" />
+    <property name="LOG_STASH_FILE" value="crowndfunding-backend-stash.log" />
     <property name="MAX_HISTORY" value="7" />
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -43,9 +44,9 @@
         </appender>
 
         <appender name="STASH" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>${LOG_DIR}/${LOG_FILE}</file>
+            <file>${LOG_DIR}/${LOG_STASH_FILE}</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>${LOG_DIR}/${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <fileNamePattern>${LOG_DIR}/${LOG_STASH_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>${MAX_HISTORY}</maxHistory>
             </rollingPolicy>
             <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
