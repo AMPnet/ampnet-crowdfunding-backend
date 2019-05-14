@@ -37,7 +37,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 group = 'com.ampnet'
-version = '0.3.4'
+version = '0.3.5'
 description = "crowdfunding-backend"
 
 repositories {
@@ -93,6 +93,7 @@ dependencies {
     compile('org.postgresql:postgresql:42.2.5')
     compile('io.github.microutils:kotlin-logging:1.6.26')
     compile('software.amazon.awssdk:s3:2.5.27')
+    compile('net.logstash.logback:logstash-logback-encoder:5.3')
 
     compile('net.devh:grpc-client-spring-boot-starter:2.2.1.RELEASE') exclude group: 'io.grpc', module: 'grpc-netty'
     compile("io.grpc:grpc-netty-shaded:${grpcVersion}")

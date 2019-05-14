@@ -3,6 +3,7 @@
     <property name="LOG_DIR" value="/var/log" />
     <property name="LOG_FILE" value="crowndfunding-backend.log" />
     <property name="LOG_ERROR_FILE" value="crowndfunding-backend-error.log" />
+    <property name="MAX_HISTORY" value="7" />
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -11,6 +12,7 @@
     </appender>
 
     <springProfile name="dev">
+        <!-- TODO: Remove file appender after switching to Kubernetes -->
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>${LOG_DIR}/${LOG_FILE}</file>
             <encoder>
@@ -19,8 +21,7 @@
 
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${LOG_DIR}/${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
-                <!-- keep 10 days' worth of history capped at 1GB total size -->
-                <maxHistory>10</maxHistory>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
                 <totalSizeCap>1GB</totalSizeCap>
             </rollingPolicy>
         </appender>
@@ -36,9 +37,18 @@
 
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${LOG_DIR}/${LOG_ERROR_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
-                <maxHistory>30</maxHistory>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
                 <totalSizeCap>1GB</totalSizeCap>
             </rollingPolicy>
+        </appender>
+
+        <appender name="STASH" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_DIR}/${LOG_FILE}</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
         </appender>
     </springProfile>
 
@@ -49,6 +59,7 @@
         <springProfile name="dev">
             <appender-ref ref="FILE" />
             <appender-ref ref="ERROR_FILE" />
+            <appender-ref ref="STASH" />
         </springProfile>
     </root>
 
