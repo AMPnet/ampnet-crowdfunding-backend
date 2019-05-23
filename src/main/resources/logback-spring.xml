@@ -5,10 +5,11 @@
     <property name="LOG_ERROR_FILE" value="crowndfunding-backend-error.log" />
     <property name="LOG_STASH_FILE" value="crowndfunding-backend-stash.log" />
     <property name="MAX_HISTORY" value="7" />
+    <property name="PATTERN_COLOR" value="%date{HH:mm:ss.SSS} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n" />
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%date{ISO8601} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+            <pattern>${PATTERN_COLOR}</pattern>
         </encoder>
     </appender>
 
@@ -17,7 +18,7 @@
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>${LOG_DIR}/${LOG_FILE}</file>
             <encoder>
-                <pattern>%date{HH:mm:ss.SSS} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+                <pattern>${PATTERN_COLOR}</pattern>
             </encoder>
 
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -33,7 +34,7 @@
             </filter>
             <file>${LOG_DIR}/${LOG_ERROR_FILE}</file>
             <encoder>
-                <pattern>%date{HH:mm:ss.SSS} [%cyan(%thread)] %highlight(%-5level) %yellow(%logger{100}) - %msg%n</pattern>
+                <pattern>${PATTERN_COLOR}</pattern>
             </encoder>
 
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -49,7 +50,9 @@
                 <fileNamePattern>${LOG_DIR}/${LOG_STASH_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>${MAX_HISTORY}</maxHistory>
             </rollingPolicy>
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <pattern>%date{HH:mm:ss.SSS} [%thread] %-5level %logger{100} - %msg%n</pattern>
+            </encoder>
         </appender>
     </springProfile>
 
