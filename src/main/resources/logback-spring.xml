@@ -9,7 +9,7 @@
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>${PATTERN_COLOR}</pattern>
+            <pattern>%date{HH:mm:ss.SSS} [%thread] %-5level %logger{100} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -50,9 +50,7 @@
                 <fileNamePattern>${LOG_DIR}/${LOG_STASH_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>${MAX_HISTORY}</maxHistory>
             </rollingPolicy>
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <pattern>%date{HH:mm:ss.SSS} [%thread] %-5level %logger{100} - %msg%n</pattern>
-            </encoder>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
         </appender>
     </springProfile>
 
