@@ -14,42 +14,42 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceAlreadyExistsException::class)
     fun handleResourceAlreadyExists(exception: ResourceAlreadyExistsException): ErrorResponse {
-        logger.info("ResourceAlreadyExistsException", exception)
+        logger.warn("ResourceAlreadyExistsException", exception)
         return generateErrorResponse(exception.errorCode, exception.message)
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceNotFoundException::class)
     fun handleResourceDoesNotExists(exception: ResourceNotFoundException): ErrorResponse {
-        logger.info("ResourceNotFoundException", exception)
+        logger.error("ResourceNotFoundException", exception)
         return generateErrorResponse(exception.errorCode, exception.message)
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRequestException::class)
     fun handleInvalidRequestException(exception: InvalidRequestException): ErrorResponse {
-        logger.info("InvalidRequestException", exception)
+        logger.warn("InvalidRequestException", exception)
         return generateErrorResponse(exception.errorCode, exception.message)
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(SocialException::class)
     fun handleSocialException(exception: SocialException): ErrorResponse {
-        logger.info("SocialException", exception)
+        logger.warn("SocialException", exception)
         return generateErrorResponse(exception.errorCode, exception.message)
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(InternalException::class)
     fun handleInternalException(exception: InternalException): ErrorResponse {
-        logger.info("InternalException", exception)
+        logger.error("InternalException", exception)
         return generateErrorResponse(exception.errorCode, exception.message)
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidLoginMethodException::class)
     fun handleInvalidLoginMethod(exception: InvalidLoginMethodException): ErrorResponse {
-        logger.info("InvalidRequestException", exception)
+        logger.error("InvalidRequestException", exception)
         return generateErrorResponse(ErrorCode.AUTH_INVALID_LOGIN_METHOD, exception.message)
     }
 

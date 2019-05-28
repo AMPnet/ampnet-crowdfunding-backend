@@ -29,7 +29,7 @@ class MailServiceImpl(
         if (applicationProperties.mail.enabled) {
             sendEmail(mail)
         } else {
-            logger.info { "Sending email is disabled. \nEmail: $mail" }
+            logger.warn { "Sending email is disabled. \nEmail: $mail" }
         }
     }
 
@@ -41,7 +41,7 @@ class MailServiceImpl(
         if (applicationProperties.mail.enabled) {
             sendEmail(mail)
         } else {
-            logger.info { "Sending email is disabled. \nEmail: $mail" }
+            logger.warn { "Sending email is disabled. \nEmail: $mail" }
         }
     }
 
@@ -61,7 +61,7 @@ class MailServiceImpl(
             mailSender.send(mail)
             logger.info { "Successfully sent email to: ${mail.to}" }
         } catch (ex: MailException) {
-            logger.warn(ex) { "Cannot send email to: ${mail.to}" }
+            logger.error(ex) { "Cannot send email to: ${mail.to}" }
         }
     }
 

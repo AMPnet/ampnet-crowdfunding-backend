@@ -49,9 +49,8 @@ class UserServiceImpl(
     @Transactional
     override fun create(request: CreateUserServiceRequest): User {
         if (userRepository.findByEmail(request.email).isPresent) {
-            logger.info { "Trying to create user with email that already exists: ${request.email}" }
             throw ResourceAlreadyExistsException(ErrorCode.REG_USER_EXISTS,
-                    "User with email: ${request.email} already exists!")
+                    "Trying to create user with email that already exists: ${request.email}")
         }
 
         val userRequest = createUserFromRequest(request)
@@ -68,8 +67,8 @@ class UserServiceImpl(
     @Transactional
     override fun update(request: UserUpdateRequest): User {
         val savedUser = userRepository.findByEmail(request.email).orElseThrow {
-            logger.info { "Trying to update user with email ${request.email} which does not exists in db." }
-            throw ResourceNotFoundException(ErrorCode.USER_MISSING, "User with email: ${request.email} does not exists")
+            throw ResourceNotFoundException(ErrorCode.USER_MISSING,
+                    "Trying to update user with email ${request.email} which does not exists in db.")
         }
         val user = updateUserFromRequest(savedUser, request)
         return userRepository.save(user)
@@ -108,8 +107,8 @@ class UserServiceImpl(
         }
         val mailToken = optionalMailToken.get()
         if (mailToken.isExpired()) {
-            logger.info { "User is trying to confirm mail with expired token: $token" }
-            throw InvalidRequestException(ErrorCode.REG_EMAIL_EXPIRED_TOKEN, "The token: $token has expired")
+            throw InvalidRequestException(ErrorCode.REG_EMAIL_EXPIRED_TOKEN,
+                    "User is trying to confirm mail with expired token: $token")
         }
         val user = mailToken.user
         user.enabled = true
@@ -134,7 +133,6 @@ class UserServiceImpl(
     @Transactional
     override fun changeUserRole(userId: Int, role: UserRoleType): User {
         val user = userRepository.findById(userId).orElseThrow {
-            logger.debug { "User with id: $userId does not exist" }
             throw InvalidRequestException(ErrorCode.USER_MISSING, "Missing user with id: $userId")
         }
 

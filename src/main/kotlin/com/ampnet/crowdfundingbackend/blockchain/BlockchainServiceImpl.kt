@@ -200,7 +200,6 @@ class BlockchainServiceImpl(
         ex: StatusRuntimeException,
         message: String
     ): InternalException {
-        logger.error(ex) { message }
         val grpcErrorCode = getErrorDescriptionFromExceptionStatus(ex.status)
         val errorCode = ErrorCode.INT_GRPC
         errorCode.specificCode = grpcErrorCode.code
