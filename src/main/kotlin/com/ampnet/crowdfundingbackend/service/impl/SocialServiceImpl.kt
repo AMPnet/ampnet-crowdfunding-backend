@@ -42,8 +42,7 @@ class SocialServiceImpl(private val countryRepository: CountryRepository) : Soci
                     countryId = countryId
             )
         } catch (ex: NotAuthorizedException) {
-            logger.info("Not authorized to get data from Facebook", ex)
-            throw SocialException(ErrorCode.REG_SOCIAL, "Cannot fetch data from Facebook", ex)
+            throw SocialException(ErrorCode.REG_SOCIAL, "Not authorized to get data from Facebook", ex)
         }
     }
 
@@ -62,7 +61,6 @@ class SocialServiceImpl(private val countryRepository: CountryRepository) : Soci
                     countryId = null
             )
         } catch (ex: Exception) {
-            logger.info("Cannot fetch data form Google", ex)
             throw SocialException(ErrorCode.REG_SOCIAL, "Cannot fetch data from Google", ex)
         }
     }

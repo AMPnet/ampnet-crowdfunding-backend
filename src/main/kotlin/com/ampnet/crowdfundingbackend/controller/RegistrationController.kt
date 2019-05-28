@@ -56,7 +56,7 @@ class RegistrationController(
             logger.info { "User trying to confirm mail with non existing token: $tokenUuid" }
             return ResponseEntity.notFound().build()
         } catch (ex: IllegalArgumentException) {
-            logger.warn { "User is send token which is not UUID: $token" }
+            logger.warn { "User send token which is not UUID: $token" }
             throw InvalidRequestException(ErrorCode.REG_EMAIL_INVALID_TOKEN, "Token: $token is not in a valid format.")
         }
     }
@@ -101,7 +101,7 @@ class RegistrationController(
                 }
             }
         } catch (ex: MissingKotlinParameterException) {
-            logger.info("Could not parse SignupRequest with method: ${request.signupMethod}", ex)
+            logger.info("Could not parse SignupRequest with method: ${request.signupMethod}")
             throw InvalidRequestException(
                     ErrorCode.REG_INCOMPLETE, "Some fields missing or could not be parsed from JSON request.", ex)
         }
@@ -109,7 +109,7 @@ class RegistrationController(
 
     private fun validateRequestOrThrow(request: CreateUserServiceRequest) {
         val errors = validator.validate(request)
-        if (!errors.isEmpty()) {
+        if (errors.isNotEmpty()) {
             logger.info { "Invalid CreateUserServiceRequest: $request" }
             throw InvalidRequestException(ErrorCode.REG_INVALID, errors.joinToString("; ") { it.message })
         }

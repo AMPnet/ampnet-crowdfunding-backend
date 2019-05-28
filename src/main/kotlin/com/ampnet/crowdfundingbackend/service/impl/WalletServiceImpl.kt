@@ -107,8 +107,8 @@ class WalletServiceImpl(
 
     private fun createWallet(hash: String, type: WalletType): Wallet {
         if (walletRepository.findByHash(hash).isPresent) {
-            logger.error { "SAME HASH! Trying to create wallet: $type with existing hash: $hash" }
-            throw ResourceAlreadyExistsException(ErrorCode.WALLET_HASH_EXISTS, "Wallet with hash: $hash already exists")
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_HASH_EXISTS,
+                    "SAME HASH! Trying to create wallet: $type with existing hash: $hash")
         }
 
         val wallet = Wallet::class.java.getConstructor().newInstance()
@@ -121,7 +121,6 @@ class WalletServiceImpl(
 
     private fun throwExceptionIfProjectHasWallet(project: Project) {
         project.wallet?.let {
-            logger.info("Trying to create wallet for user: ${project.id} but user already has a wallet.")
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
                     "Project: ${project.name} already has a wallet.")
         }
@@ -129,14 +128,12 @@ class WalletServiceImpl(
 
     private fun throwExceptionIfUserAlreadyHasWallet(user: User) {
         user.wallet?.let {
-            logger.info("User: ${user.id} already has a wallet.")
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS, "User: ${user.email} already has a wallet.")
         }
     }
 
     private fun throwExceptionIfOrganizationAlreadyHasWallet(organization: Organization) {
         organization.wallet?.let {
-            logger.info("Organization: ${organization.id} already has a wallet.")
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS,
                     "Organization: ${organization.name} already has a wallet.")
         }

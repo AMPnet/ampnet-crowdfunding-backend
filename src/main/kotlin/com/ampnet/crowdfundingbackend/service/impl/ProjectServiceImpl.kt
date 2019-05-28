@@ -30,11 +30,9 @@ class ProjectServiceImpl(
     override fun createProject(request: CreateProjectServiceRequest): Project {
         validateCreateProjectRequest(request)
         if (request.organization.wallet == null) {
-            logger.info { "Trying to create project without organization wallet. " +
-                "Organization: ${request.organization.id}"
-            }
             throw InvalidRequestException(ErrorCode.WALLET_MISSING,
-                "Organization cannot create project without organization wallet")
+                    "Trying to create project without organization wallet. " +
+                            "Organization: ${request.organization.id}")
         }
 
         val project = createProjectFromRequest(request)
@@ -91,8 +89,8 @@ class ProjectServiceImpl(
     @Transactional
     override fun addDocument(projectId: Int, request: DocumentSaveRequest): Document {
         val project = projectRepository.findById(projectId).orElseThrow {
-            logger.info { "Trying to add document to missing project. Project: $projectId" }
-            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
+            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
+                    "Trying to add document to missing project. Project: $projectId")
         }
 
         val document = storageService.saveDocument(request)
@@ -103,8 +101,8 @@ class ProjectServiceImpl(
     @Transactional
     override fun removeDocument(projectId: Int, documentId: Int) {
         val project = projectRepository.findById(projectId).orElseThrow {
-            logger.info { "Trying to add document to missing project. Project: $projectId" }
-            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
+            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
+                    "Trying to add document to missing project. Project: $projectId")
         }
 
         val storedDocuments = project.documents.orEmpty().toMutableList()
