@@ -27,7 +27,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun mustBeAbleToGenerateAndPostMintTransaction() {
+    fun mustBeAbleToGenerateMintTransaction() {
         suppose("User has a wallet") {
             databaseCleanerService.deleteAllWalletsAndOwners()
             testContext.user = createUser("user@email.com")
@@ -52,6 +52,30 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             assertThat(testContext.transactionResponse.tx).isEqualTo(testContext.transactionData)
             assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction/mint")
         }
+    }
+
+    @Test
+    fun mustBeAbleToPostMintTransaction() {
+        suppose("Issuing authority has mint transaction") {
+            testContext.transactionResponse =
+                    TransactionAndLinkResponse(testContext.transactionData, "/issuer/transaction/mint")
+        }
+        suppose("Blockchain service will accept signed transaction") {
+            Mockito.`when`(
+                blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.ISSUER_MINT)
+            ).thenReturn(testContext.txHash)
+        }
+
+        verify("User can post signed mint transaction") {
+            verifyPostTransaction()
+        }
+    }
+
+    @Test
+    fun mustBeAbleToGenerateAndPostMintTransaction() {
+        verify("Issuing Authority can generate mint transaction") {
+            mustBeAbleToGenerateMintTransaction()
+        }
 
         suppose("Blockchain service will accept signed transaction") {
             Mockito.`when`(
@@ -64,7 +88,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun mustBeAbleToGenerateAndPostBurnTransaction() {
+    fun mustBeAbleToGenerateBurnTransaction() {
         suppose("User has a wallet") {
             databaseCleanerService.deleteAllWalletsAndOwners()
             testContext.user = createUser("user@email.com")
@@ -88,6 +112,29 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             testContext.transactionResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(testContext.transactionResponse.tx).isEqualTo(testContext.transactionData)
             assertThat(testContext.transactionResponse.link).isEqualTo("/issuer/transaction/burn")
+        }
+    }
+
+    @Test
+    fun mustBeAbleToPostBurnTransaction() {
+        suppose("Issuing authority has burn transaction") {
+            testContext.transactionResponse =
+                    TransactionAndLinkResponse(testContext.transactionData, "/issuer/transaction/burn")
+        }
+        suppose("Blockchain service will accept signed transaction") {
+            Mockito.`when`(
+                blockchainService.postTransaction(testContext.signedTransaction, PostTransactionType.ISSUER_BURN)
+            ).thenReturn(testContext.txHash)
+        }
+        verify("User can post signed burn transaction") {
+            verifyPostTransaction()
+        }
+    }
+
+    @Test
+    fun mustBeAbleToGenerateAndPostBurnTransaction() {
+        verify("Issuing authority can generate burn transaction") {
+            mustBeAbleToGenerateBurnTransaction()
         }
 
         suppose("Blockchain service will accept signed transaction") {
