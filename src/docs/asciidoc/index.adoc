@@ -604,3 +604,51 @@ include::{snippets}/BroadcastTransactionControllerTest/mustBeAbleToCreateOrganiz
 include::{snippets}/BroadcastTransactionControllerTest/mustNotBeAbleToPostNonExistingTransaction/http-request.adoc[]
 .Response
 include::{snippets}/BroadcastTransactionControllerTest/mustNotBeAbleToPostNonExistingTransaction/http-response.adoc[]
+
+== Issuing Authority API
+
+=== Mint transaction
+
+==== Generate transaction
+
+===== Successful
+.Request
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-request.adoc[]
+.Response
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-response.adoc[]
+
+===== Missing user
+Cannot generate mint transaction if the user is missing
+
+.Request
+include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUser/http-request.adoc[]
+.Response
+include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUser/http-response.adoc[]
+
+===== Missing user wallet
+Cannot generate mint transaction if the user wallet is missing
+
+.Request
+include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUserWallet/http-request.adoc[]
+.Response
+include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUserWallet/http-response.adoc[]
+
+==== Post transaction
+.Request
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToPostMintTransaction/http-request.adoc[]
+.Response
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToPostMintTransaction/http-response.adoc[]
+
+=== Burn transaction
+
+==== Generate transaction
+.Request
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-request.adoc[]
+.Response
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-response.adoc[]
+
+==== Post transaction
+.Request
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToPostMintTransaction/http-request.adoc[]
+.Response
+include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToPostMintTransaction/http-response.adoc[]
