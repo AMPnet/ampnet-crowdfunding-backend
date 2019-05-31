@@ -1,9 +1,11 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.controller.pojo.request.MailCheckRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestSocialInfo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
+import com.ampnet.crowdfundingbackend.controller.pojo.response.IdentyumTokenResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.MailCheckResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
@@ -16,12 +18,19 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KLogging
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.postForEntity
 import java.util.UUID
 import javax.validation.Valid
 import javax.validation.Validator
@@ -31,7 +40,9 @@ class RegistrationController(
     private val userService: UserService,
     private val socialService: SocialService,
     private val objectMapper: ObjectMapper,
-    private val validator: Validator
+    private val validator: Validator,
+    private val restTemplate: RestTemplate,
+    private val applicationProperties: ApplicationProperties
 ) {
     companion object : KLogging()
 
@@ -78,6 +89,29 @@ class RegistrationController(
         logger.debug { "Received request to check if email exists: $request" }
         val emailUsed = userService.find(request.email) != null
         return ResponseEntity.ok(MailCheckResponse(request.email, emailUsed))
+    }
+
+    @GetMapping("/identyum-token")
+    fun getIdentyumToken(): ResponseEntity<IdentyumTokenResponse> {
+        logger.debug { "Received request to get Identyum-token" }
+        val request = generateIdentyumRequest()
+        val response = restTemplate.postForEntity<String>(applicationProperties.identyum.url, request)
+        if (response.statusCode.is2xxSuccessful) {
+            response.body?.let {
+                return ResponseEntity.ok(IdentyumTokenResponse(it))
+            }
+        }
+        logger.warn { "Could not get Identyum-token. Code: ${response.statusCode.value()}. Body: ${response.body}" }
+        return ResponseEntity.status(response.statusCode).build()
+    }
+
+    private fun generateIdentyumRequest(): HttpEntity<MultiValueMap<String, String>> {
+        val headers = HttpHeaders()
+        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+        val map = LinkedMultiValueMap<String, String>()
+        map["username"] = applicationProperties.identyum.username
+        map["password"] = applicationProperties.identyum.password
+        return HttpEntity(map, headers)
     }
 
     private fun createUserRequest(request: SignupRequest): CreateUserServiceRequest {

@@ -120,6 +120,12 @@ include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/htt
 .Response
 include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/http-response.adoc[]
 
+=== Identyum token
+.Request
+include::{snippets}/RegistrationControllerTest/mustBeAbleToGetIdentyumToken/http-request.adoc[]
+.Response
+include::{snippets}/RegistrationControllerTest/mustBeAbleToGetIdentyumToken/http-response.adoc[]
+
 == Authentication API
 
 === Successful user signin (EMAIL method)

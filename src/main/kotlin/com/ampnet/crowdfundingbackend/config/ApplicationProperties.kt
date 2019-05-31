@@ -9,6 +9,7 @@ class ApplicationProperties {
     var jwt: JwtProperties = JwtProperties()
     val mail: MailProperties = MailProperties()
     val fileStorage: FileStorageProperties = FileStorageProperties()
+    val identyum: IdentyumProperties = IdentyumProperties()
 }
 
 class JwtProperties {
@@ -27,4 +28,10 @@ class FileStorageProperties {
     lateinit var url: String
     lateinit var bucket: String
     lateinit var folder: String
+}
+
+class IdentyumProperties {
+    lateinit var url: String
+    lateinit var username: String
+    lateinit var password: String
 }
