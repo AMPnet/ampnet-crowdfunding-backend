@@ -139,7 +139,9 @@ jib {
     container {
         useCurrentTimestamp = true
         environment = ["AWS_ACCESS_KEY_ID": "${System.env.AWS_ACCESS_KEY_ID}".toString(),
-                       "AWS_SECRET_ACCESS_KEY": "${System.env.AWS_SECRET_ACCESS_KEY}".toString()]
+                       "AWS_SECRET_ACCESS_KEY": "${System.env.AWS_SECRET_ACCESS_KEY}".toString(),
+                       "IDENTYUM_USERNAME": "${System.env.IDENTYUM_USERNAME}".toString(),
+                       "IDENTYUM_PASSWORD": "${System.env.IDENTYUM_PASSWORD}".toString()]
     }
 }
 
