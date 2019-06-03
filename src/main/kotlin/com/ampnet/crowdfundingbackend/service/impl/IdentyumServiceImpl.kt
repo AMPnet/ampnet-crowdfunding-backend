@@ -27,7 +27,6 @@ class IdentyumServiceImpl(
     private val fieldPassword = "password"
 
     override fun getToken(): String {
-        logger.debug { "Received request to get Identyum-token" }
         val request = generateIdentyumRequest()
         try {
             val response = restTemplate.postForEntity<String>(applicationProperties.identyum.url, request)

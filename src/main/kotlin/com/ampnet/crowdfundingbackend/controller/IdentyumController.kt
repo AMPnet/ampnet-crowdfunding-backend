@@ -15,6 +15,7 @@ class IdentyumController(private val identyumService: IdentyumService) {
 
     @GetMapping("/identyum/token")
     fun getIdentyumToken(): ResponseEntity<IdentyumTokenResponse> {
+        logger.debug { "Received request to get Identyum token" }
         val token = identyumService.getToken()
         return ResponseEntity.ok(IdentyumTokenResponse(token))
     }

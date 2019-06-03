@@ -34,10 +34,6 @@ class IdentyumControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser
     fun mustBeAbleToGetIdentyumToken() {
-        suppose("User exists") {
-            databaseCleanerService.deleteAllUsers()
-            createUser(defaultEmail)
-        }
         suppose("Identyum will return token") {
             mockIdentyumResponse(MockRestResponseCreators.withStatus(HttpStatus.OK),
                     "1c03b4a5-6f2b-4de5-a3e7-cd043177bc95")
@@ -58,10 +54,6 @@ class IdentyumControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser
     fun mustGetErrorIfIdentyumReturnsServerError() {
-        suppose("User exists") {
-            databaseCleanerService.deleteAllUsers()
-            createUser(defaultEmail)
-        }
         suppose("Identyum will return error") {
             mockIdentyumResponse(MockRestResponseCreators.withServerError())
         }
@@ -77,10 +69,6 @@ class IdentyumControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser
     fun mustGetErrorIfIdentyumReturnsNoContent() {
-        suppose("User exists") {
-            databaseCleanerService.deleteAllUsers()
-            createUser(defaultEmail)
-        }
         suppose("Identyum will return error") {
             mockIdentyumResponse(MockRestResponseCreators.withNoContent())
         }
@@ -90,14 +78,6 @@ class IdentyumControllerTest : ControllerTestBase() {
                     .andExpect(MockMvcResultMatchers.status().isInternalServerError)
                     .andReturn()
             verifyResponseErrorCode(result, ErrorCode.REG_IDENTYUM)
-        }
-    }
-
-    @Test
-    fun unauthorizedUserMustNotBeAbleToGetIdentyumToken() {
-        verify("Server will return unauthorized") {
-            mockMvc.perform(get(identyumTokenPath))
-                    .andExpect(MockMvcResultMatchers.status().isUnauthorized)
         }
     }
 
