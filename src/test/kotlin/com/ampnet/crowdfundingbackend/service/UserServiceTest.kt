@@ -196,12 +196,12 @@ class UserServiceTest : JpaServiceTestBase() {
     }
 
     private fun createUserService(properties: ApplicationProperties): UserService {
-        return UserServiceImpl(userRepository, roleRepository, countryRepository, mailTokenRepository, mailService,
+        return UserServiceImpl(userRepository, roleRepository, mailTokenRepository, mailService,
             passwordEncoder, properties)
     }
 
     private fun createUserServiceRequest(email: String): CreateUserServiceRequest {
-        return CreateUserServiceRequest(email, null, null, null, null, null, AuthMethod.EMAIL)
+        return CreateUserServiceRequest(email, null, null, null, null, AuthMethod.EMAIL)
     }
 
     private class TestContext {

@@ -57,7 +57,6 @@ class AuthenticationControllerTest : ControllerTestBase() {
                     password = regularTestUser.password,
                     firstName = regularTestUser.firstName,
                     lastName = regularTestUser.lastName,
-                    countryId = regularTestUser.countryId,
                     phoneNumber = regularTestUser.phoneNumber,
                     authMethod = regularTestUser.authMethod
             ))
@@ -176,7 +175,6 @@ class AuthenticationControllerTest : ControllerTestBase() {
                     password = regularTestUser.password,
                     firstName = regularTestUser.firstName,
                     lastName = regularTestUser.lastName,
-                    countryId = regularTestUser.countryId,
                     phoneNumber = regularTestUser.phoneNumber,
                     authMethod = regularTestUser.authMethod
             ))
@@ -236,7 +234,6 @@ class AuthenticationControllerTest : ControllerTestBase() {
                     password = regularTestUser.password,
                     firstName = regularTestUser.firstName,
                     lastName = regularTestUser.lastName,
-                    countryId = regularTestUser.countryId,
                     phoneNumber = regularTestUser.phoneNumber,
                     authMethod = regularTestUser.authMethod
             ))
@@ -278,7 +275,6 @@ class AuthenticationControllerTest : ControllerTestBase() {
         val password = "Password175!"
         val firstName = "John"
         val lastName = "Smith"
-        val countryId = 1
         val phoneNumber = "095123456"
         val authMethod = AuthMethod.EMAIL
     }
@@ -287,8 +283,7 @@ class AuthenticationControllerTest : ControllerTestBase() {
         val socialUser = SocialUser(
                 "john@smith.com",
                 "John",
-                "Smith",
-                1
+                "Smith"
         )
         val fbToken = "token"
         val authMethod = AuthMethod.FACEBOOK
@@ -298,8 +293,7 @@ class AuthenticationControllerTest : ControllerTestBase() {
         val socialUser = SocialUser(
                 "john@smith.com",
                 "John",
-                "Smith",
-                null
+                "Smith"
         )
         val googleToken = "token"
         val authMethod = AuthMethod.GOOGLE

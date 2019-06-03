@@ -7,7 +7,6 @@ data class UserResponse(
     val email: String,
     val firstName: String?,
     val lastName: String?,
-    val country: String?,
     val phoneNumber: String?,
     val role: String
 ) {
@@ -17,7 +16,6 @@ data class UserResponse(
             user.email,
             user.firstName,
             user.lastName,
-            user.country?.nicename,
             user.phoneNumber,
             user.role.name
     )

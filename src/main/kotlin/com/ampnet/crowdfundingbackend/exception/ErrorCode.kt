@@ -18,9 +18,6 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
     USER_MISSING("03", "01", "Non existing user"),
     USER_ROLE_MISSING("03", "02", "Missing user role"),
 
-    // Countries: 04
-    COUNTRY_MISSING("04", "01", "No country with specified ID"),
-
     // Wallet: 05
     WALLET_MISSING("05", "01", "Missing wallet"),
     WALLET_EXISTS("05", "02", "Active user cannot create additional wallet"),

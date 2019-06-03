@@ -27,7 +27,7 @@ class WalletServiceTest : JpaServiceTestBase() {
 
     private val userService: UserService by lazy {
         val mailService = Mockito.mock(MailService::class.java)
-        UserServiceImpl(userRepository, roleRepository, countryRepository, mailTokenRepository,
+        UserServiceImpl(userRepository, roleRepository, mailTokenRepository,
                 mailService, passwordEncoder, applicationProperties)
     }
     private val walletService: WalletService by lazy {

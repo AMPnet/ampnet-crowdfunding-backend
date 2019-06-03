@@ -87,7 +87,6 @@ class RegistrationControllerTest : ControllerTestBase() {
             assert(passwordEncoder.matches(testUser.password, userInRepo.password))
             assert(userInRepo.firstName == testUser.firstName)
             assert(userInRepo.lastName == testUser.lastName)
-            assert(userInRepo.country?.id == testUser.countryId)
             assert(userInRepo.phoneNumber == testUser.phoneNumber)
             assert(userInRepo.authMethod == testUser.authMethod)
             assert(userInRepo.role.id == UserRoleType.USER.id)
@@ -129,35 +128,12 @@ class RegistrationControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun invalidCountryIdSignupRequestShouldFail() {
-        verify("The user cannot send request with invalid country id") {
-            testUser.email = "invalid@mail.com"
-            testUser.password = "passsssword"
-            testUser.firstName = "Name"
-            testUser.lastName = "NoFirstName"
-            testUser.countryId = 0
-            testUser.phoneNumber = "0981234567"
-            val invalidJsonRequest = generateSignupJson()
-
-            val result = mockMvc.perform(
-                    post(pathSignup)
-                            .content(invalidJsonRequest)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
-                    .andReturn()
-
-            verifyResponseErrorCode(result, ErrorCode.REG_INVALID)
-        }
-    }
-
-    @Test
     fun emptyNameSignupRequestShouldFail() {
         verify("The user cannot send request with empty name") {
             testUser.email = "test@email.com"
             testUser.password = "passsssword"
             testUser.firstName = ""
             testUser.lastName = "NoFirstName"
-            testUser.countryId = 1
             testUser.phoneNumber = "0981234567"
             val invalidJsonRequest = generateSignupJson()
 
@@ -179,7 +155,6 @@ class RegistrationControllerTest : ControllerTestBase() {
             testUser.password = "passssword"
             testUser.firstName = "Name"
             testUser.lastName = "NoFirstName"
-            testUser.countryId = 1
             testUser.phoneNumber = "0981234567"
             val invalidJsonRequest = generateSignupJson()
 
@@ -201,7 +176,6 @@ class RegistrationControllerTest : ControllerTestBase() {
             testUser.password = "short"
             testUser.firstName = "Name"
             testUser.lastName = "NoFirstName"
-            testUser.countryId = 1
             testUser.phoneNumber = "0981234567"
             val invalidJsonRequest = generateSignupJson()
 
@@ -223,7 +197,6 @@ class RegistrationControllerTest : ControllerTestBase() {
             testUser.password = "passssword"
             testUser.firstName = "Name"
             testUser.lastName = "NoFirstName"
-            testUser.countryId = 1
             testUser.phoneNumber = "012abc345wrong"
             val invalidJsonRequest = generateSignupJson()
 
@@ -268,8 +241,7 @@ class RegistrationControllerTest : ControllerTestBase() {
             testContext.socialUser = SocialUser(
                     email = "johnsmith@gmail.com",
                     firstName = "John",
-                    lastName = "Smith",
-                    countryId = 1
+                    lastName = "Smith"
             )
             Mockito.`when`(socialService.getFacebookUserInfo(testContext.token))
                     .thenReturn(testContext.socialUser)
@@ -287,8 +259,7 @@ class RegistrationControllerTest : ControllerTestBase() {
             testContext.socialUser = SocialUser(
                     email = "johnsmith@gmail.com",
                     firstName = "John",
-                    lastName = "Smith",
-                    countryId = null
+                    lastName = "Smith"
             )
             Mockito.`when`(socialService.getGoogleUserInfo(testContext.token))
                     .thenReturn(testContext.socialUser)
@@ -474,7 +445,6 @@ class RegistrationControllerTest : ControllerTestBase() {
             |       "password" : "${testUser.password}",
             |       "first_name" : "${testUser.firstName}",
             |       "last_name" : "${testUser.lastName}",
-            |       "country_id" : ${testUser.countryId},
             |       "phone_number" : "${testUser.phoneNumber}"
             |   }
             |}
@@ -509,9 +479,6 @@ class RegistrationControllerTest : ControllerTestBase() {
             assert(userInRepo.email == expectedSocialUser.email)
             assert(userInRepo.firstName == expectedSocialUser.firstName)
             assert(userInRepo.lastName == expectedSocialUser.lastName)
-            if (expectedSocialUser.countryId != null) {
-                assert(expectedSocialUser.countryId == userInRepo.country?.id)
-            }
             assert(userInRepo.role.id == UserRoleType.USER.id)
             assertThat(userInRepo.enabled).isTrue()
         }
@@ -523,7 +490,6 @@ class RegistrationControllerTest : ControllerTestBase() {
                 password = testUser.password,
                 firstName = testUser.firstName,
                 lastName = testUser.lastName,
-                countryId = testUser.countryId,
                 phoneNumber = testUser.phoneNumber,
                 authMethod = testUser.authMethod
         )
@@ -538,7 +504,6 @@ class RegistrationControllerTest : ControllerTestBase() {
         var password = "abcdefgh"
         var firstName = "John"
         var lastName = "Smith"
-        var countryId = 1
         var phoneNumber = "0951234567"
         var authMethod = AuthMethod.EMAIL
     }

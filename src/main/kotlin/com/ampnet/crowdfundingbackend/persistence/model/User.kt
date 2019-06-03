@@ -37,10 +37,6 @@ data class User(
     @Column
     var lastName: String?,
 
-    @ManyToOne
-    @JoinColumn(name = "country_id")
-    var country: Country?,
-
     @Column
     var phoneNumber: String?,
 

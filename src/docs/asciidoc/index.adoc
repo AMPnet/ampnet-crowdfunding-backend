@@ -38,12 +38,6 @@ include::{snippets}/RegistrationControllerTest/incompleteSignupRequestShouldFail
 
 ==== Signup information complete but invalid
 
-===== Invalid country id
-.Request
-include::{snippets}/RegistrationControllerTest/invalidCountryIdSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/invalidCountryIdSignupRequestShouldFail/http-response.adoc[]
-
 ===== Empty first name
 .Request
 include::{snippets}/RegistrationControllerTest/emptyNameSignupRequestShouldFail/http-request.adoc[]
@@ -252,27 +246,6 @@ include::{snippets}/UserControllerTest/mustBeAbleToAcceptOrganizationInvite/http
 include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-request.adoc[]
 .Response
 include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-response.adoc[]
-
-== Countries API
-Collection of endpoints for fetching countries
-
-=== Get all countries
-.Request
-include::{snippets}/CountryControllerTest/mustBeAbleToGetAListOfAllCountries/http-request.adoc[]
-.Response
-include::{snippets}/CountryControllerTest/mustBeAbleToGetAListOfAllCountries/http-response.adoc[]
-
-=== Get country by id
-.Request
-include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-request.adoc[]
-.Response
-include::{snippets}/CountryControllerTest/mustBeAbleToGetACountryById/http-response.adoc[]
-
-=== Invalid country id
-.Request
-include::{snippets}/CountryControllerTest/mustReturnNotFoundForInvalidCountryId/http-request.adoc[]
-.Response
-include::{snippets}/CountryControllerTest/mustReturnNotFoundForInvalidCountryId/http-response.adoc[]
 
 == Wallet API
 Collection of endpoints for managing wallets

@@ -11,7 +11,7 @@ data class UserPrincipal(
     constructor(user: User) : this(
         user.email,
         user.getAuthorities().asSequence().map { it.authority }.toSet(),
-        (user.firstName != null && user.lastName != null && user.country != null && user.phoneNumber != null),
+        (user.firstName != null && user.lastName != null && user.phoneNumber != null),
         user.enabled
     )
 }
