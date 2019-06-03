@@ -76,6 +76,7 @@ class WebSecurityConfig(
                 .antMatchers("/mail-confirmation").permitAll()
                 .antMatchers("/mail-check").permitAll()
                 .antMatchers("/issuer/**").permitAll()
+                .antMatchers("/identyum/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/tx_broadcast").permitAll()
                 .anyRequest().authenticated()
                 .and()
