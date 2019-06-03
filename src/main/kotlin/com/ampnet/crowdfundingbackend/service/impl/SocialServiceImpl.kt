@@ -2,19 +2,17 @@ package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.SocialException
-import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
 import com.ampnet.crowdfundingbackend.service.SocialService
 import com.ampnet.crowdfundingbackend.service.pojo.SocialUser
 import mu.KLogging
 import org.springframework.social.NotAuthorizedException
-import org.springframework.social.facebook.api.Page
 import org.springframework.social.facebook.api.User
 import org.springframework.social.facebook.api.impl.FacebookTemplate
 import org.springframework.social.google.api.impl.GoogleTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class SocialServiceImpl(private val countryRepository: CountryRepository) : SocialService {
+class SocialServiceImpl : SocialService {
 
     companion object : KLogging()
 
@@ -31,15 +29,10 @@ class SocialServiceImpl(private val countryRepository: CountryRepository) : Soci
             )
             logger.debug { "Received Facebook user info with mail: ${userProfile.email}" }
 
-            var countryId: Int? = null
-            if (userProfile.location != null && userProfile.location.id != null) {
-                countryId = getCountryIdFromFacebook(facebook, userProfile)
-            }
             return SocialUser(
                     email = userProfile.email,
                     firstName = userProfile.firstName,
-                    lastName = userProfile.lastName,
-                    countryId = countryId
+                    lastName = userProfile.lastName
             )
         } catch (ex: NotAuthorizedException) {
             throw SocialException(ErrorCode.REG_SOCIAL, "Not authorized to get data from Facebook", ex)
@@ -57,37 +50,10 @@ class SocialServiceImpl(private val countryRepository: CountryRepository) : Soci
             return SocialUser(
                     email = userInfo.email,
                     firstName = userInfo.givenName,
-                    lastName = userInfo.familyName,
-                    countryId = null
+                    lastName = userInfo.familyName
             )
         } catch (ex: Exception) {
             throw SocialException(ErrorCode.REG_SOCIAL, "Cannot fetch data from Google", ex)
         }
-    }
-
-    private fun getCountryIdFromFacebook(facebook: FacebookTemplate, userProfile: User): Int? {
-        var countryId: Int? = null
-
-        logger.debug { "Trying to get Facebook user location." }
-        /*
-        This block will always throw because in order to use `Page Public Content Access`
-        (which we need for location access) app has to be reviewed and approved by Facebook.
-        For now, catch and do nothing.
-         */
-        try { // this block will always throw since facebook app still not reviewed
-            val page = facebook.fetchObject(userProfile.location.id, Page::class.java, "location")
-            logger.debug { "Found Facebook user location: ${page.location.country}" }
-
-            val country = countryRepository.findByNicename(page.location.country)
-            if (country.isPresent) {
-                countryId = country.get().id
-            } else {
-                logger.error { "Country from Facebook: ${page.location.country} is missing in database." }
-            }
-        } catch (ex: Exception) {
-            logger.info("Could not fetch user from Facebook.", ex)
-        }
-
-        return countryId
     }
 }

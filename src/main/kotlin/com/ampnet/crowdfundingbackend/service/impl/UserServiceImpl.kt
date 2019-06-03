@@ -11,7 +11,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.MailToken
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.CountryRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
@@ -29,7 +28,6 @@ import java.util.UUID
 class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
-    private val countryRepository: CountryRepository,
     private val mailTokenRepository: MailTokenRepository,
     private val mailService: MailService,
     private val passwordEncoder: PasswordEncoder,
@@ -161,10 +159,6 @@ class UserServiceImpl(
             // social user is confirmed from social service
             user.enabled = true
         }
-
-        request.countryId?.let { id ->
-            user.country = countryRepository.findById(id).orElse(null)
-        }
         return user
     }
 
@@ -172,10 +166,6 @@ class UserServiceImpl(
         user.firstName = request.firstName
         user.lastName = request.lastName
         user.phoneNumber = request.phoneNumber
-        user.country = countryRepository.findById(request.countryId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.COUNTRY_MISSING,
-                    "Country with id: ${request.countryId} does not exists")
-        }
         return user
     }
 

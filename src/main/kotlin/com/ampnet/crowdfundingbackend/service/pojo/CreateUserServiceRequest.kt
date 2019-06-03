@@ -1,7 +1,6 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
-import com.ampnet.crowdfundingbackend.validation.CountryConstraint
 import com.ampnet.crowdfundingbackend.validation.PasswordConstraint
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.validation.EmailConstraint
@@ -24,9 +23,6 @@ data class CreateUserServiceRequest(
     @NameConstraint
     val lastName: String?,
 
-    @CountryConstraint
-    val countryId: Int?,
-
     @PhoneNumberConstraint
     val phoneNumber: String?,
 
@@ -38,7 +34,6 @@ data class CreateUserServiceRequest(
             signupRequestUserInfo.password,
             signupRequestUserInfo.firstName,
             signupRequestUserInfo.lastName,
-            signupRequestUserInfo.countryId,
             signupRequestUserInfo.phoneNumber,
             signupMethod
     )
@@ -48,7 +43,6 @@ data class CreateUserServiceRequest(
             null,
             socialUserInfo.firstName,
             socialUserInfo.lastName,
-            socialUserInfo.countryId,
             null,
             signupMethod
     )

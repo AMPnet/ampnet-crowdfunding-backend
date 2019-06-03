@@ -100,7 +100,7 @@ class UserControllerTest : ControllerTestBase() {
     fun mustEnableFetchingOwnProfileForIncompleteUserProfile() {
         suppose("User with incomplete profile exists in database") {
             databaseCleanerService.deleteAllUsers()
-            val user = CreateUserServiceRequest("test@test.com", null, null, null, null, null, AuthMethod.EMAIL)
+            val user = CreateUserServiceRequest("test@test.com", null, null, null, null, AuthMethod.EMAIL)
             userService.create(user)
         }
 
@@ -114,7 +114,6 @@ class UserControllerTest : ControllerTestBase() {
             assertThat(userResponse.id).isNotNull()
             assertThat(userResponse.firstName).isNull()
             assertThat(userResponse.lastName).isNull()
-            assertThat(userResponse.country).isNull()
             assertThat(userResponse.phoneNumber).isNull()
         }
     }
@@ -362,7 +361,6 @@ class UserControllerTest : ControllerTestBase() {
                 password = testUser.password,
                 firstName = testUser.firstName,
                 lastName = testUser.lastName,
-                countryId = testUser.countryId,
                 phoneNumber = testUser.phoneNumber,
                 authMethod = testUser.authMethod
         )
@@ -389,7 +387,6 @@ class UserControllerTest : ControllerTestBase() {
                 testUser.email,
                 testUser.firstName,
                 testUser.lastName,
-                testUser.countryId,
                 testUser.phoneNumber
         )
     }
@@ -399,7 +396,6 @@ class UserControllerTest : ControllerTestBase() {
         var password = "Password157!"
         var firstName = "John"
         var lastName = "Smith"
-        var countryId = 1
         var phoneNumber = "0951234567"
         var authMethod = AuthMethod.EMAIL
     }
