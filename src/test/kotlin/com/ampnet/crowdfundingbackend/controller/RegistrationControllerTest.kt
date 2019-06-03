@@ -1,14 +1,12 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.controller.pojo.request.MailCheckRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.response.IdentyumTokenResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.MailCheckResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
+import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.ErrorResponse
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
@@ -24,22 +22,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.client.ExpectedCount
-import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.test.web.client.match.MockRestRequestMatchers
-import org.springframework.test.web.client.response.MockRestResponseCreators
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.util.LinkedMultiValueMap
-import org.springframework.web.client.RestTemplate
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -50,7 +40,6 @@ class RegistrationControllerTest : ControllerTestBase() {
     private val confirmationPath = "/mail-confirmation"
     private val resendConfirmationPath = "/mail-confirmation/resend"
     private val checkMail = "/mail-check"
-    private val identyumTokenPath = "/identyum-token"
 
     @Autowired
     private lateinit var userService: UserService
@@ -62,14 +51,9 @@ class RegistrationControllerTest : ControllerTestBase() {
     private lateinit var mailTokenRepository: MailTokenRepository
     @Autowired
     private lateinit var mailService: MailService
-    @Autowired
-    private lateinit var restTemplate: RestTemplate
-    @Autowired
-    private lateinit var applicationProperties: ApplicationProperties
 
     private lateinit var testUser: TestUser
     private lateinit var testContext: TestContext
-    private lateinit var mockServer: MockRestServiceServer
 
     @BeforeEach
     fun initTestData() {
@@ -471,49 +455,6 @@ class RegistrationControllerTest : ControllerTestBase() {
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andExpect(status().isBadRequest)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser
-    fun mustBeAbleToGetIdentyumToken() {
-        suppose("User exists") {
-            createUser(defaultEmail)
-        }
-        suppose("Identyum will return token") {
-            val map = LinkedMultiValueMap<String, String>()
-            map["username"] = applicationProperties.identyum.username
-            map["password"] = applicationProperties.identyum.password
-
-            mockServer = MockRestServiceServer.createServer(restTemplate)
-            mockServer.expect(ExpectedCount.once(),
-                    MockRestRequestMatchers.requestTo(applicationProperties.identyum.url))
-                    .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
-                    .andExpect(MockRestRequestMatchers.content()
-                            .contentType("application/x-www-form-urlencoded;charset=UTF-8"))
-                    .andExpect(MockRestRequestMatchers.content()
-                            .formData(map))
-                    .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
-                            .body("1c03b4a5-6f2b-4de5-a3e7-cd043177bc95"))
-        }
-
-        verify("User can get Identyum token") {
-            val result = mockMvc.perform(get(identyumTokenPath))
-                    .andExpect(status().isOk)
-                    .andReturn()
-            val response = objectMapper.readValue<IdentyumTokenResponse>(result.response.contentAsString)
-            assertThat(response).isNotNull
-            assertThat(response.token).isEqualTo("1c03b4a5-6f2b-4de5-a3e7-cd043177bc95")
-
-            mockServer.verify()
-        }
-    }
-
-    @Test
-    fun unauthorizedUserMustNotBeAbleToGetIdentyumToken() {
-        verify("Server will return unauthorized") {
-            mockMvc.perform(get(identyumTokenPath))
-                    .andExpect(status().isUnauthorized)
         }
     }
 

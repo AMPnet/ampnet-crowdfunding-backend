@@ -122,9 +122,9 @@ include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/htt
 
 === Identyum token
 .Request
-include::{snippets}/RegistrationControllerTest/mustBeAbleToGetIdentyumToken/http-request.adoc[]
+include::{snippets}/IdentyumControllerTest/mustBeAbleToGetIdentyumToken/http-request.adoc[]
 .Response
-include::{snippets}/RegistrationControllerTest/mustBeAbleToGetIdentyumToken/http-response.adoc[]
+include::{snippets}/IdentyumControllerTest/mustBeAbleToGetIdentyumToken/http-response.adoc[]
 
 == Authentication API
 
