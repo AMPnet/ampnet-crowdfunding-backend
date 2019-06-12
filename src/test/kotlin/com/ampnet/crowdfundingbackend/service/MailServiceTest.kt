@@ -71,7 +71,6 @@ class MailServiceTest : TestBase() {
 
     private class TestContext {
         val receiverMail = "test@test.com"
-        val token = "test-token"
         val invitedBy = "Test User"
         val organizationName = "Organization test"
     }

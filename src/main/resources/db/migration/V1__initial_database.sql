@@ -5,17 +5,6 @@ CREATE TABLE role (
   description VARCHAR NOT NULL
 );
 
--- Country
-CREATE TABLE country (
-  id SERIAL PRIMARY KEY,
-  iso VARCHAR(2) NOT NULL,
-  name VARCHAR(80) NOT NULL,
-  nicename VARCHAR(80) NOT NULL,
-  iso3 VARCHAR(3) DEFAULT NULL,
-  numcode SMALLINT DEFAULT NULL,
-  phonecode INT NOT NULL
-);
-
 -- Wallet
 CREATE TABLE wallet (
     id SERIAL PRIMARY KEY,
@@ -32,19 +21,12 @@ CREATE TABLE app_user (
     password VARCHAR(60),
     first_name VARCHAR(30),
     last_name VARCHAR(30),
-    country_id INT REFERENCES country(id),
     phone_number VARCHAR,
     role_id INT REFERENCES role(id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     auth_method VARCHAR(8) NOT NULL,
     enabled BOOLEAN NOT NULL,
     wallet_id INT REFERENCES wallet(id)
-);
-CREATE TABLE mail_token (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES app_user(id) NOT NULL,
-    token UUID NOT NULL,
-    created_at TIMESTAMP NOT NULL
 );
 
 -- Organization

@@ -17,7 +17,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.MailTokenRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
@@ -63,8 +62,6 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var inviteRepository: OrganizationInviteRepository
     @Autowired
     protected lateinit var walletRepository: WalletRepository
-    @Autowired
-    protected lateinit var mailTokenRepository: MailTokenRepository
     @Autowired
     protected lateinit var projectRepository: ProjectRepository
     @Autowired
