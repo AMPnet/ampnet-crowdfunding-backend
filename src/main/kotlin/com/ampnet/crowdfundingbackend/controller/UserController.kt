@@ -1,23 +1,16 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.RoleRequest
-import com.ampnet.crowdfundingbackend.controller.pojo.request.UserUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInviteResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.UserResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.UsersListResponse
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
 import mu.KLogging
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import javax.validation.Valid
 
 @RestController
 class UserController(private val userService: UserService, private val organizationService: OrganizationService) {

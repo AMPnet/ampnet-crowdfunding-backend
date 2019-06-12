@@ -28,5 +28,4 @@ class CustomAuthenticationProvider : AuthenticationProvider {
 
     private fun getAuthorities(authorities: Set<String>): Set<SimpleGrantedAuthority> =
             authorities.map { SimpleGrantedAuthority(it) }.toSet()
-
 }
