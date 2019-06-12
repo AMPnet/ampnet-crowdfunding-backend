@@ -18,7 +18,7 @@ import java.util.Date
 import javax.crypto.SecretKey
 
 @Component
-class TokenProvider(val applicationProperties: ApplicationProperties, val objectMapper: ObjectMapper) : Serializable {
+class TokenProvider(applicationProperties: ApplicationProperties, val objectMapper: ObjectMapper) : Serializable {
 
     private val userKey = "user"
     private val hidden = "Hidden"
@@ -33,6 +33,8 @@ class TokenProvider(val applicationProperties: ApplicationProperties, val object
                     .setSigningKey(key)
             val claimsJws = jwtParser.parseClaimsJws(token)
             val claims = claimsJws.body
+
+            // TODO: maybe validate in CustomAuthenticationProvider
             validateExpiration(claims)
 
             val userPrincipal = getUserPrincipal(claims)

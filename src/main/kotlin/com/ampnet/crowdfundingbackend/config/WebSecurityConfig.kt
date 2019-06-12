@@ -4,7 +4,6 @@ import com.ampnet.crowdfundingbackend.config.auth.CustomAuthenticationProvider
 import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationEntryPoint
 import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationFilter
 import com.ampnet.crowdfundingbackend.config.auth.ProfileFilter
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -27,7 +26,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class WebSecurityConfig(
     val unauthorizedHandler: JwtAuthenticationEntryPoint,
     val authenticationTokenFilter: JwtAuthenticationFilter,
-    val profileFilter: ProfileFilter
+    val profileFilter: ProfileFilter,
+    val customAuthenticationProvider: CustomAuthenticationProvider
 ) : WebSecurityConfigurerAdapter() {
 
     @Override
@@ -36,12 +36,8 @@ class WebSecurityConfig(
         return super.authenticationManagerBean()
     }
 
-    @Autowired
-    fun globalUserDetails(
-        authBuilder: AuthenticationManagerBuilder,
-        authenticationProvider: CustomAuthenticationProvider
-    ) {
-        authBuilder.authenticationProvider(authenticationProvider)
+    override fun configure(auth: AuthenticationManagerBuilder?) {
+        auth?.authenticationProvider(customAuthenticationProvider)
     }
 
     @Bean

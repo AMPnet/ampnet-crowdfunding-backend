@@ -8,6 +8,7 @@ import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+// TODO: think about removing this filter
 @Component
 class ProfileFilter : OncePerRequestFilter() {
 
