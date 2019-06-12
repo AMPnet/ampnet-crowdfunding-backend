@@ -28,8 +28,6 @@ import java.util.UUID
 class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
-    private val mailTokenRepository: MailTokenRepository,
-    private val mailService: MailService,
     private val passwordEncoder: PasswordEncoder,
     private val applicationProperties: ApplicationProperties
 ) : UserService {
@@ -38,10 +36,6 @@ class UserServiceImpl(
 
     private val userRole: Role by lazy {
         roleRepository.getOne(UserRoleType.USER.id)
-    }
-
-    private val adminRole: Role by lazy {
-        roleRepository.getOne(UserRoleType.ADMIN.id)
     }
 
     @Transactional
@@ -54,22 +48,7 @@ class UserServiceImpl(
         val userRequest = createUserFromRequest(request)
         val user = userRepository.save(userRequest)
 
-        if (user.authMethod == AuthMethod.EMAIL && user.enabled.not()) {
-            val mailToken = createMailToken(user)
-            mailService.sendConfirmationMail(user.email, mailToken.token.toString())
-        }
-
         return user
-    }
-
-    @Transactional
-    override fun update(request: UserUpdateRequest): User {
-        val savedUser = userRepository.findByEmail(request.email).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.USER_MISSING,
-                    "Trying to update user with email ${request.email} which does not exists in db.")
-        }
-        val user = updateUserFromRequest(savedUser, request)
-        return userRepository.save(user)
     }
 
     @Transactional(readOnly = true)
@@ -97,50 +76,6 @@ class UserServiceImpl(
         userRepository.deleteById(id)
     }
 
-    @Transactional
-    override fun confirmEmail(token: UUID): User? {
-        val optionalMailToken = mailTokenRepository.findByToken(token)
-        if (!optionalMailToken.isPresent) {
-            return null
-        }
-        val mailToken = optionalMailToken.get()
-        if (mailToken.isExpired()) {
-            throw InvalidRequestException(ErrorCode.REG_EMAIL_EXPIRED_TOKEN,
-                    "User is trying to confirm mail with expired token: $token")
-        }
-        val user = mailToken.user
-        user.enabled = true
-
-        mailTokenRepository.delete(mailToken)
-        return userRepository.save(user)
-    }
-
-    @Transactional
-    override fun resendConfirmationMail(user: User) {
-        if (user.authMethod != AuthMethod.EMAIL) {
-            return
-        }
-
-        mailTokenRepository.findByUserId(user.id).ifPresent {
-            mailTokenRepository.delete(it)
-        }
-        val mailToken = createMailToken(user)
-        mailService.sendConfirmationMail(user.email, mailToken.token.toString())
-    }
-
-    @Transactional
-    override fun changeUserRole(userId: Int, role: UserRoleType): User {
-        val user = userRepository.findById(userId).orElseThrow {
-            throw InvalidRequestException(ErrorCode.USER_MISSING, "Missing user with id: $userId")
-        }
-
-        user.role = when (role) {
-            UserRoleType.ADMIN -> adminRole
-            UserRoleType.USER -> userRole
-        }
-        return userRepository.save(user)
-    }
-
     private fun createUserFromRequest(request: CreateUserServiceRequest): User {
         val user = User::class.java.getConstructor().newInstance()
         user.email = request.email
@@ -161,21 +96,4 @@ class UserServiceImpl(
         }
         return user
     }
-
-    private fun updateUserFromRequest(user: User, request: UserUpdateRequest): User {
-        user.firstName = request.firstName
-        user.lastName = request.lastName
-        user.phoneNumber = request.phoneNumber
-        return user
-    }
-
-    private fun createMailToken(user: User): MailToken {
-        val mailToken = MailToken::class.java.getConstructor().newInstance()
-        mailToken.user = user
-        mailToken.token = generateToken()
-        mailToken.createdAt = ZonedDateTime.now()
-        return mailTokenRepository.save(mailToken)
-    }
-
-    private fun generateToken(): UUID = UUID.randomUUID()
 }

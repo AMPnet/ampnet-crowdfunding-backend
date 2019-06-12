@@ -48,25 +48,6 @@ class MailServiceTest : TestBase() {
     }
 
     @Test
-    fun mustSetCorrectSenderMailFromProperties() {
-        suppose("Service sent the mail") {
-            service.sendConfirmationMail(testContext.receiverMail, testContext.token)
-        }
-
-        verify("The mail is sent to right receiver and has confirmation link") {
-            val mailList = wiser.messages
-            assertThat(mailList).hasSize(1)
-            val mail = mailList.first()
-            assertThat(mail.envelopeSender).isEqualTo(applicationProperties.mail.sender)
-            assertThat(mail.envelopeReceiver).isEqualTo(testContext.receiverMail)
-            assertThat(mail.mimeMessage.subject).isEqualTo(service.confirmationMailSubject)
-
-            val confirmationLink = "${applicationProperties.mail.confirmationBaseLink}?token=${testContext.token}"
-            assertThat(mail.mimeMessage.content.toString()).contains(confirmationLink)
-        }
-    }
-
-    @Test
     fun mustSetCorrectOrganizationInvitationMail() {
         suppose("Service send organizationInvitation mail") {
             service.sendOrganizationInvitationMail(

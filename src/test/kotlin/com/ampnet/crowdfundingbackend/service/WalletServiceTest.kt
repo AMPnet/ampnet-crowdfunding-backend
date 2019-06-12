@@ -26,9 +26,7 @@ import java.time.ZonedDateTime
 class WalletServiceTest : JpaServiceTestBase() {
 
     private val userService: UserService by lazy {
-        val mailService = Mockito.mock(MailService::class.java)
-        UserServiceImpl(userRepository, roleRepository, mailTokenRepository,
-                mailService, passwordEncoder, applicationProperties)
+        UserServiceImpl(userRepository, roleRepository, passwordEncoder, applicationProperties)
     }
     private val walletService: WalletService by lazy {
         val transactionService = TransactionInfoServiceImpl(transactionInfoRepository)

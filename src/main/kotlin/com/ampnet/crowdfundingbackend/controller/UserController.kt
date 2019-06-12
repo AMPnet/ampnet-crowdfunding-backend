@@ -24,33 +24,6 @@ class UserController(private val userService: UserService, private val organizat
 
     companion object : KLogging()
 
-    @GetMapping("/me")
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRO_PROFILE)")
-    fun me(): ResponseEntity<UserResponse> {
-        logger.debug { "Received request for my profile" }
-        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        userService.find(userPrincipal.email)?.let {
-            return ResponseEntity.ok(UserResponse(it))
-        }
-
-        logger.error("Non existing user: ${userPrincipal.email} trying to get his profile")
-        return ResponseEntity.notFound().build()
-    }
-
-    @PostMapping("/me")
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWO_PROFILE)")
-    fun updateMyProfile(@RequestBody @Valid request: UserUpdateRequest): ResponseEntity<UserResponse> {
-        logger.debug { "User send request to update his profile" }
-        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        return if (userPrincipal.email != request.email) {
-            logger.info("User trying to update others profile")
-            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-        } else {
-            val user = userService.update(request)
-            ResponseEntity.ok(UserResponse(user))
-        }
-    }
-
     @GetMapping("/me/invites")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRO_ORG_INVITE)")
     fun getMyInvitations(): ResponseEntity<OrganizationInvitesListResponse> {
@@ -77,35 +50,6 @@ class UserController(private val userService: UserService, private val organizat
         val userId = getUserId()
         organizationService.answerToOrganizationInvitation(userId, false, organizationId)
         return ResponseEntity.ok().build()
-    }
-
-    // TODO: maybe extract to admin controller
-    @GetMapping("/users")
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
-    fun getUsers(): ResponseEntity<UsersListResponse> {
-        logger.debug { "Received request to list all users" }
-        val users = userService.findAll().map { UserResponse(it) }
-        return ResponseEntity.ok(UsersListResponse(users))
-    }
-
-    @GetMapping("/users/{id}")
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_PROFILE)")
-    fun getUser(@PathVariable("id") id: Int): ResponseEntity<UserResponse> {
-        logger.debug { "Received request for user info with id: $id" }
-        return userService.find(id)?.let { ResponseEntity.ok(UserResponse(it)) }
-                ?: ResponseEntity.notFound().build()
-    }
-
-    @PostMapping("/users/{id}/role")
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_PROFILE)")
-    fun changeUserRole(
-        @PathVariable("id") id: Int,
-        @RequestBody request: RoleRequest
-    ): ResponseEntity<UserResponse> {
-        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        logger.debug { "Received request by user: ${userPrincipal.email} to change user: $id role to ${request.role}" }
-        val user = userService.changeUserRole(id, request.role)
-        return ResponseEntity.ok(UserResponse(user))
     }
 
     private fun getUserId(): Int = ControllerUtils.getUserFromSecurityContext(userService).id
