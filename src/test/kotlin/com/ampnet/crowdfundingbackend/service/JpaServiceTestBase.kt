@@ -90,13 +90,13 @@ abstract class JpaServiceTestBase : TestBase() {
         return userRepository.save(user)
     }
 
-    protected fun createOrganization(name: String, createdBy: User): Organization {
+    protected fun createOrganization(name: String, createdByUuid: String): Organization {
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = name
         organization.legalInfo = "some legal info"
         organization.createdAt = ZonedDateTime.now()
         organization.approved = true
-        organization.createdByUser = createdBy
+        organization.createdByUserUuid = createdByUuid
         organization.documents = emptyList()
         return organizationRepository.save(organization)
     }
@@ -132,17 +132,17 @@ abstract class JpaServiceTestBase : TestBase() {
     }
 
     protected fun createOrganizationInvite(
-        userId: Int,
+        email: String,
         organizationId: Int,
         role: OrganizationRoleType,
-        invitedBy: Int
+        invitedByUuid: String
     ): OrganizationInvite {
         val invite = OrganizationInvite::class.java.getConstructor().newInstance()
-        invite.userId = userId
+        invite.email = email
         invite.organizationId = organizationId
         invite.createdAt = ZonedDateTime.now()
         invite.role = roleRepository.getOne(role.id)
-        invite.invitedBy = invitedBy
+        invite.invitedByUserUuid = invitedByUuid
         return inviteRepository.save(invite)
     }
 
@@ -179,7 +179,7 @@ abstract class JpaServiceTestBase : TestBase() {
     protected fun saveDocument(
         name: String,
         link: String,
-        createdBy: User,
+        createdByUserUuid: String,
         type: String = "document/type",
         size: Int = 100
     ): Document {
@@ -188,7 +188,7 @@ abstract class JpaServiceTestBase : TestBase() {
         document.link = link
         document.type = type
         document.size = size
-        document.createdBy = createdBy
+        document.createdByUserUuid = createdByUserUuid
         document.createdAt = ZonedDateTime.now()
         return documentRepository.save(document)
     }

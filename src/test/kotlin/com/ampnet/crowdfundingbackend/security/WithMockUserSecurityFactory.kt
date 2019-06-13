@@ -14,6 +14,7 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
     override fun createSecurityContext(annotation: WithMockCrowdfoundUser): SecurityContext {
         val authorities = mapPrivilegesOrRoleToAuthorities(annotation)
         val userPrincipal = UserPrincipal(
+                annotation.uuid,
                 annotation.email, authorities.asSequence().map { it.authority }.toSet(),
                 annotation.completeProfile, annotation.enabled)
         val token = UsernamePasswordAuthenticationToken(

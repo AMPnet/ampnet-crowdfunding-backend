@@ -65,9 +65,10 @@ class ProjectController(
     @PostMapping("/project")
     fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to create project: $request" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val user = ControllerUtils.getUserFromSecurityContext(userService)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, request.organizationId) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, request.organizationId) {
             createProject(request, user)
         }
     }
@@ -85,11 +86,11 @@ class ProjectController(
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document to project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
-            val request = DocumentSaveRequest(file, user)
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            val request = DocumentSaveRequest(file, userPrincipal.uuid)
             val document = projectService.addDocument(project.id, request)
             DocumentResponse(document)
         }
@@ -101,10 +102,10 @@ class ProjectController(
         @PathVariable("documentId") documentId: Int
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete document: $documentId for project $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             projectService.removeDocument(projectId, documentId)
         }
     }
@@ -115,10 +116,10 @@ class ProjectController(
         @RequestParam("image") image: MultipartFile
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to add main image to project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             val imageName = getImageNameFromMultipartFile(image)
             projectService.addMainImage(project, imageName, image.bytes)
         }
@@ -130,10 +131,10 @@ class ProjectController(
         @RequestParam("image") image: MultipartFile
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to add gallery image to project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             val imageName = getImageNameFromMultipartFile(image)
             projectService.addImageToGallery(project, imageName, image.bytes)
         }
@@ -145,10 +146,10 @@ class ProjectController(
         @RequestBody request: ImageLinkListRequest
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete gallery images for project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             projectService.removeImagesFromGallery(project, request.images)
         }
     }
@@ -203,19 +204,19 @@ class ProjectController(
                     ?: throw ResourceNotFoundException(
                             ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
 
-    private fun getUserMembershipInOrganization(userId: Int, organizationId: Int): OrganizationMembership? =
-            organizationService.getOrganizationMemberships(organizationId).find { it.userId == userId }
+    private fun getUserMembershipInOrganization(userUuid: String, organizationId: Int): OrganizationMembership? =
+            organizationService.getOrganizationMemberships(organizationId).find { it.userUuid == userUuid }
 
     private fun getProjectById(projectId: Int): Project =
         projectService.getProjectById(projectId)
             ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
 
     private fun <T> ifUserHasPrivilegeToWriteInProjectThenReturn(
-        userId: Int,
+        userUuid: String,
         organizationId: Int,
         action: () -> (T)
     ): ResponseEntity<T> {
-        getUserMembershipInOrganization(userId, organizationId)?.let { orgMembership ->
+        getUserMembershipInOrganization(userUuid, organizationId)?.let { orgMembership ->
             return if (orgMembership.hasPrivilegeToWriteProject()) {
                 val response = action()
                 ResponseEntity.ok(response)
@@ -224,7 +225,7 @@ class ProjectController(
                 ResponseEntity.status(HttpStatus.FORBIDDEN).build()
             }
         }
-        logger.info { "User $userId is not a member of organization $organizationId" }
+        logger.info { "User $userUuid is not a member of organization $organizationId" }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 }

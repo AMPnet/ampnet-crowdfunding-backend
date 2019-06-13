@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import org.springframework.web.multipart.MultipartFile
 
 data class DocumentSaveRequest(
@@ -8,13 +7,13 @@ data class DocumentSaveRequest(
     val name: String,
     val size: Int,
     val type: String,
-    val user: User
+    val userUuid: String
 ) {
-    constructor(file: MultipartFile, user: User) : this(
+    constructor(file: MultipartFile, userUuid: String) : this(
             file.bytes,
             file.originalFilename ?: file.name,
             file.size.toInt(),
             file.contentType ?: file.originalFilename?.split(".")?.lastOrNull() ?: "Unknown",
-            user
+            userUuid
     )
 }

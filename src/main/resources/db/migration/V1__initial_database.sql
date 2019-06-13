@@ -33,37 +33,34 @@ CREATE TABLE app_user (
 CREATE TABLE organization (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
-    created_by INT REFERENCES app_user(id) NOT NULL,
+    created_by_user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     approved BOOLEAN NOT NULL,
-    approved_by INT REFERENCES app_user(id),
+    approved_by_user_uuid VARCHAR,
     legal_info VARCHAR,
     wallet_id INT REFERENCES wallet(id)
 );
 CREATE TABLE organization_membership (
+    id SERIAL PRIMARY KEY,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    user_id INT REFERENCES app_user(id) NOT NULL,
+    user_uuid VARCHAR NOT NULL,
     role_id INT REFERENCES role(id),
-    created_at TIMESTAMP NOT NULL,
-
-    PRIMARY KEY (organization_id, user_id)
+    created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE organization_follower (
+    id SERIAL PRIMARY KEY,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    user_id INT REFERENCES app_user(id) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-
-    PRIMARY KEY (organization_id, user_id)
+    user_uuid VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE organization_invite (
-    user_id INT REFERENCES app_user(id) NOT NULL,
+    id SERIAL PRIMARY KEY,
+    email VARCHAR NOT NULL,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    invited_by INT REFERENCES app_user(id) NOT NULL,
+    invited_by_user_uuid VARCHAR NOT NULL,
     role_id INT REFERENCES role(id),
-    created_at TIMESTAMP NOT NULL,
-
-    PRIMARY KEY (organization_id, user_id)
+    created_at TIMESTAMP NOT NULL
 );
 
 -- Project
@@ -92,11 +89,11 @@ CREATE TABLE project (
 -- Document
 CREATE TABLE document (
     id SERIAL PRIMARY KEY,
-    hash VARCHAR NOT NULL,
+    link VARCHAR NOT NULL,
     name VARCHAR NOT NULL,
     type VARCHAR(16) NOT NULL,
     size INT NOT NULL,
-    created_by INT REFERENCES app_user(id) NOT NULL,
+    created_by_user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE project_document(
@@ -110,4 +107,14 @@ CREATE TABLE organization_document(
     document_id INT REFERENCES document(id) NOT NULL,
 
     PRIMARY KEY (organization_id, document_id)
+);
+
+-- Transaction
+CREATE TABLE transaction_info (
+  id SERIAL PRIMARY KEY,
+  type VARCHAR(16) NOT NULL,
+  title VARCHAR NOT NULL,
+  description VARCHAR NOT NULL,
+  user_id INT REFERENCES app_user(id) NOT NULL,
+  companion_id INT
 );

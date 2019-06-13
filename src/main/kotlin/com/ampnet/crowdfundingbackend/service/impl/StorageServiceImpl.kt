@@ -28,7 +28,7 @@ class StorageServiceImpl(
         document.name = request.name
         document.size = request.size
         document.createdAt = ZonedDateTime.now()
-        document.createdBy = request.user
+        document.createdByUserUuid = request.userUuid
         document.type = request.type.take(16)
         return documentRepository.save(document)
     }

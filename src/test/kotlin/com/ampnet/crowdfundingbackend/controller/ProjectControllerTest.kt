@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
+import java.util.*
 
 class ProjectControllerTest : ControllerTestBase() {
 
@@ -49,7 +50,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @BeforeEach
     fun init() {
         databaseCleanerService.deleteAllWalletsAndOwners()
-        organization = createOrganization("Test organization", user)
+        organization = createOrganization("Test organization", userUuid)
         createWalletForOrganization(organization, "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
         testContext = TestContext()
     }
@@ -89,8 +90,6 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
                 it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
                 it.assertThat(projectResponse.organization.approved).isEqualTo(organization.approved)
-                it.assertThat(projectResponse.organization.createdByUser)
-                        .isEqualTo(organization.createdByUser.getFullName())
             }
 
             assertThat(projectResponse.walletHash).isNull()
@@ -106,7 +105,7 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.project = createProject("My project", organization, user)
         }
         suppose("Project has a document") {
-            testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentLink)
+            testContext.document = createProjectDocument(testContext.project, userUuid, "Prj doc", testContext.documentLink)
         }
         suppose("Project has a wallet") {
             createWalletForProject(testContext.project, testContext.walletHash)
@@ -192,7 +191,7 @@ class ProjectControllerTest : ControllerTestBase() {
     fun mustReturnErrorForUserOrganizationMembership() {
         suppose("User is a member of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_MEMBER)
         }
 
         verify("Controller will return forbidden for missing organization membership") {
@@ -210,7 +209,7 @@ class ProjectControllerTest : ControllerTestBase() {
     fun mustBeAbleToCreateProject() {
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
 
         verify("Controller will return create project") {
@@ -247,8 +246,6 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
                 it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
                 it.assertThat(projectResponse.organization.approved).isEqualTo(organization.approved)
-                it.assertThat(projectResponse.organization.createdByUser)
-                        .isEqualTo(organization.createdByUser.getFullName())
             }
 
             assertThat(projectResponse.walletHash).isNull()
@@ -270,7 +267,7 @@ class ProjectControllerTest : ControllerTestBase() {
             createProject("Project 3", organization, user)
         }
         suppose("Second organization has project") {
-            val secondOrganization = createOrganization("Second organization", user)
+            val secondOrganization = createOrganization("Second organization", userUuid)
             testContext.secondProject = createProject("Second project", secondOrganization, user)
         }
 
@@ -314,7 +311,7 @@ class ProjectControllerTest : ControllerTestBase() {
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
         suppose("File service will store document") {
             testContext.multipartFile = MockMultipartFile("file", "test.txt",
@@ -362,11 +359,11 @@ class ProjectControllerTest : ControllerTestBase() {
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
         suppose("Project has some documents") {
-            testContext.document = createProjectDocument(testContext.project, user, "Prj doc", testContext.documentLink)
-            createProjectDocument(testContext.project, user, "Sec.pdf", "Sec-some-link.pdf")
+            testContext.document = createProjectDocument(testContext.project, userUuid, "Prj doc", testContext.documentLink)
+            createProjectDocument(testContext.project, userUuid, "Sec.pdf", "Sec-some-link.pdf")
         }
 
         verify("User admin can delete document") {
@@ -391,7 +388,7 @@ class ProjectControllerTest : ControllerTestBase() {
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
         suppose("File service will store image") {
             testContext.multipartFile = MockMultipartFile("image", "image.png",
@@ -424,7 +421,7 @@ class ProjectControllerTest : ControllerTestBase() {
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
         suppose("File service will store image") {
             testContext.multipartFile = MockMultipartFile("image", "image.png",
@@ -457,7 +454,7 @@ class ProjectControllerTest : ControllerTestBase() {
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
         suppose("Project has gallery images") {
             testContext.project.gallery = listOf("image-link-1", "image-link-2", "image-link-3")
@@ -604,13 +601,13 @@ class ProjectControllerTest : ControllerTestBase() {
 
     private fun createProjectDocument(
         project: Project,
-        createdBy: User,
+        createdByUserUuid: String,
         name: String,
         link: String,
         type: String = "document/type",
         size: Int = 100
     ): Document {
-        val savedDocument = saveDocument(name, link, type, size, createdBy)
+        val savedDocument = saveDocument(name, link, type, size, createdByUserUuid)
         val documents = project.documents.orEmpty().toMutableList()
         documents.add(savedDocument)
         project.documents = documents

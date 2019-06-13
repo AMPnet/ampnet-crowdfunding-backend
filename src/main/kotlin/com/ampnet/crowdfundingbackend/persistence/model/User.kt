@@ -54,9 +54,9 @@ data class User(
     @Column(nullable = false)
     var enabled: Boolean,
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
-    var organizations: List<OrganizationMembership>?,
+//    @OneToMany(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "userId")
+//    var organizations: List<OrganizationMembership>?,
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id")

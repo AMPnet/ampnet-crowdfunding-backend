@@ -1,17 +1,13 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInviteRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUserResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
-import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging
 import org.springframework.http.HttpStatus
@@ -28,10 +24,7 @@ import org.springframework.web.multipart.MultipartFile
 import javax.validation.Valid
 
 @RestController
-class OrganizationController(
-    private val organizationService: OrganizationService,
-    private val userService: UserService
-) {
+class OrganizationController(private val organizationService: OrganizationService) {
 
     companion object : KLogging()
 
@@ -46,8 +39,10 @@ class OrganizationController(
     @GetMapping("/organization/personal")
     fun getPersonalOrganizations(): ResponseEntity<OrganizationListResponse> {
         logger.debug { "Received request for personal organizations" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-        val organizations = organizationService.findAllOrganizationsForUser(user.id).map { OrganizationResponse(it) }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val organizations = organizationService
+                .findAllOrganizationsForUser(userPrincipal.uuid)
+                .map { OrganizationResponse(it) }
         return ResponseEntity.ok(OrganizationListResponse(organizations))
     }
 
@@ -65,9 +60,9 @@ class OrganizationController(
         @RequestBody @Valid request: OrganizationRequest
     ): ResponseEntity<OrganizationWithDocumentResponse> {
         logger.debug { "Received request to create organization: $request" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
 
-        val serviceRequest = OrganizationServiceRequest(request, user)
+        val serviceRequest = OrganizationServiceRequest(request, userPrincipal.uuid)
         val organization = organizationService.createOrganization(serviceRequest)
         return ResponseEntity.ok(OrganizationWithDocumentResponse(organization))
     }
@@ -75,52 +70,11 @@ class OrganizationController(
     @PostMapping("/organization/{id}/approve")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_ORG_APPROVE)")
     fun approveOrganization(@PathVariable("id") id: Int): ResponseEntity<OrganizationWithDocumentResponse> {
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-        logger.debug { "Received request to approve organization with id: $id by user: ${user.email}" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.debug { "Received request to approve organization with id: $id by user: ${userPrincipal.email}" }
 
-        val organization = organizationService.approveOrganization(id, true, user)
+        val organization = organizationService.approveOrganization(id, true, userPrincipal.uuid)
         return ResponseEntity.ok(OrganizationWithDocumentResponse(organization))
-    }
-
-    @GetMapping("/organization/{id}/users")
-    fun getOrganizationUsers(@PathVariable("id") id: Int): ResponseEntity<OrganizationUsersListResponse> {
-        logger.debug { "Received request to get all users for organization: $id" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-
-        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, id) {
-            val users = organizationService.findAllUsersFromOrganization(id).map {
-                user -> OrganizationUserResponse(user)
-            }
-            OrganizationUsersListResponse(users)
-        }
-    }
-
-    @PostMapping("/organization/{id}/invite")
-    fun inviteToOrganization(
-        @PathVariable("id") id: Int,
-        @RequestBody @Valid request: OrganizationInviteRequest
-    ): ResponseEntity<Unit> {
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-        logger.debug { "Received request to invited user to organization $id by user: ${user.email}" }
-
-        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, id) {
-            val serviceRequest = OrganizationInviteServiceRequest(request, id, user)
-            organizationService.inviteUserToOrganization(serviceRequest)
-            Unit
-        }
-    }
-
-    @PostMapping("/organization/{organizationId}/invite/{revokeUserId}/revoke")
-    fun revokeInvitationToOrganization(
-        @PathVariable("organizationId") organizationId: Int,
-        @PathVariable("revokeUserId") revokeUserId: Int
-    ): ResponseEntity<Unit> {
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-        logger.debug { "Received request to invited user to organization $organizationId by user: ${user.email}" }
-
-        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, organizationId) {
-            organizationService.revokeInvitationToJoinOrganization(organizationId, revokeUserId)
-        }
     }
 
     @PostMapping("/organization/{organizationId}/document")
@@ -129,10 +83,10 @@ class OrganizationController(
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document: ${file.name} to organization: $organizationId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
 
-        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, organizationId) {
-            val documentSaveRequest = DocumentSaveRequest(file, user)
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
+            val documentSaveRequest = DocumentSaveRequest(file, userPrincipal.uuid)
             val document = organizationService.addDocument(organizationId, documentSaveRequest)
             DocumentResponse(document)
         }
@@ -144,20 +98,20 @@ class OrganizationController(
         @PathVariable("documentId") documentId: Int
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete document: $documentId for organization $organizationId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
 
-        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(user.id, organizationId) {
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
             organizationService.removeDocument(organizationId, documentId)
         }
     }
 
     private fun <T> ifUserHasPrivilegeWriteUserInOrganizationThenReturn(
-        userId: Int,
+        userUuid: String,
         organizationId: Int,
         action: () -> (T)
     ): ResponseEntity<T> {
         organizationService.getOrganizationMemberships(organizationId)
-                .find { it.userId == userId }
+                .find { it.userUuid == userUuid }
                 ?.let { orgMembership ->
                     return if (orgMembership.hasPrivilegeToWriteOrganizationUsers()) {
                         val response = action()
@@ -167,7 +121,7 @@ class OrganizationController(
                         ResponseEntity.status(HttpStatus.FORBIDDEN).build()
                     }
                 }
-        logger.info { "User $userId is not a member of organization $organizationId" }
+        logger.info { "User $userUuid is not a member of organization $organizationId" }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 }

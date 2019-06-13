@@ -50,8 +50,7 @@ class MailServiceTest : TestBase() {
     @Test
     fun mustSetCorrectOrganizationInvitationMail() {
         suppose("Service send organizationInvitation mail") {
-            service.sendOrganizationInvitationMail(
-                    testContext.receiverMail, testContext.invitedBy, testContext.organizationName)
+            service.sendOrganizationInvitationMail(testContext.receiverMail, testContext.organizationName)
         }
 
         verify("The mail is sent to right receiver and has correct data") {
@@ -63,7 +62,6 @@ class MailServiceTest : TestBase() {
             assertThat(mail.mimeMessage.subject).isEqualTo(service.invitationMailSubject)
 
             val mailText = mail.mimeMessage.content.toString()
-            assertThat(mailText).contains(testContext.invitedBy)
             assertThat(mailText).contains(testContext.organizationName)
             assertThat(mailText).contains(applicationProperties.mail.organizationInvitationsLink)
         }
@@ -71,7 +69,6 @@ class MailServiceTest : TestBase() {
 
     private class TestContext {
         val receiverMail = "test@test.com"
-        val invitedBy = "Test User"
         val organizationName = "Organization test"
     }
 }

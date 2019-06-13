@@ -87,9 +87,12 @@ class WalletServiceImpl(
         userId: Int
     ): TransactionDataAndInfo {
         throwExceptionIfOrganizationAlreadyHasWallet(organization)
-        val walletHash = organization.createdByUser.wallet?.hash
-                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
 
+        // TODO: change wallet - user relation
+//        val walletHash = organization.createdByUser.wallet?.hash
+//                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
+
+        val walletHash = ""
         val data = blockchainService.generateAddOrganizationTransaction(walletHash, organization.name)
         val info = transactionInfoService.createOrgTransaction(organization, userId)
         return TransactionDataAndInfo(data, info)

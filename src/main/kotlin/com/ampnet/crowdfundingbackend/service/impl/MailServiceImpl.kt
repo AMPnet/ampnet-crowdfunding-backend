@@ -18,12 +18,11 @@ class MailServiceImpl(
 
     companion object : KLogging()
 
-    val confirmationMailSubject = "Confirmation mail"
     val invitationMailSubject = "Invitation to join organization"
 
     @Async
-    override fun sendOrganizationInvitationMail(to: String, invitedBy: String, organizationName: String) {
-        val message = "You have been invited by $invitedBy to join organization: $organizationName.\n" +
+    override fun sendOrganizationInvitationMail(to: String, organizationName: String) {
+        val message = "You have been invited to join organization: $organizationName.\n" +
                 "To review invite, please follow the link: ${applicationProperties.mail.organizationInvitationsLink}"
         val mail = createMailMessage(to, invitationMailSubject, message)
         if (applicationProperties.mail.enabled) {

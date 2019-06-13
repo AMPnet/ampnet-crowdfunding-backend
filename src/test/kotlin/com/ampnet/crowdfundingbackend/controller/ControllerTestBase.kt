@@ -17,6 +17,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
@@ -52,6 +53,7 @@ import java.time.ZonedDateTime
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
+    protected val userUuid = "1234-1234-1234-1234"
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
@@ -75,6 +77,8 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var transactionInfoRepository: TransactionInfoRepository
     @Autowired
     protected lateinit var cloudStorageService: CloudStorageService
+    @Autowired
+    protected lateinit var organizationInviteRepository: OrganizationInviteRepository
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 
@@ -145,20 +149,20 @@ abstract class ControllerTestBase : TestBase() {
         return walletRepository.save(wallet)
     }
 
-    protected fun createOrganization(name: String, user: User): Organization {
+    protected fun createOrganization(name: String, userUuid: String): Organization {
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = name
         organization.legalInfo = "some legal info"
         organization.createdAt = ZonedDateTime.now()
         organization.approved = true
-        organization.createdByUser = user
+        organization.createdByUserUuid = userUuid
         organization.documents = emptyList()
         return organizationRepository.save(organization)
     }
 
-    protected fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
+    protected fun addUserToOrganization(userUuid: String, organizationId: Int, role: OrganizationRoleType) {
         val membership = OrganizationMembership::class.java.getConstructor().newInstance()
-        membership.userId = userId
+        membership.userUuid = userUuid
         membership.organizationId = organizationId
         membership.role = roleRepository.getOne(role.id)
         membership.createdAt = ZonedDateTime.now()
@@ -200,14 +204,14 @@ abstract class ControllerTestBase : TestBase() {
         link: String,
         type: String,
         size: Int,
-        createdBy: User
+        createdByUserUuid: String
     ): Document {
         val document = Document::class.java.getDeclaredConstructor().newInstance()
         document.name = name
         document.link = link
         document.type = type
         document.size = size
-        document.createdBy = createdBy
+        document.createdByUserUuid = createdByUserUuid
         document.createdAt = ZonedDateTime.now()
         return documentRepository.save(document)
     }

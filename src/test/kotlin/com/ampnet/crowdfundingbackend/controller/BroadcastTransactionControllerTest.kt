@@ -19,6 +19,7 @@ import org.mockito.Mockito
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
+import java.util.*
 
 class BroadcastTransactionControllerTest : ControllerTestBase() {
 
@@ -40,7 +41,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         databaseCleanerService.deleteAllOrganizations()
         databaseCleanerService.deleteAllTransactionInfo()
         user = createUser(defaultEmail)
-        organization = createOrganization("Turk org", user)
+        organization = createOrganization("Turk org", userUuid)
     }
 
     @Test

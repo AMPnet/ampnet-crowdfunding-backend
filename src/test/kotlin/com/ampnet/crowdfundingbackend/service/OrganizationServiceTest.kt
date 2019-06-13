@@ -21,32 +21,27 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
+import java.util.*
 
 class OrganizationServiceTest : JpaServiceTestBase() {
 
-    private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
     private val cloudStorageService: CloudStorageServiceImpl = Mockito.mock(CloudStorageServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
         val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)
-        OrganizationServiceImpl(organizationRepository, membershipRepository, followerRepository, inviteRepository,
-                roleRepository, userRepository, mailService, mockedBlockchainService, storageServiceImpl)
-    }
-
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser("test@email.com", "First", "Last")
+        OrganizationServiceImpl(organizationRepository, membershipRepository,
+                roleRepository, mockedBlockchainService, storageServiceImpl)
     }
     private val organization: Organization by lazy {
         databaseCleanerService.deleteAllOrganizations()
-        createOrganization("test org", user)
+        createOrganization("test org", userUuid)
     }
 
+    private val userUuid = UUID.randomUUID().toString()
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun initTestContext() {
-        user.id
         organization.id
         testContext = TestContext()
     }
@@ -57,11 +52,11 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added as admin") {
-            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
 
         verify("User has admin role") {
-            verifyUserMembership(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+            verifyUserMembership(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
     }
 
@@ -71,11 +66,11 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added to organization as member") {
-            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+            organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_MEMBER)
         }
 
         verify("User has member role") {
-            verifyUserMembership(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+            verifyUserMembership(userUuid, organization.id, OrganizationRoleType.ORG_MEMBER)
         }
     }
 
@@ -85,100 +80,12 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             databaseCleanerService.deleteAllOrganizationMemberships()
         }
         suppose("User is added to organization as member") {
-            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+            organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_MEMBER)
         }
 
         verify("Service will throw an exception for adding second role to the user in the same organization") {
             assertThrows<ResourceAlreadyExistsException> {
-                organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
-            }
-        }
-    }
-
-    @Test
-    fun userCanFollowOrganization() {
-        suppose("User exists without following organizations") {
-            databaseCleanerService.deleteAllOrganizationFollowers()
-        }
-        suppose("User started to follow the organization") {
-            organizationService.followOrganization(user.id, organization.id)
-        }
-
-        verify("User is following the organization") {
-            val followers = followerRepository.findByOrganizationId(organization.id)
-            assertThat(followers).hasSize(1)
-
-            val follower = followers[0]
-            assertThat(follower.userId).isEqualTo(user.id)
-            assertThat(follower.organizationId).isEqualTo(organization.id)
-            assertThat(follower.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-        }
-    }
-
-    @Test
-    fun userCanUnFollowOrganization() {
-        suppose("User is following the organization") {
-            databaseCleanerService.deleteAllOrganizationFollowers()
-            organizationService.followOrganization(user.id, organization.id)
-            val followers = followerRepository.findByOrganizationId(organization.id)
-            assertThat(followers).hasSize(1)
-        }
-        suppose("User un followed the organization") {
-            organizationService.unfollowOrganization(user.id, organization.id)
-        }
-
-        verify("User is not following the organization") {
-            val followers = followerRepository.findByOrganizationId(organization.id)
-            assertThat(followers).hasSize(0)
-        }
-    }
-
-    @Test
-    fun adminUserCanInviteOtherUserToOrganization() {
-        suppose("User is admin of organization") {
-            databaseCleanerService.deleteAllOrganizationMemberships()
-            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_ADMIN)
-        }
-
-        verify("The admin can invite user to organization") {
-            testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
-            val request = OrganizationInviteServiceRequest(
-                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
-            organizationService.inviteUserToOrganization(request)
-        }
-        verify("Invitation is stored in database") {
-            val optionalInvitation =
-                    inviteRepository.findByOrganizationIdAndUserId(organization.id, testContext.invitedUser.id)
-            assertThat(optionalInvitation).isPresent
-            val invitation = optionalInvitation.get()
-            assertThat(invitation.userId).isEqualTo(testContext.invitedUser.id)
-            assertThat(invitation.organizationId).isEqualTo(organization.id)
-            assertThat(invitation.invitedBy).isEqualTo(user.id)
-            assertThat(OrganizationRoleType.fromInt(invitation.role.id)).isEqualTo(OrganizationRoleType.ORG_MEMBER)
-            assertThat(invitation.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-        }
-        verify("Sending mail invitation is called") {
-            Mockito.verify(mailService, Mockito.times(1))
-                    .sendOrganizationInvitationMail(
-                        testContext.invitedUser.email, user.getFullName(), organization.name)
-        }
-    }
-
-    @Test
-    fun mustThrowErrorForDuplicateOrganizationInvite() {
-        suppose("User has organization invite") {
-            databaseCleanerService.deleteAllOrganizationInvites()
-            testContext.invitedUser = createUser("invited@user.com", "Invited", "User")
-            val request = OrganizationInviteServiceRequest(
-                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
-            organizationService.inviteUserToOrganization(request)
-        }
-
-        verify("Service will throw an error for duplicate user invite to organization") {
-            val request = OrganizationInviteServiceRequest(
-                    testContext.invitedUser.email, OrganizationRoleType.ORG_MEMBER, organization.id, user)
-            assertThrows<ResourceAlreadyExistsException> {
-                organizationService.inviteUserToOrganization(request)
+                organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
             }
         }
     }
@@ -187,7 +94,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionForApprovingNonExistingOrganization() {
         verify("Service will throw an exception if organization is missing") {
             val exception = assertThrows<ResourceNotFoundException> {
-                organizationService.approveOrganization(0, true, user)
+                organizationService.approveOrganization(0, true, userUuid)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.ORG_MISSING)
         }
@@ -197,7 +104,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionForApprovingOrganizationWithoutWallet() {
         verify("Service will throw an excpetion if organization is missing a wallet") {
             val exception = assertThrows<ResourceNotFoundException> {
-                organizationService.approveOrganization(organization.id, true, user)
+                organizationService.approveOrganization(organization.id, true, userUuid)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
@@ -207,15 +114,15 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     fun userCanGetListOfHisOrganizations() {
         suppose("User is a member of two organizations") {
             databaseCleanerService.deleteAllOrganizationMemberships()
-            testContext.secondOrganization = createOrganization("Second org", user)
+            testContext.secondOrganization = createOrganization("Second org", userUuid)
 
-            organizationService.addUserToOrganization(user.id, organization.id, OrganizationRoleType.ORG_MEMBER)
+            organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_MEMBER)
             organizationService.addUserToOrganization(
-                user.id, testContext.secondOrganization.id, OrganizationRoleType.ORG_MEMBER)
+                    userUuid, testContext.secondOrganization.id, OrganizationRoleType.ORG_MEMBER)
         }
 
         verify("User is a member of two organizations") {
-            val organizations = organizationService.findAllOrganizationsForUser(user.id)
+            val organizations = organizationService.findAllOrganizationsForUser(userUuid)
             assertThat(organizations).hasSize(2)
             assertThat(organizations.map { it.id }).contains(organization.id, testContext.secondOrganization.id)
         }
@@ -224,7 +131,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustGetOrganizationWithDocument() {
         suppose("Organization has document") {
-            testContext.document = createOrganizationDocument(organization, user, "test doc", "link")
+            testContext.document = createOrganizationDocument(organization, userUuid, "test doc", "link")
         }
 
         verify("Service returns organization with document") {
@@ -240,9 +147,9 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustGetOrganizationWithMultipleDocuments() {
         suppose("Organization has 3 documents") {
-            createOrganizationDocument(organization, user, "Doc 1", "link1")
-            createOrganizationDocument(organization, user, "Doc 2", "link2")
-            createOrganizationDocument(organization, user, "Doc 3", "link3")
+            createOrganizationDocument(organization, userUuid, "Doc 1", "link1")
+            createOrganizationDocument(organization, userUuid, "Doc 2", "link2")
+            createOrganizationDocument(organization, userUuid, "Doc 3", "link3")
         }
 
         verify("Service returns organization with documents") {
@@ -258,7 +165,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustNotBeAbleDocumentToNonExistingOrganization() {
         verify("Service will throw an exception that organization is missing") {
-            val request = DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
+            val request = DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", userUuid)
             val exception = assertThrows<ResourceNotFoundException> {
                 organizationService.addDocument(0, request)
             }
@@ -269,12 +176,12 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     @Test
     fun mustAppendNewDocumentToCurrentListOfDocuments() {
         suppose("Organization has 2 documents") {
-            createOrganizationDocument(organization, user, "Doc 1", "link1")
-            createOrganizationDocument(organization, user, "Doc 2", "link2")
+            createOrganizationDocument(organization, userUuid, "Doc 1", "link1")
+            createOrganizationDocument(organization, userUuid, "Doc 2", "link2")
         }
         suppose("File storage service will successfully store document") {
             testContext.documentSaveRequest =
-                    DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", user)
+                    DocumentSaveRequest("Data".toByteArray(), "name", 10, "type/some", userUuid)
             Mockito.`when`(
                 cloudStorageService.saveFile(testContext.documentSaveRequest.name, testContext.documentSaveRequest.data)
             ).thenReturn(testContext.documentLink)
@@ -288,7 +195,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             assertThat(document.type).isEqualTo(testContext.documentSaveRequest.type)
 
             assertThat(document.link).isEqualTo(testContext.documentLink)
-            assertThat(document.createdBy.id).isEqualTo(user.id)
+            assertThat(document.createdByUserUuid).isEqualTo(userUuid)
             assertThat(document.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
         }
         verify("Organization has 3 documents") {
@@ -313,7 +220,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToCreateOrganizationWithSameName() {
         verify("Service will throw an exception for same name exception") {
             val exception = assertThrows<ResourceAlreadyExistsException> {
-                val request = OrganizationServiceRequest(organization.name, "legal", user)
+                val request = OrganizationServiceRequest(organization.name, "legal", userUuid)
                 organizationService.createOrganization(request)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.ORG_DUPLICATE_NAME)
@@ -327,14 +234,14 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         assertThat(receivedDocument.size).isEqualTo(savedDocument.size)
         assertThat(receivedDocument.type).isEqualTo(savedDocument.type)
         assertThat(receivedDocument.createdAt).isEqualTo(savedDocument.createdAt)
-        assertThat(receivedDocument.createdBy.id).isEqualTo(savedDocument.createdBy.id)
+        assertThat(receivedDocument.createdByUserUuid).isEqualTo(savedDocument.createdByUserUuid)
     }
 
-    private fun verifyUserMembership(userId: Int, organizationId: Int, role: OrganizationRoleType) {
-        val memberships = membershipRepository.findByUserId(userId)
+    private fun verifyUserMembership(userUuid: String, organizationId: Int, role: OrganizationRoleType) {
+        val memberships = membershipRepository.findByUserUuid(userUuid)
         assertThat(memberships).hasSize(1)
         val membership = memberships[0]
-        assertThat(membership.userId).isEqualTo(userId)
+        assertThat(membership.userUuid).isEqualTo(userUuid)
         assertThat(membership.organizationId).isEqualTo(organizationId)
         assertThat(OrganizationRoleType.fromInt(membership.role.id)).isEqualTo(role)
         assertThat(membership.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
@@ -342,13 +249,13 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
     private fun createOrganizationDocument(
         organization: Organization,
-        createdBy: User,
+        createdByUserUuid: String,
         name: String,
         link: String,
         type: String = "document/type",
         size: Int = 100
     ): Document {
-        val document = saveDocument(name, link, createdBy, type, size)
+        val document = saveDocument(name, link, createdByUserUuid, type, size)
         val documents = organization.documents.orEmpty().toMutableList()
         documents.add(document)
         organization.documents = documents
@@ -357,7 +264,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     }
 
     private class TestContext {
-        lateinit var invitedUser: User
         lateinit var secondOrganization: Organization
         lateinit var document: Document
         lateinit var documentSaveRequest: DocumentSaveRequest

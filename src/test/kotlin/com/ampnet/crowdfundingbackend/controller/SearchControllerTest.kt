@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.util.*
 
 class SearchControllerTest : ControllerTestBase() {
 
@@ -52,8 +53,8 @@ class SearchControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllOrganizations()
             databaseCleanerService.deleteAllProjects()
 
-            val organization = createOrganization("The Prospect Organization", user)
-            createOrganization("The Organization", user)
+            val organization = createOrganization("The Prospect Organization", userUuid)
+            createOrganization("The Organization", userUuid)
 
             createProject("The first project", organization, user)
             createProject("The projcccp", organization, user)

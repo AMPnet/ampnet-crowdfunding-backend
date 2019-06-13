@@ -30,9 +30,8 @@ data class Document(
     @Column(nullable = false)
     var size: Int,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    var createdBy: User,
+    @Column(nullable = false)
+    var createdByUserUuid: String,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime

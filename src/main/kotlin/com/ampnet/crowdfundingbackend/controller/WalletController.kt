@@ -114,14 +114,15 @@ class WalletController(
     ): ResponseEntity<TransactionResponse> {
         logger.debug { "Received request to create organization wallet: $organizationId" }
 
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val user = ControllerUtils.getUserFromSecurityContext(userService)
-        logger.debug("Received request to create a Organization wallet by user: ${user.email}")
+        logger.debug("Received request to create a Organization wallet by user: ${userPrincipal.email}")
 
         val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
                 ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization: $organizationId")
 
         // TODO: rethink about define who can create organization wallet
-        if (organization.createdByUser.id == user.id) {
+        if (organization.createdByUserUuid == userPrincipal.uuid) {
             val transaction = walletService.generateTransactionToCreateOrganizationWallet(organization, user.id)
             val response = TransactionResponse(transaction)
             return ResponseEntity.ok(response)

@@ -6,6 +6,6 @@ import java.util.Optional
 
 interface OrganizationMembershipRepository : JpaRepository<OrganizationMembership, Int> {
     fun findByOrganizationId(organizationId: Int): List<OrganizationMembership>
-    fun findByUserId(userId: Int): List<OrganizationMembership>
-    fun findByOrganizationIdAndUserId(organizationId: Int, userId: Int): Optional<OrganizationMembership>
+    fun findByUserUuid(userUuid: String): List<OrganizationMembership>
+    fun findByOrganizationIdAndUserUuid(organizationId: Int, userUuid: String): Optional<OrganizationMembership>
 }
