@@ -5,6 +5,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.User
 
 data class ProjectInvestmentRequest(
     val project: Project,
-    val investor: User,
+    val investorUuid: String,
     val amount: Long
 )

@@ -29,7 +29,7 @@ data class TransactionInfo(
     var description: String,
 
     @Column(nullable = false)
-    var userId: Int,
+    var userUuid: String,
 
     @Column(nullable = true)
     var companionId: Int?

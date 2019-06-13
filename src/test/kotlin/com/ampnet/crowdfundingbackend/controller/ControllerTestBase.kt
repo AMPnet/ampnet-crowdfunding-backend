@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
@@ -24,10 +25,13 @@ import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.CloudStorageService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
@@ -80,6 +84,8 @@ abstract class ControllerTestBase : TestBase() {
     @Autowired
     protected lateinit var organizationInviteRepository: OrganizationInviteRepository
     @Autowired
+    protected lateinit var userWalletRepository: UserWalletRepository
+    @Autowired
     private lateinit var documentRepository: DocumentRepository
 
     protected lateinit var mockMvc: MockMvc
@@ -119,10 +125,10 @@ abstract class ControllerTestBase : TestBase() {
         return userRepository.save(user)
     }
 
-    protected fun createWalletForUser(user: User, hash: String): Wallet {
+    protected fun createWalletForUser(userUuid: String, hash: String): Wallet {
         val wallet = createWallet(hash, WalletType.USER)
-        user.wallet = wallet
-        userRepository.save(user)
+        val userWallet = UserWallet(0, userUuid, wallet)
+        userWalletRepository.save(userWallet)
         return wallet
     }
 
@@ -214,6 +220,12 @@ abstract class ControllerTestBase : TestBase() {
         document.createdByUserUuid = createdByUserUuid
         document.createdAt = ZonedDateTime.now()
         return documentRepository.save(document)
+    }
+
+    protected fun getUserWalletHash(userUuid: String): String {
+        val optionalUserWallet = userWalletRepository.findByUserUuid(userUuid)
+        assertThat(optionalUserWallet).isPresent
+        return optionalUserWallet.get().wallet.hash
     }
 
     protected fun getWalletHash(wallet: Wallet?): String = wallet?.hash ?: fail("User wallet must not be null")

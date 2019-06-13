@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
-import java.util.UUID
 
 class OrganizationInviteServiceTest : JpaServiceTestBase() {
 
@@ -35,9 +34,6 @@ class OrganizationInviteServiceTest : JpaServiceTestBase() {
         databaseCleanerService.deleteAllOrganizations()
         createOrganization("test org", userUuid)
     }
-
-
-    private val userUuid = UUID.randomUUID().toString()
     private val invitedUser = "invited@email.com"
 
     @Test

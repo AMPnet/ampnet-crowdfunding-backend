@@ -5,10 +5,10 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
 
 interface TransactionInfoService {
-    fun createOrgTransaction(organization: Organization, userId: Int): TransactionInfo
-    fun createProjectTransaction(project: Project, userId: Int): TransactionInfo
-    fun createInvestAllowanceTransaction(projectName: String, amount: Long, userId: Int): TransactionInfo
-    fun createInvestTransaction(projectName: String, userId: Int): TransactionInfo
+    fun createOrgTransaction(organization: Organization, userUuid: String): TransactionInfo
+    fun createProjectTransaction(project: Project, userUuid: String): TransactionInfo
+    fun createInvestAllowanceTransaction(projectName: String, amount: Long, userUuid: String): TransactionInfo
+    fun createInvestTransaction(projectName: String, userUuid: String): TransactionInfo
     fun deleteTransaction(id: Int)
     fun findTransactionInfo(id: Int): TransactionInfo?
 }

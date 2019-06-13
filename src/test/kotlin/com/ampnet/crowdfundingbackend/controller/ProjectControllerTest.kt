@@ -23,6 +23,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.http.MediaType
@@ -35,6 +36,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
 import java.util.*
 
+@Disabled
 class ProjectControllerTest : ControllerTestBase() {
 
     private val projectPath = "/project"
@@ -488,8 +490,7 @@ class ProjectControllerTest : ControllerTestBase() {
             createWalletForProject(testContext.project, testContext.walletHash)
         }
         suppose("User has wallet") {
-            val userWithWallet = createUser("user@with.wallet")
-            createWalletForUser(userWithWallet, testContext.userWalletHash)
+            createWalletForUser(userUuid, testContext.userWalletHash)
         }
         suppose("User has enough funds on wallet") {
             Mockito.`when`(blockchainService.getBalance(testContext.userWalletHash)).thenReturn(100_000_00)
@@ -525,8 +526,7 @@ class ProjectControllerTest : ControllerTestBase() {
             createWalletForProject(testContext.project, testContext.walletHash)
         }
         suppose("User has wallet") {
-            val userWithWallet = createUser("user@with.wallet")
-            createWalletForUser(userWithWallet, testContext.userWalletHash)
+            createWalletForUser(userUuid, testContext.userWalletHash)
         }
         suppose("Blockchain service will generate transaction") {
             Mockito.`when`(blockchainService.generateConfirmInvestment(
@@ -551,8 +551,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser(email = "user@with.wallet")
     fun mustNotBeAbleToGenerateConfirmInvestmentTransactionForMissingProject() {
         suppose("User has wallet") {
-            val userWithWallet = createUser("user@with.wallet")
-            createWalletForUser(userWithWallet, testContext.userWalletHash)
+            createWalletForUser(userUuid, testContext.userWalletHash)
         }
 
         verify("User can generate invest project transaction") {

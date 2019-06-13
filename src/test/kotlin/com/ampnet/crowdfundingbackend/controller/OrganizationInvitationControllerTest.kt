@@ -64,7 +64,6 @@ class OrganizationInvitationControllerTest : ControllerTestBase() {
             assertThat(invite.role).isEqualTo(OrganizationRoleType.ORG_MEMBER)
             assertThat(invite.organizationId).isEqualTo(testContext.organization.id)
             assertThat(invite.organizationName).isEqualTo(testContext.organization.name)
-//            assertThat(invite.invitedByUser).isEqualTo(testContext.invitedByUser.getFullName())
         }
     }
 
@@ -250,13 +249,11 @@ class OrganizationInvitationControllerTest : ControllerTestBase() {
     }
 
     private class TestUser {
-        var email = "john@smith.com"
         val uuid = UUID.randomUUID().toString()
     }
 
     private class InvitedUser {
         val email = "invited@email.com"
-        val uuid = UUID.randomUUID().toString()
     }
 
     private class TestContext {

@@ -37,7 +37,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         createOrganization("test org", userUuid)
     }
 
-    private val userUuid = UUID.randomUUID().toString()
     private lateinit var testContext: TestContext
 
     @BeforeEach

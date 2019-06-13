@@ -154,31 +154,31 @@ class ProjectController(
         }
     }
 
-    @GetMapping("/project/{projectId}/invest")
-    fun generateInvestTransaction(
-        @PathVariable("projectId") projectId: Int,
-        @RequestParam(name = "amount") amount: Long
-    ): ResponseEntity<TransactionResponse> {
-        logger.debug { "Received request to generate invest transaction for project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-        val project = getProjectById(projectId)
+//    @GetMapping("/project/{projectId}/invest")
+//    fun generateInvestTransaction(
+//        @PathVariable("projectId") projectId: Int,
+//        @RequestParam(name = "amount") amount: Long
+//    ): ResponseEntity<TransactionResponse> {
+//        logger.debug { "Received request to generate invest transaction for project: $projectId" }
+//        val user = ControllerUtils.getUserFromSecurityContext(userService)
+//        val project = getProjectById(projectId)
+//
+//        val request = ProjectInvestmentRequest(project, user, amount)
+//        val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
+//        return ResponseEntity.ok(TransactionResponse(transaction))
+//    }
 
-        val request = ProjectInvestmentRequest(project, user, amount)
-        val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
-        return ResponseEntity.ok(TransactionResponse(transaction))
-    }
-
-    @GetMapping("/project/{projectId}/invest/confirm")
-    fun generateConfirmInvestTransaction(
-        @PathVariable("projectId") projectId: Int
-    ): ResponseEntity<TransactionResponse> {
-        logger.debug { "Received request to generate confirm invest transaction for project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
-        val project = getProjectById(projectId)
-
-        val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
-        return ResponseEntity.ok(TransactionResponse(transaction))
-    }
+//    @GetMapping("/project/{projectId}/invest/confirm")
+//    fun generateConfirmInvestTransaction(
+//        @PathVariable("projectId") projectId: Int
+//    ): ResponseEntity<TransactionResponse> {
+//        logger.debug { "Received request to generate confirm invest transaction for project: $projectId" }
+//        val user = ControllerUtils.getUserFromSecurityContext(userService)
+//        val project = getProjectById(projectId)
+//
+//        val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
+//        return ResponseEntity.ok(TransactionResponse(transaction))
+//    }
 
     private fun getImageNameFromMultipartFile(multipartFile: MultipartFile): String =
             multipartFile.originalFilename ?: multipartFile.name

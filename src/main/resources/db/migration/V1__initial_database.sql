@@ -15,6 +15,11 @@ CREATE TABLE wallet (
 );
 
 -- User
+CREATE TABLE user_wallet (
+    id SERIAL PRIMARY KEY,
+    user_uuid VARCHAR NOT NULL,
+    wallet_id INT REFERENCES wallet(id) NOT NULL
+);
 CREATE TABLE app_user (
     id SERIAL PRIMARY KEY,
     email VARCHAR UNIQUE NOT NULL,
@@ -115,6 +120,6 @@ CREATE TABLE transaction_info (
   type VARCHAR(16) NOT NULL,
   title VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
-  user_id INT REFERENCES app_user(id) NOT NULL,
+  user_uuid VARCHAR NOT NULL,
   companion_id INT
 );

@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
@@ -25,7 +26,10 @@ import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import org.mockito.Mockito
@@ -37,6 +41,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @ExtendWith(SpringExtension::class)
 @DataJpaTest
@@ -68,6 +73,8 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var documentRepository: DocumentRepository
     @Autowired
     protected lateinit var transactionInfoRepository: TransactionInfoRepository
+    @Autowired
+    protected lateinit var userWalletRepository: UserWalletRepository
 
     protected val mockedBlockchainService: BlockchainService = Mockito.mock(BlockchainService::class.java)
 
@@ -77,6 +84,8 @@ abstract class JpaServiceTestBase : TestBase() {
         applicationProperties.mail.enabled = true
         applicationProperties
     }
+
+    protected val userUuid = UUID.randomUUID().toString()
 
     protected fun createUser(email: String, firstName: String, lastName: String): User {
         val user = User::class.java.getConstructor().newInstance()
@@ -101,10 +110,10 @@ abstract class JpaServiceTestBase : TestBase() {
         return organizationRepository.save(organization)
     }
 
-    protected fun createWalletForUser(user: User, hash: String): Wallet {
+    protected fun createWalletForUser(userUuid: String, hash: String): Wallet {
         val wallet = createWallet(hash, WalletType.USER)
-        user.wallet = wallet
-        userRepository.save(user)
+        val userWallet = UserWallet(0, userUuid, wallet)
+        userWalletRepository.save(userWallet)
         return wallet
     }
 
@@ -183,14 +192,14 @@ abstract class JpaServiceTestBase : TestBase() {
         type: String = "document/type",
         size: Int = 100
     ): Document {
-        val document = Document::class.java.getDeclaredConstructor().newInstance()
-        document.name = name
-        document.link = link
-        document.type = type
-        document.size = size
-        document.createdByUserUuid = createdByUserUuid
-        document.createdAt = ZonedDateTime.now()
+        val document = Document(0, link, name, type, size, createdByUserUuid, ZonedDateTime.now())
         return documentRepository.save(document)
+    }
+
+    protected fun getUserWalletHash(userUuid: String): String {
+        val optionalUserWallet = userWalletRepository.findByUserUuid(userUuid)
+        assertThat(optionalUserWallet).isPresent
+        return optionalUserWallet.get().wallet.hash
     }
 
     protected fun getWalletHash(wallet: Wallet?): String = wallet?.hash ?: fail("User wallet must not be null")
