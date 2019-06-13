@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListR
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.service.OrganizationService
-import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging

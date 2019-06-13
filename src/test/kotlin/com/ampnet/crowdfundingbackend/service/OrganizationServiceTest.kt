@@ -6,13 +6,10 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
-import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -21,7 +18,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
-import java.util.*
 
 class OrganizationServiceTest : JpaServiceTestBase() {
 

@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.util.*
 
 class SearchControllerTest : ControllerTestBase() {
 

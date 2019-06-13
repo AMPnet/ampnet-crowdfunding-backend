@@ -4,7 +4,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationReques
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationUsersListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType

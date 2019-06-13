@@ -7,7 +7,6 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.ProjectService
-import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import mu.KLogging
 import org.springframework.http.HttpStatus
@@ -73,7 +72,7 @@ class WalletController(
     @GetMapping("/wallet/project/{projectId}/transaction")
     fun getTransactionToCreateProjectWallet(@PathVariable projectId: Int): ResponseEntity<TransactionResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        logger.debug{ "Received request to create a Wallet for project: $projectId by user: ${userPrincipal.uuid}" }
+        logger.debug { "Received request to create a Wallet for project: $projectId by user: ${userPrincipal.uuid}" }
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
 

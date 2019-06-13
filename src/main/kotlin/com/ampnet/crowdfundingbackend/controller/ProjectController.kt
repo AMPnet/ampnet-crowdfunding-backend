@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
@@ -20,7 +19,6 @@ import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
-import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

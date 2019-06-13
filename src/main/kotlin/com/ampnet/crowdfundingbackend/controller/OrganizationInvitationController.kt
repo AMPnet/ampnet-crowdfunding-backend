@@ -58,8 +58,8 @@ class OrganizationInvitationController(
 
     @PostMapping("/invites/organization/{id}/invite")
     fun inviteToOrganization(
-            @PathVariable("id") id: Int,
-            @RequestBody @Valid request: OrganizationInviteRequest
+        @PathVariable("id") id: Int,
+        @RequestBody @Valid request: OrganizationInviteRequest
     ): ResponseEntity<Unit> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "Received request to invited user to organization $id by user: ${userPrincipal.email}" }
@@ -86,9 +86,9 @@ class OrganizationInvitationController(
     }
 
     private fun <T> ifUserHasPrivilegeWriteUserInOrganizationThenReturn(
-            userUuid: String,
-            organizationId: Int,
-            action: () -> (T)
+        userUuid: String,
+        organizationId: Int,
+        action: () -> (T)
     ): ResponseEntity<T> {
         organizationService.getOrganizationMemberships(organizationId)
                 .find { it.userUuid == userUuid }

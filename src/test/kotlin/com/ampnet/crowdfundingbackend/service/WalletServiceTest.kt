@@ -11,7 +11,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.UserServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData

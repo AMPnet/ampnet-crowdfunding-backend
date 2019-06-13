@@ -4,27 +4,20 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationInvite
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationInvitesListResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
-import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
-import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
-import com.ampnet.crowdfundingbackend.service.UserService
-import com.ampnet.crowdfundingbackend.service.pojo.CreateUserServiceRequest
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.UUID
 
 class OrganizationInvitationControllerTest : ControllerTestBase() {
 
@@ -220,9 +213,10 @@ class OrganizationInvitationControllerTest : ControllerTestBase() {
     }
 
     private fun inviteUserToOrganization(
-            email: String, organizationId: Int,
-            invitedByUuid: String,
-            role: OrganizationRoleType
+        email: String,
+        organizationId: Int,
+        invitedByUuid: String,
+        role: OrganizationRoleType
     ) {
         val invitation = OrganizationInvite::class.java.getConstructor().newInstance()
         invitation.email = email

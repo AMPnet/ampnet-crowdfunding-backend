@@ -1,24 +1,5 @@
 package com.ampnet.crowdfundingbackend.service
 
-import com.ampnet.crowdfundingbackend.enums.Currency
-import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
-import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.ProjectServiceImpl
-import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito
-import java.time.ZonedDateTime
-
 class ProjectServiceTest : JpaServiceTestBase() {
 
 //    private val cloudStorageService: CloudStorageServiceImpl = Mockito.mock(CloudStorageServiceImpl::class.java)

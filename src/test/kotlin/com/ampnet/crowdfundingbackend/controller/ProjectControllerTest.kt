@@ -34,7 +34,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
-import java.util.*
 
 @Disabled
 class ProjectControllerTest : ControllerTestBase() {
@@ -107,7 +106,8 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.project = createProject("My project", organization, user)
         }
         suppose("Project has a document") {
-            testContext.document = createProjectDocument(testContext.project, userUuid, "Prj doc", testContext.documentLink)
+            testContext.document =
+                    createProjectDocument(testContext.project, userUuid, "Prj doc", testContext.documentLink)
         }
         suppose("Project has a wallet") {
             createWalletForProject(testContext.project, testContext.walletHash)
@@ -364,7 +364,8 @@ class ProjectControllerTest : ControllerTestBase() {
             addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
         }
         suppose("Project has some documents") {
-            testContext.document = createProjectDocument(testContext.project, userUuid, "Prj doc", testContext.documentLink)
+            testContext.document =
+                    createProjectDocument(testContext.project, userUuid, "Prj doc", testContext.documentLink)
             createProjectDocument(testContext.project, userUuid, "Sec.pdf", "Sec-some-link.pdf")
         }
 

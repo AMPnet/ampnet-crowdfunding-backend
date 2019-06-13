@@ -13,6 +13,8 @@ interface WalletService {
     fun generateTransactionToCreateProjectWallet(project: Project, userUuid: String): TransactionDataAndInfo
     fun createProjectWallet(project: Project, signedTransaction: String): Wallet
     fun generateTransactionToCreateOrganizationWallet(
-            organization: Organization, userUuid: String): TransactionDataAndInfo
+        organization: Organization,
+        userUuid: String
+    ): TransactionDataAndInfo
     fun createOrganizationWallet(organization: Organization, signedTransaction: String): Wallet
 }

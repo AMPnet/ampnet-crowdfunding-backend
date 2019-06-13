@@ -10,12 +10,10 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
@@ -119,7 +117,7 @@ class WalletServiceImpl(
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_HASH_EXISTS,
                     "SAME HASH! Trying to create wallet: $type with existing hash: $hash")
         }
-        val wallet = Wallet(0 , hash, type, Currency.EUR, ZonedDateTime.now())
+        val wallet = Wallet(0, hash, type, Currency.EUR, ZonedDateTime.now())
         return walletRepository.save(wallet)
     }
 

@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.response
 
-import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.User
 
 data class OrganizationUserResponse(
