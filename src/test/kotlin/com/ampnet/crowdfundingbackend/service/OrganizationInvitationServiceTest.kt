@@ -15,7 +15,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
 
-class OrganizationInviteServiceTest : JpaServiceTestBase() {
+class OrganizationInvitationServiceTest : JpaServiceTestBase() {
 
     private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
 
@@ -84,7 +84,7 @@ class OrganizationInviteServiceTest : JpaServiceTestBase() {
         verify("The admin can invite user to organization") {
             val request = OrganizationInviteServiceRequest(
                     invitedUser, OrganizationRoleType.ORG_MEMBER, organization.id, userUuid)
-            service.inviteUserToOrganization(request)
+            service.sendInvitation(request)
         }
         verify("Invitation is stored in database") {
             val optionalInvitation =
@@ -106,17 +106,17 @@ class OrganizationInviteServiceTest : JpaServiceTestBase() {
     @Test
     fun mustThrowErrorForDuplicateOrganizationInvite() {
         suppose("User has organization invite") {
-            databaseCleanerService.deleteAllOrganizationInvites()
+            databaseCleanerService.deleteAllOrganizationInvitations()
             val request = OrganizationInviteServiceRequest(
                     invitedUser, OrganizationRoleType.ORG_MEMBER, organization.id, userUuid)
-            service.inviteUserToOrganization(request)
+            service.sendInvitation(request)
         }
 
         verify("Service will throw an error for duplicate user invite to organization") {
             val request = OrganizationInviteServiceRequest(
                     invitedUser, OrganizationRoleType.ORG_MEMBER, organization.id, userUuid)
             assertThrows<ResourceAlreadyExistsException> {
-                service.inviteUserToOrganization(request)
+                service.sendInvitation(request)
             }
         }
     }

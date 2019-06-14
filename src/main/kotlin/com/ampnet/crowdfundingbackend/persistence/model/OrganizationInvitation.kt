@@ -12,8 +12,8 @@ import javax.persistence.ManyToOne
 import javax.persistence.Table
 
 @Entity
-@Table(name = "organization_invite")
-data class OrganizationInvite(
+@Table(name = "organization_invitation")
+data class OrganizationInvitation(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,

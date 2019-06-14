@@ -31,7 +31,7 @@ class OrganizationInvitationController(
     fun getMyInvitations(): ResponseEntity<OrganizationInvitesListResponse> {
         logger.debug { "Received request to list my invites" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        val invites = organizationInviteService.getAllOrganizationInvitesForUser(userPrincipal.email)
+        val invites = organizationInviteService.getAllInvitationsForUser(userPrincipal.email)
             .map { OrganizationInviteResponse(it) }
         return ResponseEntity.ok(OrganizationInvitesListResponse(invites))
     }
@@ -42,7 +42,7 @@ class OrganizationInvitationController(
         logger.debug { "Received request accept organization invite for organization: $organizationId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val request = OrganizationInviteAnswerRequest(userPrincipal.uuid, userPrincipal.email, true, organizationId)
-        organizationInviteService.answerToOrganizationInvitation(request)
+        organizationInviteService.answerToInvitation(request)
         return ResponseEntity.ok().build()
     }
 
@@ -52,7 +52,7 @@ class OrganizationInvitationController(
         logger.debug { "Received request reject organization invite for organization: $organizationId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val request = OrganizationInviteAnswerRequest(userPrincipal.uuid, userPrincipal.email, false, organizationId)
-        organizationInviteService.answerToOrganizationInvitation(request)
+        organizationInviteService.answerToInvitation(request)
         return ResponseEntity.ok().build()
     }
 
@@ -66,7 +66,7 @@ class OrganizationInvitationController(
 
         return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, id) {
             val serviceRequest = OrganizationInviteServiceRequest(request, id, userPrincipal.uuid)
-            organizationInviteService.inviteUserToOrganization(serviceRequest)
+            organizationInviteService.sendInvitation(serviceRequest)
             Unit
         }
     }
@@ -81,7 +81,7 @@ class OrganizationInvitationController(
             "Received request to invited user to organization $organizationId by user: ${userPrincipal.email}"
         }
         return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
-            organizationInviteService.revokeInvitationToJoinOrganization(organizationId, revokeEmail)
+            organizationInviteService.revokeInvitation(organizationId, revokeEmail)
         }
     }
 

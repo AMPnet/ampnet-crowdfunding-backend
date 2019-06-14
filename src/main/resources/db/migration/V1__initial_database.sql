@@ -44,7 +44,7 @@ CREATE TABLE organization_follower (
     user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
-CREATE TABLE organization_invite (
+CREATE TABLE organization_invitation (
     id SERIAL PRIMARY KEY,
     email VARCHAR NOT NULL,
     organization_id INT REFERENCES organization(id) NOT NULL,

@@ -6,7 +6,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationFollower
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
+import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvitation
 import com.ampnet.crowdfundingbackend.persistence.model.Role
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
@@ -36,8 +36,7 @@ class OrganizationInviteServiceImpl(
     private val memberRole: Role by lazy { roleRepository.getOne(OrganizationRoleType.ORG_MEMBER.id) }
 
     @Transactional
-    override fun inviteUserToOrganization(request: OrganizationInviteServiceRequest): OrganizationInvite {
-        // TODO: this flow is weird, maybe send invitation to all users, no matter if they are registered
+    override fun sendInvitation(request: OrganizationInviteServiceRequest): OrganizationInvitation {
         val invitedToOrganization = organizationService.findOrganizationById(request.organizationId)
                 ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING,
                         "Missing organization with id: ${request.organizationId}")
@@ -47,7 +46,7 @@ class OrganizationInviteServiceImpl(
                     "User is already invited to join organization")
         }
 
-        val organizationInvite = OrganizationInvite::class.java.getConstructor().newInstance()
+        val organizationInvite = OrganizationInvitation::class.java.getConstructor().newInstance()
         organizationInvite.organizationId = request.organizationId
         organizationInvite.email = request.email
         organizationInvite.role = getRole(request.roleType)
@@ -60,19 +59,19 @@ class OrganizationInviteServiceImpl(
     }
 
     @Transactional
-    override fun revokeInvitationToJoinOrganization(organizationId: Int, email: String) {
+    override fun revokeInvitation(organizationId: Int, email: String) {
         inviteRepository.findByOrganizationIdAndEmail(organizationId, email).ifPresent {
             inviteRepository.delete(it)
         }
     }
 
     @Transactional(readOnly = true)
-    override fun getAllOrganizationInvitesForUser(email: String): List<OrganizationInvite> {
+    override fun getAllInvitationsForUser(email: String): List<OrganizationInvitation> {
         return inviteRepository.findByEmail(email)
     }
 
     @Transactional
-    override fun answerToOrganizationInvitation(request: OrganizationInviteAnswerRequest) {
+    override fun answerToInvitation(request: OrganizationInviteAnswerRequest) {
         inviteRepository.findByOrganizationIdAndEmail(request.organizationId, request.email).ifPresent {
             if (request.join) {
                 val role = OrganizationRoleType.fromInt(it.role.id)
