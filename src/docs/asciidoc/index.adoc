@@ -5,33 +5,6 @@
 :source-highlighter: prettify
 :docinfo: shared
 
-== Users API
-Collection of endpoints for managing users
-
-=== Organization invites
-
-==== Get a list of organization invites
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-response.adoc[]
-
-==== Accept organization invite
-`/me/invites/{organizationId}/accept`
-
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToAcceptOrganizationInvite/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToAcceptOrganizationInvite/http-response.adoc[]
-
-==== Reject organization invite
-`/me/invites/{organizationId}/reject`
-
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-response.adoc[]
-
 == Wallet API
 Collection of endpoints for managing wallets
 
@@ -93,19 +66,14 @@ include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-r
 .Response
 include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-response.adoc[]
 
-===== Project does not exists
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
-
-===== User did not create the project
-User can only access a wallet for project HE created
-
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
+// TODO: check test
+//===== User did not create the project
+//User can only access a wallet for project HE created
+//
+//.Request
+//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
+//.Response
+//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
 ===== Non existing project
 .Request
@@ -120,14 +88,6 @@ include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProje
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-response.adoc[]
-
-===== Cannot create project wallet
-User can create project wallet only for his project
-
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
 ===== Invalid address
 .Request
@@ -208,44 +168,6 @@ include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationW
 .Response
 include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationWithoutPrivilege/http-response.adoc[]
 
-=== Get organization members
-.Request
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
-
-=== Invite user to organization
-
-==== Successfully invite user to organization with organization admin role
-User must have a privilege: `OrganizationPrivilegeType.PW_USERS`
-
-.Request
-include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-response.adoc[]
-
-==== Failed invite user to organization without organization admin role
-User missing a privilege: `OrganizationPrivilegeType.PW_USERS`
-
-.Request
-include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-response.adoc[]
-
-==== Revoke user invitation
-`/organization/{organizationId}/invite/{revokeUserId}/revoke`
-
-.Request
-include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
-
-=== Get organization users
-.Request
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
-
 === Documents
 
 ==== Add document for organization
@@ -259,6 +181,52 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrgan
 include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationDocument/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationDocument/http-response.adoc[]
+
+=== Organization Invitation
+
+==== Get a list of invitations
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToGetOrganizationInvitations/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToGetOrganizationInvitations/http-response.adoc[]
+
+==== Invite user to organization
+
+===== Send invitation
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-response.adoc[]
+
+===== Failed to send invitation without organization admin role
+User missing a privilege: `OrganizationPrivilegeType.PW_USERS`
+
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-response.adoc[]
+
+===== Revoke invitation
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
+
+==== Accept invitation
+`/me/invites/{organizationId}/accept`
+
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-response.adoc[]
+
+==== Reject invitation
+`/me/invites/{organizationId}/reject`
+
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-response.adoc[]
 
 == Project API
 Collection of endpoints for managing project
@@ -380,14 +348,6 @@ include::{snippets}/BroadcastTransactionControllerTest/mustNotBeAbleToPostNonExi
 include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-request.adoc[]
 .Response
 include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-response.adoc[]
-
-===== Missing user
-Cannot generate mint transaction if the user is missing
-
-.Request
-include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUser/http-request.adoc[]
-.Response
-include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUser/http-response.adoc[]
 
 ===== Missing user wallet
 Cannot generate mint transaction if the user wallet is missing
