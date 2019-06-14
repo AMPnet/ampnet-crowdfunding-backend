@@ -13,25 +13,10 @@ CREATE TABLE wallet (
     currency VARCHAR(3) NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
-
--- User
 CREATE TABLE user_wallet (
     id SERIAL PRIMARY KEY,
     user_uuid VARCHAR NOT NULL,
     wallet_id INT REFERENCES wallet(id) NOT NULL
-);
-CREATE TABLE app_user (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR UNIQUE NOT NULL,
-    password VARCHAR(60),
-    first_name VARCHAR(30),
-    last_name VARCHAR(30),
-    phone_number VARCHAR,
-    role_id INT REFERENCES role(id),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    auth_method VARCHAR(8) NOT NULL,
-    enabled BOOLEAN NOT NULL,
-    wallet_id INT REFERENCES wallet(id)
 );
 
 -- Organization
@@ -85,7 +70,7 @@ CREATE TABLE project (
     max_per_user BIGINT NOT NULL,
     main_image VARCHAR,
     gallery TEXT,
-    created_by INT REFERENCES app_user(id) NOT NULL,
+    created_by_user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL,
     wallet_id INT REFERENCES wallet(id),
     active BOOLEAN NOT NULL

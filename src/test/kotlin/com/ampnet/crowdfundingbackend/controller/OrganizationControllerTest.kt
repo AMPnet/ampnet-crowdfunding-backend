@@ -9,7 +9,6 @@ import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -27,7 +26,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.fileUpload
-import java.util.UUID
 
 class OrganizationControllerTest : ControllerTestBase() {
 
@@ -36,16 +34,10 @@ class OrganizationControllerTest : ControllerTestBase() {
     @Autowired
     private lateinit var organizationService: OrganizationService
 
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser(defaultEmail)
-    }
-
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun initializeTestContext() {
-        user.id
         testContext = TestContext()
     }
 
@@ -336,11 +328,9 @@ class OrganizationControllerTest : ControllerTestBase() {
         lateinit var organizationRequest: OrganizationRequest
         var organizationId: Int = -1
         lateinit var organization: Organization
-        lateinit var user2: User
         val documentLink = "link"
         lateinit var document: Document
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
-        val userUuid2 = UUID.randomUUID().toString()
     }
 }

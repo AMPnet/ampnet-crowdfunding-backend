@@ -15,7 +15,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -23,7 +22,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.http.MediaType
@@ -35,22 +33,18 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
 
-@Disabled
 class ProjectControllerTest : ControllerTestBase() {
 
     private val projectPath = "/project"
-
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser(defaultEmail)
-    }
 
     private lateinit var organization: Organization
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun init() {
-        databaseCleanerService.deleteAllWalletsAndOwners()
+        databaseCleanerService.deleteAllProjects()
+        databaseCleanerService.deleteAllOrganizations()
+        databaseCleanerService.deleteAllWallets()
         organization = createOrganization("Test organization", userUuid)
         createWalletForOrganization(organization, "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
         testContext = TestContext()
@@ -60,8 +54,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustReturnProject() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("My project", organization, user)
+            testContext.project = createProject("My project", organization, userUuid)
         }
 
         verify("Project response is valid") {
@@ -86,7 +79,6 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
                 it.assertThat(projectResponse.gallery).isEqualTo(testContext.project.gallery.orEmpty())
                 it.assertThat(projectResponse.active).isEqualTo(testContext.project.active)
-                it.assertThat(projectResponse.createByUser).isEqualTo(testContext.project.createdBy.getFullName())
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
                 it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
@@ -102,8 +94,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustReturnProjectWithDocumentsAndFunding() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("My project", organization, user)
+            testContext.project = createProject("My project", organization, userUuid)
         }
         suppose("Project has a document") {
             testContext.document =
@@ -141,20 +132,6 @@ class ProjectControllerTest : ControllerTestBase() {
         verify("Controller returns not found") {
             mockMvc.perform(get("$projectPath/0"))
                     .andExpect(status().isNotFound)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser(email = "missing@user.com")
-    fun mustReturnErrorForNonExistingUser() {
-        verify("Controller will return error for missing user") {
-            val request = createProjectRequest(organization.id, "Error project")
-            val response = mockMvc.perform(
-                    post(projectPath)
-                            .content(objectMapper.writeValueAsString(request))
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andReturn()
-            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
         }
     }
 
@@ -243,7 +220,6 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.active).isEqualTo(testContext.projectRequest.active)
                 it.assertThat(projectResponse.mainImage).isNullOrEmpty()
                 it.assertThat(projectResponse.gallery).isNullOrEmpty()
-                it.assertThat(projectResponse.createByUser).isEqualTo(user.getFullName())
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
                 it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
@@ -254,7 +230,7 @@ class ProjectControllerTest : ControllerTestBase() {
             testContext.projectId = projectResponse.id
         }
         verify("Project is stored in database") {
-            val optionalProject = projectRepository.findByIdWithOrganizationAndCreator(testContext.projectId)
+            val optionalProject = projectRepository.findByIdWithOrganization(testContext.projectId)
             assertThat(optionalProject).isPresent
         }
     }
@@ -263,14 +239,13 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToGetListOfProjectForOrganization() {
         suppose("Organization has 3 projects") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project 1", organization, user)
-            createProject("Project 2", organization, user)
-            createProject("Project 3", organization, user)
+            testContext.project = createProject("Project 1", organization, userUuid)
+            createProject("Project 2", organization, userUuid)
+            createProject("Project 3", organization, userUuid)
         }
         suppose("Second organization has project") {
             val secondOrganization = createOrganization("Second organization", userUuid)
-            testContext.secondProject = createProject("Second project", secondOrganization, user)
+            testContext.secondProject = createProject("Second project", secondOrganization, userUuid)
         }
 
         verify("Controller will return all projects for specified organization") {
@@ -308,8 +283,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToAddDocumentForProject() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
+            testContext.project = createProject("Project", organization, userUuid)
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
@@ -356,8 +330,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToRemoveProjectDocument() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
+            testContext.project = createProject("Project", organization, userUuid)
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
@@ -386,8 +359,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToAddMainImage() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
+            testContext.project = createProject("Project", organization, userUuid)
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
@@ -419,8 +391,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToAddGalleryImage() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
+            testContext.project = createProject("Project", organization, userUuid)
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
@@ -452,8 +423,7 @@ class ProjectControllerTest : ControllerTestBase() {
     @WithMockCrowdfoundUser
     fun mustBeAbleToRemoveGalleryImage() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
+            testContext.project = createProject("Project", organization, userUuid)
         }
         suppose("User is an admin of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
@@ -481,11 +451,10 @@ class ProjectControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToGenerateInvestmentTransaction() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
+            testContext.project = createProject("Project", organization, userUuid)
         }
         suppose("Project has empty wallet") {
             createWalletForProject(testContext.project, testContext.walletHash)
@@ -517,11 +486,10 @@ class ProjectControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToGenerateConfirmInvestmentTransaction() {
         suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
+            testContext.project = createProject("Project", organization, userUuid)
         }
         suppose("Project has empty wallet") {
             createWalletForProject(testContext.project, testContext.walletHash)
@@ -549,7 +517,7 @@ class ProjectControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "user@with.wallet")
+    @WithMockCrowdfoundUser
     fun mustNotBeAbleToGenerateConfirmInvestmentTransactionForMissingProject() {
         suppose("User has wallet") {
             createWalletForUser(userUuid, testContext.userWalletHash)
@@ -561,22 +529,6 @@ class ProjectControllerTest : ControllerTestBase() {
                 .andExpect(status().isBadRequest)
                 .andReturn()
             verifyResponseErrorCode(result, ErrorCode.PRJ_MISSING)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser(email = "missing@user.com")
-    fun mustReturnErrorForNonExistingUserTryingToGenerateConfirmInvestment() {
-        suppose("Project exists") {
-            databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Project", organization, user)
-        }
-
-        verify("Controller will return error for missing user") {
-            val response = mockMvc.perform(
-                get("$projectPath/${testContext.project.id}/invest/confirm"))
-                .andReturn()
-            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
         }
     }
 

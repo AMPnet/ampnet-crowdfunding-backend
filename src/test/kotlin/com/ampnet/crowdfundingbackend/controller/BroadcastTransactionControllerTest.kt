@@ -8,7 +8,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -29,7 +28,6 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     private val signedTransaction = "SignedTransaction"
     private val txHash = "tx_hash"
 
-    private lateinit var user: User
     private lateinit var organization: Organization
     private lateinit var testContext: TestContext
 
@@ -39,7 +37,6 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         databaseCleanerService.deleteAllWalletsAndOwners()
         databaseCleanerService.deleteAllOrganizations()
         databaseCleanerService.deleteAllTransactionInfo()
-        user = createUser(defaultEmail)
         organization = createOrganization("Turk org", userUuid)
     }
 
@@ -132,7 +129,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     fun mustBeAbleToCreateProjectWalletWithTransaction() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Test project", organization, user)
+            testContext.project = createProject("Test project", organization, userUuid)
         }
         suppose("TransactionInfo exists for create project wallet") {
             testContext.transactionInfo = createTransactionInfo(
@@ -209,7 +206,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     fun mustBeAbleToPostSignedInvestAllowanceTransaction() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Test project", organization, user)
+            testContext.project = createProject("Test project", organization, userUuid)
         }
         suppose("TransactionInfo exists for invest allowance transaction") {
             testContext.transactionInfo = createTransactionInfo(TransactionType.INVEST_ALLOWANCE, userUuid)
@@ -241,7 +238,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     fun mustBeAbleToPostSignedInvestTransaction() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Test project", organization, user)
+            testContext.project = createProject("Test project", organization, userUuid)
         }
         suppose("TransactionInfo exists for invest transaction") {
             testContext.transactionInfo = createTransactionInfo(TransactionType.INVEST, userUuid)

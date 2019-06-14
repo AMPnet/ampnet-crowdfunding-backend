@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
@@ -32,13 +31,11 @@ class WalletControllerTest : ControllerTestBase() {
     private val organizationWalletPath = "/wallet/organization"
 
     private lateinit var testData: TestData
-    private lateinit var user: User
 
     @BeforeEach
     fun initTestData() {
         databaseCleanerService.deleteAllWalletsAndOwners()
         testData = TestData()
-        user = createUser("test@test.com")
     }
 
     /* User Wallet */
@@ -149,17 +146,17 @@ class WalletControllerTest : ControllerTestBase() {
     fun mustBeAbleToGetCreateProjectWalletTransaction() {
         suppose("Project exists") {
             testData.organization = createOrganization("Org test", userUuid)
-            testData.project = createProject("Test project", testData.organization, user)
+            testData.project = createProject("Test project", testData.organization, userUuid)
         }
         suppose("User has a wallet") {
-            user.wallet = createWalletForUser(userUuid, testData.address)
+            testData.wallet = createWalletForUser(userUuid, testData.hash)
         }
         suppose("Organization has a wallet") {
-            createWalletForOrganization(testData.organization, testData.hash)
+            createWalletForOrganization(testData.organization, testData.hash2)
         }
         suppose("Blockchain service successfully generates transaction to create project wallet") {
             val orgWalletHash = getWalletHash(testData.project.organization.wallet)
-            val userWalletHash = getWalletHash(user.wallet)
+            val userWalletHash = getUserWalletHash(userUuid)
             testData.transactionData = generateTransactionData(testData.signedTransaction)
             val request = GenerateProjectWalletRequest(testData.project, orgWalletHash, userWalletHash)
             Mockito.`when`(
@@ -185,7 +182,7 @@ class WalletControllerTest : ControllerTestBase() {
     fun mustNotBeAbleToGetCreateProjectWalletTransactionIfWalletExits() {
         suppose("Project exists") {
             val organization = createOrganization("Org test", userUuid)
-            testData.project = createProject("Test project", organization, user)
+            testData.project = createProject("Test project", organization, userUuid)
         }
         suppose("Project wallet exists") {
             testData.wallet = createWalletForProject(testData.project, testData.hash)
@@ -205,7 +202,7 @@ class WalletControllerTest : ControllerTestBase() {
     fun mustBeAbleToGetProjectWallet() {
         suppose("Project exists") {
             val organization = createOrganization("Org test", userUuid)
-            testData.project = createProject("Test project", organization, user)
+            testData.project = createProject("Test project", organization, userUuid)
         }
         suppose("Project wallet exists") {
             testData.wallet = createWalletForProject(testData.project, testData.hash)
@@ -230,7 +227,7 @@ class WalletControllerTest : ControllerTestBase() {
     fun mustGetNotFoundIfWalletIsMissing() {
         suppose("Project exists") {
             val organization = createOrganization("Org test", userUuid)
-            testData.project = createProject("Test project", organization, user)
+            testData.project = createProject("Test project", organization, userUuid)
         }
 
         verify("User will get not found") {
@@ -407,6 +404,7 @@ class WalletControllerTest : ControllerTestBase() {
         var walletId = -1
         var address = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         var hash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
+        var hash2 = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7893"
         val publicKey = "0xC2D7CF95645D33006175B78989035C7c9061d3F9"
         var balance: Long = -1
         val signedTransaction = "SignedTransaction"

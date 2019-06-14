@@ -8,11 +8,6 @@ import javax.transaction.Transactional
 class DatabaseCleanerService(val em: EntityManager) {
 
     @Transactional
-    fun deleteAllUsers() {
-        em.createNativeQuery("TRUNCATE app_user CASCADE").executeUpdate()
-    }
-
-    @Transactional
     fun deleteAllWalletsAndOwners() {
         em.createNativeQuery("TRUNCATE wallet CASCADE").executeUpdate()
     }

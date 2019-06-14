@@ -8,7 +8,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
@@ -29,7 +28,6 @@ class WalletServiceTest : JpaServiceTestBase() {
         WalletServiceImpl(walletRepository, projectRepository, organizationRepository, userWalletRepository,
                 mockedBlockchainService, transactionService)
     }
-    private lateinit var user: User
     private lateinit var testContext: TestContext
 
     private val defaultAddress = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
@@ -41,7 +39,6 @@ class WalletServiceTest : JpaServiceTestBase() {
     @BeforeEach
     fun init() {
         databaseCleanerService.deleteAllWalletsAndOwners()
-        user = createUser("test@email.com", "First", "Last")
         testContext = TestContext()
     }
 
@@ -84,7 +81,7 @@ class WalletServiceTest : JpaServiceTestBase() {
     fun mustBeAbleToCreateWalletForProject() {
         suppose("Project exists") {
             val organization = createOrganization("Org", userUuid)
-            testContext.project = createProject("Das project", organization, user)
+            testContext.project = createProject("Das project", organization, userUuid)
         }
         suppose("Blockchain service successfully adds wallet") {
             Mockito.`when`(
@@ -126,7 +123,7 @@ class WalletServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToCreateMultipleWalletsForOneProject() {
         suppose("Project exists") {
             val organization = createOrganization("Org", userUuid)
-            testContext.project = createProject("Das project", organization, user)
+            testContext.project = createProject("Das project", organization, userUuid)
         }
         suppose("Project has a wallet") {
             createWalletForProject(testContext.project, defaultAddressHash)
@@ -161,7 +158,7 @@ class WalletServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfUserWithoutWalletTriesToGenerateCreateProjectWallet() {
         suppose("Project exists") {
             val organization = createOrganization("Org", userUuid)
-            testContext.project = createProject("Das project", organization, user)
+            testContext.project = createProject("Das project", organization, userUuid)
         }
 
         verify("Service will throw InternalException") {
@@ -179,7 +176,7 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
         suppose("Project exists") {
             val organization = createOrganization("Org", userUuid)
-            testContext.project = createProject("Das project", organization, user)
+            testContext.project = createProject("Das project", organization, userUuid)
         }
 
         verify("Service will throw InternalException") {
@@ -293,7 +290,7 @@ class WalletServiceTest : JpaServiceTestBase() {
         }
         suppose("Project exists") {
             val organization = createOrganization("Org", userUuid)
-            testContext.project = createProject("Das project", organization, user)
+            testContext.project = createProject("Das project", organization, userUuid)
         }
         suppose("Blockchain service will return same hash for new project wallet transaction") {
             Mockito.`when`(

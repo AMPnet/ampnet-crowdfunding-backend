@@ -71,9 +71,8 @@ data class Project(
     @Convert(converter = HashArrayToStringConverter::class)
     var gallery: List<String>?,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    var createdBy: User,
+    @Column(nullable = true)
+    var createdByUserUuid: String,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime,

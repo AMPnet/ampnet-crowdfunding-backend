@@ -4,7 +4,6 @@ import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -15,17 +14,13 @@ class TransactionInfoServiceTest : JpaServiceTestBase() {
     private val transactionInfoService: TransactionInfoService by lazy {
         TransactionInfoServiceImpl(transactionInfoRepository)
     }
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser("admin@test.com", "Admin", "User")
-    }
     private val organization: Organization by lazy {
         databaseCleanerService.deleteAllOrganizations()
         createOrganization("Das Organ", userUuid)
     }
     private val project: Project by lazy {
         databaseCleanerService.deleteAllProjects()
-        createProject("Projectos", organization, user)
+        createProject("Projectos", organization, userUuid)
     }
 
     private lateinit var testContext: TestContext

@@ -2,19 +2,13 @@ package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
-import com.ampnet.crowdfundingbackend.config.ApplicationProperties
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.config.PasswordEncoderConfig
-import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
-import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
@@ -25,7 +19,6 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationReposit
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -35,7 +28,6 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.Import
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -51,11 +43,7 @@ abstract class JpaServiceTestBase : TestBase() {
     @Autowired
     protected lateinit var databaseCleanerService: DatabaseCleanerService
     @Autowired
-    protected lateinit var passwordEncoder: PasswordEncoder
-    @Autowired
     protected lateinit var roleRepository: RoleRepository
-    @Autowired
-    protected lateinit var userRepository: UserRepository
     @Autowired
     protected lateinit var organizationRepository: OrganizationRepository
     @Autowired
@@ -76,27 +64,7 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var userWalletRepository: UserWalletRepository
 
     protected val mockedBlockchainService: BlockchainService = Mockito.mock(BlockchainService::class.java)
-
-    protected val applicationProperties: ApplicationProperties by lazy {
-        // add additional properties as needed
-        val applicationProperties = ApplicationProperties()
-        applicationProperties.mail.enabled = true
-        applicationProperties
-    }
-
     protected val userUuid = UUID.randomUUID().toString()
-
-    protected fun createUser(email: String, firstName: String, lastName: String): User {
-        val user = User::class.java.getConstructor().newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = firstName
-        user.lastName = lastName
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
-    }
 
     protected fun createOrganization(name: String, createdByUuid: String): Organization {
         val organization = Organization::class.java.getConstructor().newInstance()
@@ -139,25 +107,10 @@ abstract class JpaServiceTestBase : TestBase() {
         return walletRepository.save(wallet)
     }
 
-    protected fun createOrganizationInvite(
-        email: String,
-        organizationId: Int,
-        role: OrganizationRoleType,
-        invitedByUuid: String
-    ): OrganizationInvite {
-        val invite = OrganizationInvite::class.java.getConstructor().newInstance()
-        invite.email = email
-        invite.organizationId = organizationId
-        invite.createdAt = ZonedDateTime.now()
-        invite.role = roleRepository.getOne(role.id)
-        invite.invitedByUserUuid = invitedByUuid
-        return inviteRepository.save(invite)
-    }
-
     protected fun createProject(
         name: String,
         organization: Organization,
-        createdBy: User,
+        createdByUserUuid: String,
         active: Boolean = true,
         startDate: ZonedDateTime = ZonedDateTime.now(),
         endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
@@ -178,7 +131,7 @@ abstract class JpaServiceTestBase : TestBase() {
         project.currency = Currency.EUR
         project.minPerUser = minPerUser
         project.maxPerUser = maxPerUser
-        project.createdBy = createdBy
+        project.createdByUserUuid = createdByUserUuid
         project.active = active
         project.createdAt = startDate.minusMinutes(1)
         return projectRepository.save(project)

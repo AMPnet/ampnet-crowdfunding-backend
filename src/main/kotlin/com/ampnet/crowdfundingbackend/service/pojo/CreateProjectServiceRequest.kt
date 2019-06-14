@@ -3,7 +3,6 @@ package com.ampnet.crowdfundingbackend.service.pojo
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import java.time.ZonedDateTime
 
 data class CreateProjectServiceRequest(
@@ -20,9 +19,9 @@ data class CreateProjectServiceRequest(
     val minPerUser: Long,
     val maxPerUser: Long,
     val active: Boolean,
-    val createdBy: User
+    val createdByUserUuid: String
 ) {
-    constructor(request: ProjectRequest, organization: Organization, user: User) : this(
+    constructor(request: ProjectRequest, organization: Organization, userUuid: String) : this(
         organization,
             request.name,
             request.description,
@@ -36,6 +35,6 @@ data class CreateProjectServiceRequest(
             request.minPerUser,
             request.maxPerUser,
             request.active,
-            user
+            userUuid
     )
 }

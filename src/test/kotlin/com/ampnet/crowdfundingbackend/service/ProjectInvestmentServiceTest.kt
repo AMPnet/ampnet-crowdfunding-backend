@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.ProjectInvestmentServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
@@ -32,13 +31,11 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         databaseCleanerService.deleteAllOrganizations()
         createOrganization("Das Organization", userUuid)
     }
-    private lateinit var user: User
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun initTestContext() {
         databaseCleanerService.deleteAllWalletsAndOwners()
-        user = createUser("test@email.com", "First", "Last")
         testContext = TestContext()
     }
 
@@ -46,7 +43,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfProjectIsNotActive() {
         suppose("Project is not active") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user, false)
+            testContext.project = createProject("test name", organization, userUuid, false)
         }
         suppose("Request is for inactive project") {
             testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100)
@@ -64,7 +61,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfProjectHasExpired() {
         suppose("Project has expired") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user,
+            testContext.project = createProject("test name", organization, userUuid,
                     startDate = ZonedDateTime.now().minusDays(30),
                     endDate = ZonedDateTime.now().minusDays(2)
             )
@@ -85,7 +82,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfInvestmentAmountIsBelowMinimum() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user, minPerUser = 100)
+            testContext.project = createProject("test name", organization, userUuid, minPerUser = 100)
         }
         suppose("Request amount is below project minimum") {
             testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 10)
@@ -103,7 +100,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfInvestmentAmountIsAboveMaximum() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user, maxPerUser = 1_000)
+            testContext.project = createProject("test name", organization, userUuid, maxPerUser = 1_000)
         }
         suppose("Request amount is about project maximum") {
             testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 10_000)
@@ -121,7 +118,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfUserDoesNotHaveWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
 
         verify("Service will throw exception that user wallet is missing") {
@@ -137,7 +134,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfProjectDoesNotHaveWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
             createWalletForUser(userUuid, testContext.defaultAddressHash)
@@ -159,7 +156,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfUserDoesNotEnoughFunds() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
             createWalletForUser(userUuid, testContext.defaultAddressHash)
@@ -182,7 +179,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustBeAbleToGenerateInvestment() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
             createWalletForUser(userUuid, testContext.defaultAddressHash)
@@ -217,7 +214,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToGenerateInvestmentIfProjectDidReachExpectedFunding() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
             createWalletForUser(userUuid, testContext.defaultAddressHash)
@@ -260,7 +257,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToGenerateConfirmInvestmentWithoutUserWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
 
         verify("Service will throw exception that user wallet is missing") {
@@ -275,7 +272,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToGenerateConfirmInvestmentWithoutProjectWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
             createWalletForUser(userUuid, testContext.defaultAddressHash)
@@ -293,7 +290,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustBeAbleGenerateConfirmInvestment() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
             createWalletForUser(userUuid, testContext.defaultAddressHash)

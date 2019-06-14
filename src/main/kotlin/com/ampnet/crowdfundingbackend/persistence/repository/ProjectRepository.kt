@@ -13,12 +13,6 @@ interface ProjectRepository : JpaRepository<Project, Int> {
     fun findByIdWithOrganization(id: Int): Optional<Project>
 
     @Query("SELECT project FROM Project project " +
-            "INNER JOIN FETCH project.organization " +
-            "INNER JOIN FETCH project.createdBy " +
-            "WHERE project.id = ?1")
-    fun findByIdWithOrganizationAndCreator(id: Int): Optional<Project>
-
-    @Query("SELECT project FROM Project project " +
             "LEFT JOIN FETCH project.wallet " +
             "WHERE project.id = ?1")
     fun findByIdWithWallet(id: Int): Optional<Project>

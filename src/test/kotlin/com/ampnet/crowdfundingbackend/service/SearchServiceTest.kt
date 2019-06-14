@@ -1,7 +1,6 @@
 package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.SearchServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -10,12 +9,7 @@ import org.junit.jupiter.api.Test
 class SearchServiceTest : JpaServiceTestBase() {
 
     private val searchService: SearchService by lazy {
-        SearchServiceImpl(organizationRepository, projectRepository, userRepository)
-    }
-
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser("adfadfaf@email.com", "first", "last")
+        SearchServiceImpl(organizationRepository, projectRepository)
     }
 
     private lateinit var testContext: TestContext
@@ -107,9 +101,9 @@ class SearchServiceTest : JpaServiceTestBase() {
         }
         suppose("Some organizations exist") {
             databaseCleanerService.deleteAllProjects()
-            createProject("Project 1", testContext.organization, user)
-            createProject("Project 2", testContext.organization, user)
-            createProject("Project 3", testContext.organization, user)
+            createProject("Project 1", testContext.organization, userUuid)
+            createProject("Project 2", testContext.organization, userUuid)
+            createProject("Project 3", testContext.organization, userUuid)
         }
 
         verify("Service will return empty list") {
@@ -126,11 +120,11 @@ class SearchServiceTest : JpaServiceTestBase() {
         }
         suppose("Some organizations exist") {
             databaseCleanerService.deleteAllProjects()
-            createProject("Project 1", testContext.organization, user)
+            createProject("Project 1", testContext.organization, userUuid)
         }
         suppose("Organization by name X exist") {
             testContext.projectName = "Prj with name"
-            createProject(testContext.projectName, testContext.organization, user)
+            createProject(testContext.projectName, testContext.organization, userUuid)
         }
 
         verify("Service will find one organization") {
@@ -148,11 +142,11 @@ class SearchServiceTest : JpaServiceTestBase() {
         }
         suppose("Some organizations exist") {
             databaseCleanerService.deleteAllProjects()
-            createProject("Project 1", testContext.organization, user)
+            createProject("Project 1", testContext.organization, userUuid)
         }
         suppose("Organization by name X exist") {
             testContext.projectName = "Prj with name"
-            createProject(testContext.projectName, testContext.organization, user)
+            createProject(testContext.projectName, testContext.organization, userUuid)
         }
 
         verify("Service will find by name in lower case") {
@@ -181,62 +175,9 @@ class SearchServiceTest : JpaServiceTestBase() {
         }
     }
 
-    /* User search */
-    @Test
-    fun mustReturnEmptyListOfUsersForNonExistingEmail() {
-        suppose("Some users exist") {
-            databaseCleanerService.deleteAllUsers()
-            createUser("pero@gmail.com", "P", "R")
-            createUser("djuro@test.com", "dj", "U")
-            createUser("nikola@grb.hr", "Niki", "La")
-        }
-
-        verify("Service will return empty list for non existing email") {
-            val users = searchService.searchUsers("non-existing@email.com")
-            assertThat(users).hasSize(0)
-        }
-    }
-
-    @Test
-    fun mustReturnUserForSearchedEmail() {
-        suppose("Some users exists") {
-            databaseCleanerService.deleteAllUsers()
-            createUser("pero@gmail.com", "P", "R")
-            createUser("djuro@test.com", "dj", "U")
-            createUser("nikola@grb.hr", "Niki", "La")
-        }
-        suppose("User with defined email exists") {
-            testContext.email = "user@gmail.com"
-            createUser(testContext.email, "Usr", "E")
-        }
-
-        verify("Service will return user with searched email") {
-            val users = searchService.searchUsers(testContext.email)
-            assertThat(users).hasSize(1)
-            assertThat(users.first().email).isEqualTo(testContext.email)
-        }
-    }
-
-    @Test
-    fun mustFindMultipleUsersWithSimilarEmail() {
-        suppose("Users with similar email exist") {
-            databaseCleanerService.deleteAllUsers()
-            createUser("test@sdf.co", "Fir", "ST")
-            createUser("Test2@fdsa.sca", "Sca", "Di")
-            createUser("teStos@fs.cs", "Cs", "Si")
-            createUser("other@fdsa.sca", "Last", "In")
-        }
-
-        verify("Service will find multiple users") {
-            val users = searchService.searchUsers("test")
-            assertThat(users).hasSize(3)
-        }
-    }
-
     private class TestContext {
         lateinit var organizationName: String
         lateinit var organization: Organization
         lateinit var projectName: String
-        lateinit var email: String
     }
 }

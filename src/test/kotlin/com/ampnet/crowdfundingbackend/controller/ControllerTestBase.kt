@@ -3,10 +3,8 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
-import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
@@ -14,7 +12,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
@@ -24,7 +21,6 @@ import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationReposit
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.CloudStorageService
@@ -62,8 +58,6 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var objectMapper: ObjectMapper
     @Autowired
     protected lateinit var databaseCleanerService: DatabaseCleanerService
-    @Autowired
-    protected lateinit var userRepository: UserRepository
     @Autowired
     protected lateinit var roleRepository: RoleRepository
     @Autowired
@@ -110,18 +104,6 @@ abstract class ControllerTestBase : TestBase() {
         val response: ErrorResponse = objectMapper.readValue(result.response.contentAsString)
         val expectedErrorCode = getResponseErrorCode(errorCode)
         assert(response.errCode == expectedErrorCode)
-    }
-
-    protected fun createUser(email: String): User {
-        val user = User::class.java.getConstructor().newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = "First"
-        user.lastName = "Last"
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
     }
 
     protected fun createWalletForUser(userUuid: String, hash: String): Wallet {
@@ -177,7 +159,7 @@ abstract class ControllerTestBase : TestBase() {
     protected fun createProject(
         name: String,
         organization: Organization,
-        createdBy: User,
+        createdByUserUuid: String,
         active: Boolean = true,
         startDate: ZonedDateTime = ZonedDateTime.now(),
         endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
@@ -198,7 +180,7 @@ abstract class ControllerTestBase : TestBase() {
         project.currency = Currency.EUR
         project.minPerUser = minPerUser
         project.maxPerUser = maxPerUser
-        project.createdBy = createdBy
+        project.createdByUserUuid = createdByUserUuid
         project.active = active
         project.createdAt = startDate.minusMinutes(1)
         return projectRepository.save(project)

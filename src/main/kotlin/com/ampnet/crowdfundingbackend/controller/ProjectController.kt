@@ -6,19 +6,19 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.ProjectService
-import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
+import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -36,7 +36,6 @@ import javax.validation.Valid
 class ProjectController(
     private val projectService: ProjectService,
     private val walletService: WalletService,
-    private val userService: UserService,
     private val organizationService: OrganizationService,
     private val projectInvestmentService: ProjectInvestmentService
 ) {
@@ -64,10 +63,9 @@ class ProjectController(
     fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to create project: $request" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, request.organizationId) {
-            createProject(request, user)
+            createProject(request, userPrincipal.uuid)
         }
     }
 
@@ -152,40 +150,39 @@ class ProjectController(
         }
     }
 
-//    @GetMapping("/project/{projectId}/invest")
-//    fun generateInvestTransaction(
-//        @PathVariable("projectId") projectId: Int,
-//        @RequestParam(name = "amount") amount: Long
-//    ): ResponseEntity<TransactionResponse> {
-//        logger.debug { "Received request to generate invest transaction for project: $projectId" }
-//        val user = ControllerUtils.getUserFromSecurityContext(userService)
-//        val project = getProjectById(projectId)
-//
-//        val request = ProjectInvestmentRequest(project, user, amount)
-//        val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
-//        return ResponseEntity.ok(TransactionResponse(transaction))
-//    }
+    @GetMapping("/project/{projectId}/invest")
+    fun generateInvestTransaction(
+        @PathVariable("projectId") projectId: Int,
+        @RequestParam(name = "amount") amount: Long
+    ): ResponseEntity<TransactionResponse> {
+        logger.debug { "Received request to generate invest transaction for project: $projectId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val project = getProjectById(projectId)
 
-//    @GetMapping("/project/{projectId}/invest/confirm")
-//    fun generateConfirmInvestTransaction(
-//        @PathVariable("projectId") projectId: Int
-//    ): ResponseEntity<TransactionResponse> {
-//        logger.debug { "Received request to generate confirm invest transaction for project: $projectId" }
-//        val user = ControllerUtils.getUserFromSecurityContext(userService)
-//        val project = getProjectById(projectId)
-//
-//        val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
-//        return ResponseEntity.ok(TransactionResponse(transaction))
-//    }
+        val request = ProjectInvestmentRequest(project, userPrincipal.uuid, amount)
+        val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
+        return ResponseEntity.ok(TransactionResponse(transaction))
+    }
+
+    @GetMapping("/project/{projectId}/invest/confirm")
+    fun generateConfirmInvestTransaction(
+        @PathVariable("projectId") projectId: Int
+    ): ResponseEntity<TransactionResponse> {
+        logger.debug { "Received request to generate confirm invest transaction for project: $projectId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val project = getProjectById(projectId)
+
+        val transaction = projectInvestmentService.generateConfirmInvestment(userPrincipal.uuid, project)
+        return ResponseEntity.ok(TransactionResponse(transaction))
+    }
 
     private fun getImageNameFromMultipartFile(multipartFile: MultipartFile): String =
             multipartFile.originalFilename ?: multipartFile.name
 
-    private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {
+    private fun createProject(request: ProjectRequest, userUuid: String): ProjectWithFundingResponse {
         val organization = getOrganization(request.organizationId)
-        val serviceRequest = CreateProjectServiceRequest(request, organization, user)
+        val serviceRequest = CreateProjectServiceRequest(request, organization, userUuid)
         val project = projectService.createProject(serviceRequest)
-
         return ProjectWithFundingResponse(project, null)
     }
 
