@@ -4,6 +4,10 @@ CREATE TABLE role (
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL
 );
+INSERT INTO role VALUES
+  (1, 'ORG_ADMIN', 'Administrators can manage users in organization.');
+INSERT INTO role VALUES
+  (2, 'ORG_MEMBER', 'Members can use organization.');
 
 -- Wallet
 CREATE TABLE wallet (

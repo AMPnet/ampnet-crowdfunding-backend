@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.security
 
 import com.ampnet.crowdfundingbackend.config.auth.UserPrincipal
+import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContext
@@ -32,7 +33,13 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
         return if (annotation.privileges.isNotEmpty()) {
             annotation.privileges.map { SimpleGrantedAuthority(it.name) }
         } else {
-            annotation.role.getPrivileges().map { SimpleGrantedAuthority(it.name) }
+            getDefaultUserPrivileges().map { SimpleGrantedAuthority(it.name) }
         }
     }
+
+    private fun getDefaultUserPrivileges() = listOf(
+            PrivilegeType.PRO_PROFILE,
+            PrivilegeType.PWO_PROFILE,
+            PrivilegeType.PRO_ORG_INVITE,
+            PrivilegeType.PWO_ORG_INVITE)
 }

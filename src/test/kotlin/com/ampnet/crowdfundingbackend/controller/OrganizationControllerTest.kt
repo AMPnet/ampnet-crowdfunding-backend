@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListR
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
@@ -139,7 +138,7 @@ class OrganizationControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(role = UserRoleType.USER)
+    @WithMockCrowdfoundUser
     fun mustNotGetListOfAllOrganizationsWithoutPrivilege() {
         verify("User cannot get a list of all organizations with privilege PRA_ORG") {
             mockMvc.perform(get(organizationPath))
