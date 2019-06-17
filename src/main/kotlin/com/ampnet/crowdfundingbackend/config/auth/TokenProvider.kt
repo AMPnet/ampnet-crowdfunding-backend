@@ -10,8 +10,6 @@ import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.JacksonDeserializer
 import io.jsonwebtoken.security.Keys
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.io.Serializable
 import java.util.Date
@@ -21,25 +19,19 @@ import javax.crypto.SecretKey
 class TokenProvider(applicationProperties: ApplicationProperties, val objectMapper: ObjectMapper) : Serializable {
 
     private val userKey = "user"
-    private val hidden = "Hidden"
 
     private val key: SecretKey = Keys.hmacShaKeyFor(applicationProperties.jwt.signingKey.toByteArray())
 
     @Throws(TokenException::class)
-    fun getAuthentication(token: String): UsernamePasswordAuthenticationToken {
+    fun parseToken(token: String): UserPrincipal {
         try {
             val jwtParser = Jwts.parser()
                     .deserializeJsonWith(JacksonDeserializer(objectMapper))
                     .setSigningKey(key)
             val claimsJws = jwtParser.parseClaimsJws(token)
             val claims = claimsJws.body
-
-            // TODO: maybe validate in CustomAuthenticationProvider
             validateExpiration(claims)
-
-            val userPrincipal = getUserPrincipal(claims)
-            return UsernamePasswordAuthenticationToken(
-                    userPrincipal, hidden, userPrincipal.authorities.map { SimpleGrantedAuthority(it) })
+            return getUserPrincipal(claims)
         } catch (ex: JwtException) {
             throw TokenException("Could not validate JWT token", ex)
         }

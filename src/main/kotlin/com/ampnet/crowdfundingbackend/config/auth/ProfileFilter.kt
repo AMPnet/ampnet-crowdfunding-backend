@@ -8,7 +8,6 @@ import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-// TODO: think about removing this filter
 @Component
 class ProfileFilter : OncePerRequestFilter() {
 
@@ -16,6 +15,7 @@ class ProfileFilter : OncePerRequestFilter() {
 
     private val userProfilePath = "/me"
     private val incompleteProfileMessage = "Incomplete user profile"
+    private val disabledProfileMessage = "Disabled user profile"
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -27,9 +27,14 @@ class ProfileFilter : OncePerRequestFilter() {
             val principal = authentication.principal
             if (principal is UserPrincipal) {
                 val path = request.requestURI
-                if (!principal.completeProfile && path != userProfilePath) {
-                    logger.debug("User ${principal.email} with incomplete profile try to reach $path")
+                if (principal.completeProfile.not() && path != userProfilePath) {
+                    logger.warn("User: ${principal.uuid} with incomplete profile try to reach $path")
                     response.sendError(HttpServletResponse.SC_CONFLICT, incompleteProfileMessage)
+                    return
+                }
+                if (principal.enabled.not()) {
+                    logger.warn("User: ${principal.uuid} with disabled profile try to reach $path")
+                    response.sendError(HttpServletResponse.SC_CONFLICT, disabledProfileMessage)
                     return
                 }
             }
