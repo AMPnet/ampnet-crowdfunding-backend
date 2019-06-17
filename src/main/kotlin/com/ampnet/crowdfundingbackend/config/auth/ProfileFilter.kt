@@ -13,8 +13,6 @@ class ProfileFilter : OncePerRequestFilter() {
 
     companion object : KLogging()
 
-    private val userProfilePath = "/me"
-    private val incompleteProfileMessage = "Incomplete user profile"
     private val disabledProfileMessage = "Disabled user profile"
 
     override fun doFilterInternal(
@@ -27,11 +25,6 @@ class ProfileFilter : OncePerRequestFilter() {
             val principal = authentication.principal
             if (principal is UserPrincipal) {
                 val path = request.requestURI
-                if (principal.completeProfile.not() && path != userProfilePath) {
-                    logger.warn("User: ${principal.uuid} with incomplete profile try to reach $path")
-                    response.sendError(HttpServletResponse.SC_CONFLICT, incompleteProfileMessage)
-                    return
-                }
                 if (principal.enabled.not()) {
                     logger.warn("User: ${principal.uuid} with disabled profile try to reach $path")
                     response.sendError(HttpServletResponse.SC_CONFLICT, disabledProfileMessage)

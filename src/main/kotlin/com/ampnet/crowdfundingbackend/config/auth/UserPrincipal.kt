@@ -5,6 +5,5 @@ data class UserPrincipal(
     val email: String,
     val name: String,
     val authorities: Set<String>,
-    val completeProfile: Boolean,
     val enabled: Boolean
 )
