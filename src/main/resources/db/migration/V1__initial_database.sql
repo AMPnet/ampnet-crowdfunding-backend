@@ -74,6 +74,7 @@ CREATE TABLE project (
     max_per_user BIGINT NOT NULL,
     main_image VARCHAR,
     gallery TEXT,
+    news_links TEXT,
     created_by_user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL,
     wallet_id INT REFERENCES wallet(id),

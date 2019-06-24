@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.service.StorageService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
+import com.sun.org.apache.xpath.internal.operations.Bool
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -111,6 +112,31 @@ class ProjectServiceImpl(
             project.documents = storedDocuments
             projectRepository.save(project)
         }
+    }
+
+    @Transactional
+    override fun addNews(projectId: Int, link: String) {
+        addRemoveNews(projectId, link, true)
+    }
+
+    @Transactional
+    override fun removeNews(projectId: Int, link: String) {
+        addRemoveNews(projectId, link, false)
+    }
+
+    private fun addRemoveNews(projectId: Int, link: String, add: Boolean) {
+        val project = projectRepository.findById(projectId).orElseThrow {
+            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
+                    "Trying to add document to missing project. Project: $projectId")
+        }
+        val news = project.newsLinks.orEmpty().toMutableList()
+        if (add) {
+            news.add(link)
+        } else {
+            news.remove(link)
+        }
+        project.newsLinks = news
+        projectRepository.save(project)
     }
 
     private fun validateCreateProjectRequest(request: CreateProjectServiceRequest) {

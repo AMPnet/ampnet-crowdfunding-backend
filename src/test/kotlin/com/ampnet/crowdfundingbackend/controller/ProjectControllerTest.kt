@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ImageLinkListRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.LinkRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
@@ -532,6 +533,62 @@ class ProjectControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToAddNews() {
+        suppose("Project exists") {
+            testContext.project = createProject("Project", organization, userUuid)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+
+        verify("User can add news link") {
+            val request = LinkRequest(testContext.newsLink)
+            mockMvc.perform(
+                    post("$projectPath/${testContext.project.id}/news")
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk)
+        }
+        verify("News link is added to project") {
+            val optionalProject = projectRepository.findById(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            assertThat(optionalProject.get().newsLinks).hasSize(1).contains(testContext.newsLink)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToRemoveNews() {
+        suppose("Project exists") {
+            testContext.project = createProject("Project", organization, userUuid)
+        }
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Project has news links") {
+            testContext.project.newsLinks = listOf(testContext.newsLink, "link-2", "link-3")
+            projectRepository.save(testContext.project)
+        }
+
+        verify("User can remove news link") {
+            val request = LinkRequest(testContext.newsLink)
+            mockMvc.perform(
+                    delete("$projectPath/${testContext.project.id}/news")
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk)
+        }
+        verify("News link is removed to project") {
+            val optionalProject = projectRepository.findById(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            assertThat(optionalProject.get().newsLinks).hasSize(2).doesNotContain(testContext.newsLink)
+        }
+    }
+
     private fun createProjectRequest(organizationId: Int, name: String): ProjectRequest {
         val time = ZonedDateTime.now()
         return ProjectRequest(
@@ -576,6 +633,7 @@ class ProjectControllerTest : ControllerTestBase() {
         lateinit var document: Document
         val documentLink = "link"
         val imageLink = "image-link"
+        val newsLink = "news-link"
         var projectId: Int = -1
         val walletHash = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         val walletBalance = 100L

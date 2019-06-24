@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ImageLinkListRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.LinkRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
@@ -87,6 +88,7 @@ class ProjectController(
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             val request = DocumentSaveRequest(file, userPrincipal.uuid)
+            // TODO: use project instead of projectId
             val document = projectService.addDocument(project.id, request)
             DocumentResponse(document)
         }
@@ -102,6 +104,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            // TODO: use project instead of projectId
             projectService.removeDocument(projectId, documentId)
         }
     }
@@ -147,6 +150,36 @@ class ProjectController(
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             projectService.removeImagesFromGallery(project, request.images)
+        }
+    }
+
+    @PostMapping("/project/{projectId}/news")
+    fun addNews(
+            @PathVariable("projectId") projectId: Int,
+            @RequestBody request: LinkRequest
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to add gallery image to project: $projectId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            // TODO: use project instead of projectId
+            projectService.addNews(projectId, request.link)
+        }
+    }
+
+    @DeleteMapping("/project/{projectId}/news")
+    fun removeNews(
+            @PathVariable("projectId") projectId: Int,
+            @RequestBody request: LinkRequest
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to delete gallery images for project: $projectId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            // TODO: use project instead of projectId
+            projectService.removeNews(projectId, request.link)
         }
     }
 

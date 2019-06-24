@@ -71,6 +71,10 @@ data class Project(
     @Convert(converter = HashArrayToStringConverter::class)
     var gallery: List<String>?,
 
+    @Column
+    @Convert(converter = HashArrayToStringConverter::class)
+    var newsLinks: List<String>?,
+
     @Column(nullable = true)
     var createdByUserUuid: String,
 
