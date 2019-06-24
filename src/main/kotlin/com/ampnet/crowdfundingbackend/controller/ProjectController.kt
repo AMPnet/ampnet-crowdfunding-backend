@@ -147,8 +147,8 @@ class ProjectController(
 
     @PostMapping("/project/{projectId}/news")
     fun addNews(
-            @PathVariable("projectId") projectId: Int,
-            @RequestBody request: LinkRequest
+        @PathVariable("projectId") projectId: Int,
+        @RequestBody request: LinkRequest
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to add gallery image to project: $projectId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
@@ -161,8 +161,8 @@ class ProjectController(
 
     @DeleteMapping("/project/{projectId}/news")
     fun removeNews(
-            @PathVariable("projectId") projectId: Int,
-            @RequestBody request: LinkRequest
+        @PathVariable("projectId") projectId: Int,
+        @RequestBody request: LinkRequest
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete gallery images for project: $projectId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()

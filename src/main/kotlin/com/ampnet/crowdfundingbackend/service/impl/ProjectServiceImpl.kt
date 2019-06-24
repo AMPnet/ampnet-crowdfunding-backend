@@ -2,7 +2,6 @@ package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
@@ -10,7 +9,6 @@ import com.ampnet.crowdfundingbackend.service.StorageService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
-import com.sun.org.apache.xpath.internal.operations.Bool
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
