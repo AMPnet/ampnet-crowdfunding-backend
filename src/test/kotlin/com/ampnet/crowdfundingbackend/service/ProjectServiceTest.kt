@@ -352,16 +352,6 @@ class ProjectServiceTest : JpaServiceTestBase() {
     }
 
     @Test
-    fun mustNotBeAbleToRemoveDocumentFromNonExistingProject() {
-        verify("Service will throw an exception") {
-            val exception = assertThrows<ResourceNotFoundException> {
-                projectService.removeDocument(0, 0)
-            }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.PRJ_MISSING)
-        }
-    }
-
-    @Test
     fun mustBeAbleToAddNews() {
         suppose("Organization has a wallet") {
             createWalletForOrganization(organization,
@@ -376,7 +366,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
         verify("News can be added to project") {
             val newsLink = "news"
             testContext.news = listOf(newsLink)
-            projectService.addNews(testContext.project.id, newsLink)
+            projectService.addNews(testContext.project, newsLink)
         }
         verify("News is added to project") {
             val project = projectService.getProjectById(testContext.project.id) ?: fail("Missing project")
@@ -402,7 +392,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
         }
 
         verify("News can be removed project") {
-            projectService.removeNews(testContext.project.id, testContext.news.first())
+            projectService.removeNews(testContext.project, testContext.news.first())
         }
         verify("News is removed to project") {
             val project = projectService.getProjectById(testContext.project.id) ?: fail("Missing project")

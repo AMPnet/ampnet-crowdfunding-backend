@@ -46,18 +46,12 @@ class ProjectController(
     @GetMapping("/project/{id}")
     fun getProject(@PathVariable id: Int): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to get project with id: $id" }
+        val project = getProjectByIdWithAllData(id)
+        val currentFunding = getCurrentFundingForProject(project)
+        logger.debug { "Project $id current funding is: $currentFunding" }
 
-        projectService.getProjectByIdWithAllData(id)?.let { project ->
-            logger.debug { "Project found: ${project.id}" }
-
-            val currentFunding = getCurrentFundingForProject(project)
-            logger.debug { "Project $id current funding is: $currentFunding" }
-
-            val response = ProjectWithFundingResponse(project, currentFunding)
-            return ResponseEntity.ok(response)
-        }
-        logger.info { "Project with id: $id not found" }
-        return ResponseEntity.notFound().build()
+        val response = ProjectWithFundingResponse(project, currentFunding)
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/project")
@@ -84,12 +78,11 @@ class ProjectController(
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document to project: $projectId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        val project = getProjectById(projectId)
+        val project = getProjectByIdWithAllData(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             val request = DocumentSaveRequest(file, userPrincipal.uuid)
-            // TODO: use project instead of projectId
-            val document = projectService.addDocument(project.id, request)
+            val document = projectService.addDocument(project, request)
             DocumentResponse(document)
         }
     }
@@ -101,11 +94,10 @@ class ProjectController(
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete document: $documentId for project $projectId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        val project = getProjectById(projectId)
+        val project = getProjectByIdWithAllData(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
-            // TODO: use project instead of projectId
-            projectService.removeDocument(projectId, documentId)
+            projectService.removeDocument(project, documentId)
         }
     }
 
@@ -163,8 +155,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
-            // TODO: use project instead of projectId
-            projectService.addNews(projectId, request.link)
+            projectService.addNews(project, request.link)
         }
     }
 
@@ -178,8 +169,7 @@ class ProjectController(
         val project = getProjectById(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
-            // TODO: use project instead of projectId
-            projectService.removeNews(projectId, request.link)
+            projectService.removeNews(project, request.link)
         }
     }
 
@@ -238,6 +228,10 @@ class ProjectController(
     private fun getProjectById(projectId: Int): Project =
         projectService.getProjectById(projectId)
             ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
+
+    private fun getProjectByIdWithAllData(projectId: Int): Project =
+            projectService.getProjectByIdWithAllData(projectId)
+                    ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
 
     private fun <T> ifUserHasPrivilegeToWriteInProjectThenReturn(
         userUuid: String,

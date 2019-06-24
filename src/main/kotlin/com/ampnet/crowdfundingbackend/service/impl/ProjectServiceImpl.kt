@@ -88,24 +88,14 @@ class ProjectServiceImpl(
     }
 
     @Transactional
-    override fun addDocument(projectId: Int, request: DocumentSaveRequest): Document {
-        val project = projectRepository.findById(projectId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
-                    "Trying to add document to missing project. Project: $projectId")
-        }
-
+    override fun addDocument(project: Project, request: DocumentSaveRequest): Document {
         val document = storageService.saveDocument(request)
         addDocumentToProject(project, document)
         return document
     }
 
     @Transactional
-    override fun removeDocument(projectId: Int, documentId: Int) {
-        val project = projectRepository.findById(projectId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
-                    "Trying to add document to missing project. Project: $projectId")
-        }
-
+    override fun removeDocument(project: Project, documentId: Int) {
         val storedDocuments = project.documents.orEmpty().toMutableList()
         storedDocuments.firstOrNull { it.id == documentId }.let {
             storedDocuments.remove(it)
@@ -115,26 +105,17 @@ class ProjectServiceImpl(
     }
 
     @Transactional
-    override fun addNews(projectId: Int, link: String) {
-        addRemoveNews(projectId, link, true)
+    override fun addNews(project: Project, link: String) {
+        val news = project.newsLinks.orEmpty().toMutableList()
+        news.add(link)
+        project.newsLinks = news
+        projectRepository.save(project)
     }
 
     @Transactional
-    override fun removeNews(projectId: Int, link: String) {
-        addRemoveNews(projectId, link, false)
-    }
-
-    private fun addRemoveNews(projectId: Int, link: String, add: Boolean) {
-        val project = projectRepository.findById(projectId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
-                    "Trying to add document to missing project. Project: $projectId")
-        }
+    override fun removeNews(project: Project, link: String) {
         val news = project.newsLinks.orEmpty().toMutableList()
-        if (add) {
-            news.add(link)
-        } else {
-            news.remove(link)
-        }
+        news.remove(link)
         project.newsLinks = news
         projectRepository.save(project)
     }

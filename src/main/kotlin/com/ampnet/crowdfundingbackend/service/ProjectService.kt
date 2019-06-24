@@ -14,8 +14,8 @@ interface ProjectService {
     fun addMainImage(project: Project, name: String, content: ByteArray)
     fun addImageToGallery(project: Project, name: String, content: ByteArray)
     fun removeImagesFromGallery(project: Project, images: List<String>)
-    fun addDocument(projectId: Int, request: DocumentSaveRequest): Document
-    fun removeDocument(projectId: Int, documentId: Int)
-    fun addNews(projectId: Int, link: String)
-    fun removeNews(projectId: Int, link: String)
+    fun addDocument(project: Project, request: DocumentSaveRequest): Document
+    fun removeDocument(project: Project, documentId: Int)
+    fun addNews(project: Project, link: String)
+    fun removeNews(project: Project, link: String)
 }
