@@ -8,11 +8,6 @@ import javax.transaction.Transactional
 class DatabaseCleanerService(val em: EntityManager) {
 
     @Transactional
-    fun deleteAllUsers() {
-        em.createNativeQuery("TRUNCATE app_user CASCADE").executeUpdate()
-    }
-
-    @Transactional
     fun deleteAllWalletsAndOwners() {
         em.createNativeQuery("TRUNCATE wallet CASCADE").executeUpdate()
     }
@@ -33,13 +28,8 @@ class DatabaseCleanerService(val em: EntityManager) {
     }
 
     @Transactional
-    fun deleteAllOrganizationInvites() {
-        em.createNativeQuery("TRUNCATE organization_invite CASCADE").executeUpdate()
-    }
-
-    @Transactional
-    fun deleteAllMailTokens() {
-        em.createNativeQuery("TRUNCATE mail_token CASCADE").executeUpdate()
+    fun deleteAllOrganizationInvitations() {
+        em.createNativeQuery("TRUNCATE organization_invitation CASCADE").executeUpdate()
     }
 
     @Transactional
@@ -49,6 +39,7 @@ class DatabaseCleanerService(val em: EntityManager) {
 
     @Transactional
     fun deleteAllWallets() {
+        em.createNativeQuery("DELETE FROM user_wallet").executeUpdate()
         em.createNativeQuery("DELETE FROM wallet").executeUpdate()
     }
 

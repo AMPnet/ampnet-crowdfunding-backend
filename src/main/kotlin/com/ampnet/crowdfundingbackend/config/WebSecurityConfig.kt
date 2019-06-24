@@ -1,10 +1,9 @@
 package com.ampnet.crowdfundingbackend.config
 
-import com.ampnet.crowdfundingbackend.config.auth.CustomAuthenticationProvider
+import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationProvider
 import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationEntryPoint
 import com.ampnet.crowdfundingbackend.config.auth.JwtAuthenticationFilter
 import com.ampnet.crowdfundingbackend.config.auth.ProfileFilter
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -27,7 +26,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class WebSecurityConfig(
     val unauthorizedHandler: JwtAuthenticationEntryPoint,
     val authenticationTokenFilter: JwtAuthenticationFilter,
-    val profileFilter: ProfileFilter
+    val profileFilter: ProfileFilter,
+    val jwtAuthenticationProvider: JwtAuthenticationProvider
 ) : WebSecurityConfigurerAdapter() {
 
     @Override
@@ -36,12 +36,8 @@ class WebSecurityConfig(
         return super.authenticationManagerBean()
     }
 
-    @Autowired
-    fun globalUserDetails(
-        authBuilder: AuthenticationManagerBuilder,
-        authenticationProvider: CustomAuthenticationProvider
-    ) {
-        authBuilder.authenticationProvider(authenticationProvider)
+    override fun configure(auth: AuthenticationManagerBuilder) {
+        auth.authenticationProvider(jwtAuthenticationProvider)
     }
 
     @Bean
@@ -49,16 +45,16 @@ class WebSecurityConfig(
         val configuration = CorsConfiguration()
         configuration.allowedOrigins = listOf("*")
         configuration.allowedMethods = listOf(
-                HttpMethod.HEAD.name,
-                HttpMethod.GET.name,
-                HttpMethod.POST.name,
-                HttpMethod.PUT.name,
-                HttpMethod.DELETE.name
+            HttpMethod.HEAD.name,
+            HttpMethod.GET.name,
+            HttpMethod.POST.name,
+            HttpMethod.PUT.name,
+            HttpMethod.DELETE.name
         )
         configuration.allowedHeaders = listOf(
-                HttpHeaders.AUTHORIZATION,
-                HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.CACHE_CONTROL
+            HttpHeaders.AUTHORIZATION,
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.CACHE_CONTROL
         )
 
         val source = UrlBasedCorsConfigurationSource()
@@ -68,22 +64,17 @@ class WebSecurityConfig(
 
     override fun configure(http: HttpSecurity) {
         http.cors().and().csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/actuator/**").permitAll()
-                .antMatchers("/docs/index.html").permitAll()
-                .antMatchers("/token/**", "/signup").permitAll()
-                .antMatchers("/countries/**").permitAll()
-                .antMatchers("/mail-confirmation").permitAll()
-                .antMatchers("/mail-check").permitAll()
-                .antMatchers("/issuer/**").permitAll()
-                .antMatchers("/identyum/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/tx_broadcast").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .authorizeRequests()
+            .antMatchers("/actuator/**").permitAll()
+            .antMatchers("/docs/index.html").permitAll()
+            .antMatchers("/issuer/**").permitAll()
+            .antMatchers(HttpMethod.POST, "/tx_broadcast").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         http
-                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
-                .addFilterAfter(profileFilter, JwtAuthenticationFilter::class.java)
+            .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterAfter(profileFilter, JwtAuthenticationFilter::class.java)
     }
 }

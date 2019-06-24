@@ -22,7 +22,6 @@ data class ProjectWithFundingResponse(
     val documents: List<DocumentResponse>,
     val active: Boolean,
     val organization: OrganizationResponse,
-    val createByUser: String,
     val walletHash: String?,
     val currentFunding: Long?
 ) {
@@ -44,7 +43,6 @@ data class ProjectWithFundingResponse(
         project.documents?.map { DocumentResponse(it) } ?: emptyList(),
         project.active,
         OrganizationResponse(project.organization),
-        project.createdBy.getFullName(),
         project.wallet?.hash,
         currentFunding
     )

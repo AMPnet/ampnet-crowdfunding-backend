@@ -8,7 +8,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -29,7 +28,6 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     private val signedTransaction = "SignedTransaction"
     private val txHash = "tx_hash"
 
-    private lateinit var user: User
     private lateinit var organization: Organization
     private lateinit var testContext: TestContext
 
@@ -39,8 +37,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         databaseCleanerService.deleteAllWalletsAndOwners()
         databaseCleanerService.deleteAllOrganizations()
         databaseCleanerService.deleteAllTransactionInfo()
-        user = createUser(defaultEmail)
-        organization = createOrganization("Turk org", user)
+        organization = createOrganization("Turk org", userUuid)
     }
 
     @Test
@@ -59,7 +56,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     @Test
     fun mustBeAbleToCreateOrganizationWallet() {
         suppose("TransactionInfo exists for create organization wallet") {
-            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_ORG, user, organization.id)
+            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_ORG, userUuid, organization.id)
         }
         suppose("Blockchain service successfully generates transaction to create organization wallet") {
             Mockito.`when`(
@@ -97,7 +94,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     @Test
     fun mustThrowErrorIfCompanionOrganizationIdIsMissing() {
         suppose("TransactionInfo exists for create organization wallet but without companion org id") {
-            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_ORG, user)
+            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_ORG, userUuid)
         }
 
         verify("User can create organization wallet") {
@@ -114,7 +111,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     @Test
     fun mustThrowErrorIfOrganizationIsMissing() {
         suppose("TransactionInfo exists for create organization wallet but with non existing org id") {
-            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_ORG, user, 0)
+            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_ORG, userUuid, 0)
         }
 
         verify("User can create organization wallet") {
@@ -132,11 +129,11 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     fun mustBeAbleToCreateProjectWalletWithTransaction() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Test project", organization, user)
+            testContext.project = createProject("Test project", organization, userUuid)
         }
         suppose("TransactionInfo exists for create project wallet") {
             testContext.transactionInfo = createTransactionInfo(
-                    TransactionType.CREATE_PROJECT, user, testContext.project.id)
+                    TransactionType.CREATE_PROJECT, userUuid, testContext.project.id)
         }
         suppose("Blockchain service successfully adds project wallet") {
             Mockito.`when`(
@@ -174,7 +171,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     @Test
     fun mustThrowErrorIfCompanionProjectIdIsMissing() {
         suppose("TransactionInfo exists for create project wallet but without companion project id") {
-            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_PROJECT, user)
+            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_PROJECT, userUuid)
         }
 
         verify("User can create organization wallet") {
@@ -191,7 +188,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     @Test
     fun mustThrowErrorIfProjectIsMissing() {
         suppose("TransactionInfo exists for create project wallet but without companion project id") {
-            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_PROJECT, user, 0)
+            testContext.transactionInfo = createTransactionInfo(TransactionType.CREATE_PROJECT, userUuid, 0)
         }
 
         verify("User can create organization wallet") {
@@ -209,10 +206,10 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     fun mustBeAbleToPostSignedInvestAllowanceTransaction() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Test project", organization, user)
+            testContext.project = createProject("Test project", organization, userUuid)
         }
         suppose("TransactionInfo exists for invest allowance transaction") {
-            testContext.transactionInfo = createTransactionInfo(TransactionType.INVEST_ALLOWANCE, user)
+            testContext.transactionInfo = createTransactionInfo(TransactionType.INVEST_ALLOWANCE, userUuid)
         }
         suppose("Blockchain service will accept signed transaction for project investment") {
             Mockito.`when`(
@@ -241,10 +238,10 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     fun mustBeAbleToPostSignedInvestTransaction() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("Test project", organization, user)
+            testContext.project = createProject("Test project", organization, userUuid)
         }
         suppose("TransactionInfo exists for invest transaction") {
-            testContext.transactionInfo = createTransactionInfo(TransactionType.INVEST, user)
+            testContext.transactionInfo = createTransactionInfo(TransactionType.INVEST, userUuid)
         }
         suppose("Blockchain service will accept signed transaction for project investment confirmation") {
             Mockito.`when`(
@@ -269,14 +266,12 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         }
     }
 
-    private fun createTransactionInfo(type: TransactionType, user: User, companionId: Int? = null): TransactionInfo {
-        val transactionInfo = TransactionInfo::class.java.getDeclaredConstructor().newInstance().apply {
-            this.type = type
-            this.title = "title"
-            this.description = "description"
-            this.userId = user.id
-            this.companionId = companionId
-        }
+    private fun createTransactionInfo(
+        type: TransactionType,
+        userUuid: String,
+        companionId: Int? = null
+    ): TransactionInfo {
+        val transactionInfo = TransactionInfo(0, type, "title", "description", userUuid, companionId)
         return transactionInfoRepository.save(transactionInfo)
     }
 

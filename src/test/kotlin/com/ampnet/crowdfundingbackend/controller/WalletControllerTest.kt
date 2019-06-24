@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
@@ -16,7 +15,6 @@ import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -33,21 +31,19 @@ class WalletControllerTest : ControllerTestBase() {
     private val organizationWalletPath = "/wallet/organization"
 
     private lateinit var testData: TestData
-    private lateinit var user: User
 
     @BeforeEach
     fun initTestData() {
         databaseCleanerService.deleteAllWalletsAndOwners()
         testData = TestData()
-        user = createUser("test@test.com")
     }
 
     /* User Wallet */
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToGetOwnWallet() {
         suppose("User wallet exists") {
-            testData.wallet = createWalletForUser(user, testData.hash)
+            testData.wallet = createWalletForUser(userUuid, testData.hash)
         }
         suppose("User has some funds on wallet") {
             testData.balance = 100_00
@@ -71,7 +67,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustReturnNotFoundForMissingWallet() {
         verify("Controller returns 404 for missing wallet") {
             mockMvc.perform(get(walletPath))
@@ -80,7 +76,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToCreateWallet() {
         suppose("Blockchain service successfully adds wallet") {
             Mockito.`when`(blockchainService.addWallet(testData.address, testData.publicKey))
@@ -106,21 +102,17 @@ class WalletControllerTest : ControllerTestBase() {
             testData.walletId = walletResponse.id
         }
         verify("Wallet is created") {
-            val userWithWallet = userRepository.findByEmailWithWallet(user.email)
-            assertThat(userWithWallet).isPresent
-            assertThat(userWithWallet.get().wallet).isNotNull
-
-            val wallet = userWithWallet.get().wallet ?: fail("User wallet must not be null")
-            assertThat(wallet.id).isEqualTo(testData.walletId)
-            assertThat(wallet.hash).isEqualTo(testData.hash)
+            val userWallet = userWalletRepository.findByUserUuid(userUuid)
+            assertThat(userWallet).isPresent
+            assertThat(userWallet.get().wallet.hash).isEqualTo(testData.hash)
         }
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustNotBeAbleToCreateAdditionalWallet() {
         suppose("User wallet exists") {
-            testData.wallet = createWalletForUser(user, testData.address)
+            testData.wallet = createWalletForUser(userUuid, testData.address)
         }
 
         verify("User cannot create a wallet") {
@@ -135,7 +127,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustNotBeAbleToCreateWalletWithInvalidAddress() {
         verify("User cannot create wallet with invalid wallet address") {
             val request = WalletCreateRequest("0x00", testData.publicKey)
@@ -148,34 +140,23 @@ class WalletControllerTest : ControllerTestBase() {
         }
     }
 
-    @Test
-    @WithMockCrowdfoundUser(email = "missing@user.com")
-    fun mustReturnErrorForNonExistingUser() {
-        verify("Controller will return not found for missing user") {
-            val response = mockMvc.perform(get(walletPath))
-                    .andExpect(status().isBadRequest)
-                    .andReturn()
-            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
-        }
-    }
-
     /* Project Wallet */
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToGetCreateProjectWalletTransaction() {
         suppose("Project exists") {
-            testData.organization = createOrganization("Org test", user)
-            testData.project = createProject("Test project", testData.organization, user)
+            testData.organization = createOrganization("Org test", userUuid)
+            testData.project = createProject("Test project", testData.organization, userUuid)
         }
         suppose("User has a wallet") {
-            user.wallet = createWalletForUser(user, testData.address)
+            testData.wallet = createWalletForUser(userUuid, testData.hash)
         }
         suppose("Organization has a wallet") {
-            createWalletForOrganization(testData.organization, testData.hash)
+            createWalletForOrganization(testData.organization, testData.hash2)
         }
         suppose("Blockchain service successfully generates transaction to create project wallet") {
             val orgWalletHash = getWalletHash(testData.project.organization.wallet)
-            val userWalletHash = getWalletHash(user.wallet)
+            val userWalletHash = getUserWalletHash(userUuid)
             testData.transactionData = generateTransactionData(testData.signedTransaction)
             val request = GenerateProjectWalletRequest(testData.project, orgWalletHash, userWalletHash)
             Mockito.`when`(
@@ -197,11 +178,11 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustNotBeAbleToGetCreateProjectWalletTransactionIfWalletExits() {
         suppose("Project exists") {
-            val organization = createOrganization("Org test", user)
-            testData.project = createProject("Test project", organization, user)
+            val organization = createOrganization("Org test", userUuid)
+            testData.project = createProject("Test project", organization, userUuid)
         }
         suppose("Project wallet exists") {
             testData.wallet = createWalletForProject(testData.project, testData.hash)
@@ -217,27 +198,11 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "missing@user.com")
-    fun mustReturnErrorForNonExistingUserTryingToCreateOrganizationWallet() {
-        suppose("Project exists") {
-            val organization = createOrganization("Org test", user)
-            testData.project = createProject("Test project", organization, user)
-        }
-
-        verify("Controller will return not found for missing user") {
-            val response = mockMvc.perform(get(projectWalletPath + "/${testData.project.id}"))
-                    .andExpect(status().isBadRequest)
-                    .andReturn()
-            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToGetProjectWallet() {
         suppose("Project exists") {
-            val organization = createOrganization("Org test", user)
-            testData.project = createProject("Test project", organization, user)
+            val organization = createOrganization("Org test", userUuid)
+            testData.project = createProject("Test project", organization, userUuid)
         }
         suppose("Project wallet exists") {
             testData.wallet = createWalletForProject(testData.project, testData.hash)
@@ -258,11 +223,11 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustGetNotFoundIfWalletIsMissing() {
         suppose("Project exists") {
-            val organization = createOrganization("Org test", user)
-            testData.project = createProject("Test project", organization, user)
+            val organization = createOrganization("Org test", userUuid)
+            testData.project = createProject("Test project", organization, userUuid)
         }
 
         verify("User will get not found") {
@@ -271,43 +236,44 @@ class WalletControllerTest : ControllerTestBase() {
         }
     }
 
+    // TODO: think about who can access project wallet
+//    @Test
+//    @WithMockCrowdfoundUser(email = "test@test.com")
+//    fun mustNotBeAbleToGetWalletIfUserDidNotCreatedProject() {
+//        suppose("Project exists") {
+//            val creator = createUser("creator@gmail.com")
+//            val organization = createOrganization("Org test", creator)
+//            testData.project = createProject("Test project", organization, creator)
+//        }
+//        suppose("Project wallet exists") {
+//            testData.wallet = createWalletForProject(testData.project, testData.address)
+//        }
+//
+//        verify("User will get forbidden response") {
+//            mockMvc.perform(get("$projectWalletPath/${testData.project.id}"))
+//                    .andExpect(status().isForbidden)
+//                    .andReturn()
+//        }
+//    }
+//
+//    @Test
+//    @WithMockCrowdfoundUser(email = "test@test.com")
+//    fun mustNotBeAbleToGetCreateWalletTransactionIfUserDidNotCreatedProject() {
+//        suppose("Project exists") {
+//            val creator = createUser("creator@gmail.com")
+//            val organization = createOrganization("Org test", creator)
+//            testData.project = createProject("Test project", organization, creator)
+//        }
+//
+//        verify("User will get forbidden response") {
+//            mockMvc.perform(
+//                    get("$projectWalletPath/${testData.project.id}/transaction"))
+//                    .andExpect(status().isForbidden)
+//        }
+//    }
+
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
-    fun mustNotBeAbleToGetWalletIfUserDidNotCreatedProject() {
-        suppose("Project exists") {
-            val creator = createUser("creator@gmail.com")
-            val organization = createOrganization("Org test", creator)
-            testData.project = createProject("Test project", organization, creator)
-        }
-        suppose("Project wallet exists") {
-            testData.wallet = createWalletForProject(testData.project, testData.address)
-        }
-
-        verify("User will get forbidden response") {
-            mockMvc.perform(get("$projectWalletPath/${testData.project.id}"))
-                    .andExpect(status().isForbidden)
-                    .andReturn()
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
-    fun mustNotBeAbleToGetCreateWalletTransactionIfUserDidNotCreatedProject() {
-        suppose("Project exists") {
-            val creator = createUser("creator@gmail.com")
-            val organization = createOrganization("Org test", creator)
-            testData.project = createProject("Test project", organization, creator)
-        }
-
-        verify("User will get forbidden response") {
-            mockMvc.perform(
-                    get("$projectWalletPath/${testData.project.id}/transaction"))
-                    .andExpect(status().isForbidden)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustThrowExceptionIfUserTriesToGenerateProjectWalletForNonExistingProject() {
         verify("System will throw error for missing project") {
             val response = mockMvc.perform(
@@ -319,7 +285,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject() {
         verify("System will throw error for missing project") {
             val response = mockMvc.perform(
@@ -332,10 +298,10 @@ class WalletControllerTest : ControllerTestBase() {
 
     /* Organization Wallet */
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToGetOrganizationWallet() {
         suppose("Organization exists") {
-            testData.organization = createOrganization("Org test", user)
+            testData.organization = createOrganization("Org test", userUuid)
         }
         suppose("Organization has a wallet") {
             testData.wallet = createWalletForOrganization(testData.organization, testData.hash)
@@ -357,7 +323,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustThrowExceptionIfOrganizationIsMissing() {
         verify("System will throw error for missing organization") {
             val response = mockMvc.perform(
@@ -369,10 +335,10 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustThrowExceptionIfUserWalletIsMissing() {
         suppose("Organization exists") {
-            testData.organization = createOrganization("Turk org", user)
+            testData.organization = createOrganization("Turk org", userUuid)
         }
 
         verify("System will throw error for missing user wallet") {
@@ -385,13 +351,13 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustBeAbleToGetCreateOrganizationWallet() {
         suppose("User wallet exists") {
-            testData.wallet = createWalletForUser(user, testData.address)
+            testData.wallet = createWalletForUser(userUuid, testData.address)
         }
         suppose("Organization exists") {
-            testData.organization = createOrganization("Turk org", user)
+            testData.organization = createOrganization("Turk org", userUuid)
         }
         suppose("Blockchain service successfully creates organization") {
             testData.transactionData = generateTransactionData(testData.signedTransaction)
@@ -415,7 +381,7 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     @Test
-    @WithMockCrowdfoundUser(email = "test@test.com")
+    @WithMockCrowdfoundUser
     fun mustThrowErrorIfOrganizationIsMissingForCreateOrganizationWallet() {
         verify("System will throw error for missing organization") {
             val response = mockMvc.perform(
@@ -438,6 +404,7 @@ class WalletControllerTest : ControllerTestBase() {
         var walletId = -1
         var address = "0x14bC6a8219c798394726f8e86E040A878da1d99D"
         var hash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
+        var hash2 = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7893"
         val publicKey = "0xC2D7CF95645D33006175B78989035C7c9061d3F9"
         var balance: Long = -1
         val signedTransaction = "SignedTransaction"

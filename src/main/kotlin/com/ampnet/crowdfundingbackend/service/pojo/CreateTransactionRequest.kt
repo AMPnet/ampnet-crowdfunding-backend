@@ -6,6 +6,6 @@ data class CreateTransactionRequest(
     val type: TransactionType,
     val title: String,
     val description: String,
-    val userId: Int,
+    val userUuid: String,
     val companionId: Int? = null
 )

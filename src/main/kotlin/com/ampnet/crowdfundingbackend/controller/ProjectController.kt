@@ -12,11 +12,9 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.ProjectService
-import com.ampnet.crowdfundingbackend.service.UserService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
@@ -38,7 +36,6 @@ import javax.validation.Valid
 class ProjectController(
     private val projectService: ProjectService,
     private val walletService: WalletService,
-    private val userService: UserService,
     private val organizationService: OrganizationService,
     private val projectInvestmentService: ProjectInvestmentService
 ) {
@@ -65,10 +62,10 @@ class ProjectController(
     @PostMapping("/project")
     fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to create project: $request" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, request.organizationId) {
-            createProject(request, user)
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, request.organizationId) {
+            createProject(request, userPrincipal.uuid)
         }
     }
 
@@ -85,11 +82,11 @@ class ProjectController(
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document to project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
-            val request = DocumentSaveRequest(file, user)
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            val request = DocumentSaveRequest(file, userPrincipal.uuid)
             val document = projectService.addDocument(project.id, request)
             DocumentResponse(document)
         }
@@ -101,10 +98,10 @@ class ProjectController(
         @PathVariable("documentId") documentId: Int
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete document: $documentId for project $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             projectService.removeDocument(projectId, documentId)
         }
     }
@@ -115,10 +112,10 @@ class ProjectController(
         @RequestParam("image") image: MultipartFile
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to add main image to project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             val imageName = getImageNameFromMultipartFile(image)
             projectService.addMainImage(project, imageName, image.bytes)
         }
@@ -130,10 +127,10 @@ class ProjectController(
         @RequestParam("image") image: MultipartFile
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to add gallery image to project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             val imageName = getImageNameFromMultipartFile(image)
             projectService.addImageToGallery(project, imageName, image.bytes)
         }
@@ -145,10 +142,10 @@ class ProjectController(
         @RequestBody request: ImageLinkListRequest
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete gallery images for project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        return ifUserHasPrivilegeToWriteInProjectThenReturn(user.id, project.organization.id) {
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             projectService.removeImagesFromGallery(project, request.images)
         }
     }
@@ -159,10 +156,10 @@ class ProjectController(
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionResponse> {
         logger.debug { "Received request to generate invest transaction for project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        val request = ProjectInvestmentRequest(project, user, amount)
+        val request = ProjectInvestmentRequest(project, userPrincipal.uuid, amount)
         val transaction = projectInvestmentService.generateInvestInProjectTransaction(request)
         return ResponseEntity.ok(TransactionResponse(transaction))
     }
@@ -172,21 +169,20 @@ class ProjectController(
         @PathVariable("projectId") projectId: Int
     ): ResponseEntity<TransactionResponse> {
         logger.debug { "Received request to generate confirm invest transaction for project: $projectId" }
-        val user = ControllerUtils.getUserFromSecurityContext(userService)
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         val project = getProjectById(projectId)
 
-        val transaction = projectInvestmentService.generateConfirmInvestment(user, project)
+        val transaction = projectInvestmentService.generateConfirmInvestment(userPrincipal.uuid, project)
         return ResponseEntity.ok(TransactionResponse(transaction))
     }
 
     private fun getImageNameFromMultipartFile(multipartFile: MultipartFile): String =
             multipartFile.originalFilename ?: multipartFile.name
 
-    private fun createProject(request: ProjectRequest, user: User): ProjectWithFundingResponse {
+    private fun createProject(request: ProjectRequest, userUuid: String): ProjectWithFundingResponse {
         val organization = getOrganization(request.organizationId)
-        val serviceRequest = CreateProjectServiceRequest(request, organization, user)
+        val serviceRequest = CreateProjectServiceRequest(request, organization, userUuid)
         val project = projectService.createProject(serviceRequest)
-
         return ProjectWithFundingResponse(project, null)
     }
 
@@ -203,19 +199,19 @@ class ProjectController(
                     ?: throw ResourceNotFoundException(
                             ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
 
-    private fun getUserMembershipInOrganization(userId: Int, organizationId: Int): OrganizationMembership? =
-            organizationService.getOrganizationMemberships(organizationId).find { it.userId == userId }
+    private fun getUserMembershipInOrganization(userUuid: String, organizationId: Int): OrganizationMembership? =
+            organizationService.getOrganizationMemberships(organizationId).find { it.userUuid == userUuid }
 
     private fun getProjectById(projectId: Int): Project =
         projectService.getProjectById(projectId)
             ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
 
     private fun <T> ifUserHasPrivilegeToWriteInProjectThenReturn(
-        userId: Int,
+        userUuid: String,
         organizationId: Int,
         action: () -> (T)
     ): ResponseEntity<T> {
-        getUserMembershipInOrganization(userId, organizationId)?.let { orgMembership ->
+        getUserMembershipInOrganization(userUuid, organizationId)?.let { orgMembership ->
             return if (orgMembership.hasPrivilegeToWriteProject()) {
                 val response = action()
                 ResponseEntity.ok(response)
@@ -224,7 +220,7 @@ class ProjectController(
                 ResponseEntity.status(HttpStatus.FORBIDDEN).build()
             }
         }
-        logger.info { "User $userId is not a member of organization $organizationId" }
+        logger.info { "User $userUuid is not a member of organization $organizationId" }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 }

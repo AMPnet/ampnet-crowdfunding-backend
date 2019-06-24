@@ -9,7 +9,6 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.JoinTable
-import javax.persistence.ManyToOne
 import javax.persistence.OneToMany
 import javax.persistence.OneToOne
 import javax.persistence.Table
@@ -27,9 +26,8 @@ data class Organization(
     @Column(nullable = true)
     var legalInfo: String?,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    var createdByUser: User,
+    @Column(nullable = true)
+    var createdByUserUuid: String,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime,
@@ -40,9 +38,8 @@ data class Organization(
     @Column(nullable = false)
     var approved: Boolean,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approved_by")
-    var approvedBy: User?,
+    @Column
+    var approvedByUserUuid: String?,
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "organization_document",

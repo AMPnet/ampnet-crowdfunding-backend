@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.impl.ProjectInvestmentServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
@@ -24,21 +23,19 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
 
     private val projectInvestmentService: ProjectInvestmentService by lazy {
         val transactionService = TransactionInfoServiceImpl(transactionInfoRepository)
-        val walletService = WalletServiceImpl(walletRepository, userRepository, projectRepository,
-                organizationRepository, mockedBlockchainService, transactionService)
+        val walletService = WalletServiceImpl(walletRepository, projectRepository, organizationRepository,
+                userWalletRepository, mockedBlockchainService, transactionService)
         ProjectInvestmentServiceImpl(walletService, mockedBlockchainService, transactionService)
     }
     private val organization: Organization by lazy {
         databaseCleanerService.deleteAllOrganizations()
-        createOrganization("Das Organization", user)
+        createOrganization("Das Organization", userUuid)
     }
-    private lateinit var user: User
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun initTestContext() {
         databaseCleanerService.deleteAllWalletsAndOwners()
-        user = createUser("test@email.com", "First", "Last")
         testContext = TestContext()
     }
 
@@ -46,10 +43,10 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfProjectIsNotActive() {
         suppose("Project is not active") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user, false)
+            testContext.project = createProject("test name", organization, userUuid, false)
         }
         suppose("Request is for inactive project") {
-            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100)
+            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100)
         }
 
         verify("Service will throw exception project not active") {
@@ -64,13 +61,13 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfProjectHasExpired() {
         suppose("Project has expired") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user,
+            testContext.project = createProject("test name", organization, userUuid,
                     startDate = ZonedDateTime.now().minusDays(30),
                     endDate = ZonedDateTime.now().minusDays(2)
             )
         }
         suppose("Request is for expired project") {
-            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100)
+            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100)
         }
 
         verify("Service will throw exception project expired") {
@@ -85,10 +82,10 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfInvestmentAmountIsBelowMinimum() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user, minPerUser = 100)
+            testContext.project = createProject("test name", organization, userUuid, minPerUser = 100)
         }
         suppose("Request amount is below project minimum") {
-            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 10)
+            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 10)
         }
 
         verify("Service will throw exception investment below project minimum") {
@@ -103,10 +100,10 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfInvestmentAmountIsAboveMaximum() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user, maxPerUser = 1_000)
+            testContext.project = createProject("test name", organization, userUuid, maxPerUser = 1_000)
         }
         suppose("Request amount is about project maximum") {
-            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 10_000)
+            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 10_000)
         }
 
         verify("Service will throw exception investment below project minimum") {
@@ -121,11 +118,11 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfUserDoesNotHaveWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
 
         verify("Service will throw exception that user wallet is missing") {
-            val investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100)
+            val investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100)
             val exception = assertThrows<ResourceNotFoundException> {
                 projectInvestmentService.generateInvestInProjectTransaction(investmentRequest)
             }
@@ -137,17 +134,17 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfProjectDoesNotHaveWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
-            createWalletForUser(user, testContext.defaultAddressHash)
+            createWalletForUser(userUuid, testContext.defaultAddressHash)
         }
         suppose("User has enough funds") {
             Mockito.`when`(mockedBlockchainService.getBalance(testContext.defaultAddressHash)).thenReturn(100_000_00)
         }
 
         verify("Service will throw exception that project wallet is missing") {
-            val investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100)
+            val investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100)
             val exception = assertThrows<ResourceNotFoundException> {
                 projectInvestmentService.generateInvestInProjectTransaction(investmentRequest)
             }
@@ -159,14 +156,14 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfUserDoesNotEnoughFunds() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
-            createWalletForUser(user, testContext.defaultAddressHash)
+            createWalletForUser(userUuid, testContext.defaultAddressHash)
         }
         suppose("User does not have enough funds on wallet") {
-            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100)
-            val userWalletHash = getWalletHash(user.wallet)
+            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100)
+            val userWalletHash = getUserWalletHash(userUuid)
             Mockito.`when`(mockedBlockchainService.getBalance(userWalletHash)).thenReturn(10)
         }
 
@@ -182,14 +179,14 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustBeAbleToGenerateInvestment() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
-            createWalletForUser(user, testContext.defaultAddressHash)
+            createWalletForUser(userUuid, testContext.defaultAddressHash)
         }
         suppose("User does have enough funds on wallet") {
-            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100_00)
-            val userWalletHash = getWalletHash(user.wallet)
+            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100_00)
+            val userWalletHash = getUserWalletHash(userUuid)
             Mockito.`when`(mockedBlockchainService.getBalance(userWalletHash)).thenReturn(100_000_00)
         }
         suppose("Project has empty wallet") {
@@ -199,7 +196,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
             Mockito.`when`(mockedBlockchainService.getBalance(projectWalletHash)).thenReturn(0)
         }
         suppose("Blockchain service will generate transaction") {
-            val userWalletHash = getWalletHash(user.wallet)
+            val userWalletHash = getUserWalletHash(userUuid)
             val projectWalletHash = getWalletHash(testContext.project.wallet)
             Mockito.`when`(mockedBlockchainService.generateProjectInvestmentTransaction(
                 ProjectInvestmentTxRequest(userWalletHash, projectWalletHash, 100_00))
@@ -217,14 +214,14 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToGenerateInvestmentIfProjectDidReachExpectedFunding() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
-            createWalletForUser(user, testContext.defaultAddressHash)
+            createWalletForUser(userUuid, testContext.defaultAddressHash)
         }
         suppose("User does have enough funds on wallet") {
-            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, user, 100_00)
-            val userWalletHash = getWalletHash(user.wallet)
+            testContext.investmentRequest = ProjectInvestmentRequest(testContext.project, userUuid, 100_00)
+            val userWalletHash = getUserWalletHash(userUuid)
             Mockito.`when`(mockedBlockchainService.getBalance(userWalletHash)).thenReturn(100_000_00)
         }
         suppose("Project wallet has expected funding") {
@@ -260,12 +257,12 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToGenerateConfirmInvestmentWithoutUserWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
 
         verify("Service will throw exception that user wallet is missing") {
             val exception = assertThrows<ResourceNotFoundException> {
-                projectInvestmentService.generateConfirmInvestment(user, testContext.project)
+                projectInvestmentService.generateConfirmInvestment(userUuid, testContext.project)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
@@ -275,15 +272,15 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustNotBeAbleToGenerateConfirmInvestmentWithoutProjectWallet() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
-            createWalletForUser(user, testContext.defaultAddressHash)
+            createWalletForUser(userUuid, testContext.defaultAddressHash)
         }
 
         verify("Service will throw exception that project wallet is missing") {
             val exception = assertThrows<ResourceNotFoundException> {
-                projectInvestmentService.generateConfirmInvestment(user, testContext.project)
+                projectInvestmentService.generateConfirmInvestment(userUuid, testContext.project)
             }
             assertThat(exception.errorCode).isEqualTo(ErrorCode.WALLET_MISSING)
         }
@@ -293,17 +290,17 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
     fun mustBeAbleGenerateConfirmInvestment() {
         suppose("Project exists") {
             databaseCleanerService.deleteAllProjects()
-            testContext.project = createProject("test name", organization, user)
+            testContext.project = createProject("test name", organization, userUuid)
         }
         suppose("User has a wallet") {
-            createWalletForUser(user, testContext.defaultAddressHash)
+            createWalletForUser(userUuid, testContext.defaultAddressHash)
         }
         suppose("Project has wallet") {
             testContext.project.wallet =
                 createWalletForProject(testContext.project, testContext.defaultProjectAddressHash)
         }
         suppose("Blockchain service will generate transaction") {
-            val userWalletHash = getWalletHash(user.wallet)
+            val userWalletHash = getUserWalletHash(userUuid)
             val projectWalletHash = getWalletHash(testContext.project.wallet)
             Mockito.`when`(
                     mockedBlockchainService.generateConfirmInvestment(userWalletHash, projectWalletHash)
@@ -311,7 +308,7 @@ class ProjectInvestmentServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service will generate confirm transaction") {
-            val transactionData = projectInvestmentService.generateConfirmInvestment(user, testContext.project)
+            val transactionData = projectInvestmentService.generateConfirmInvestment(userUuid, testContext.project)
             assertThat(transactionData.transactionData).isEqualTo(testContext.defaultTransactionData)
         }
     }

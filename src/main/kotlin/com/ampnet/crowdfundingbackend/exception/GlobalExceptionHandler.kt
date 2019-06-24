@@ -46,13 +46,6 @@ class GlobalExceptionHandler {
         return generateErrorResponse(exception.errorCode, exception.message)
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidLoginMethodException::class)
-    fun handleInvalidLoginMethod(exception: InvalidLoginMethodException): ErrorResponse {
-        logger.error("InvalidRequestException", exception)
-        return generateErrorResponse(ErrorCode.AUTH_INVALID_LOGIN_METHOD, exception.message)
-    }
-
     private fun generateErrorResponse(errorCode: ErrorCode, systemMessage: String?): ErrorResponse {
         val errorMessage = systemMessage ?: "Error not defined"
         val errCode = errorCode.categoryCode + errorCode.specificCode

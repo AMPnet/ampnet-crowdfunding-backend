@@ -26,34 +26,38 @@ class TransactionInfoServiceImpl(
     private val investDescription = "You are signing transaction to confirm investment to project: %s"
 
     @Transactional
-    override fun createOrgTransaction(organization: Organization, userId: Int): TransactionInfo {
+    override fun createOrgTransaction(organization: Organization, userUuid: String): TransactionInfo {
         val description = createOrgDescription.format(organization.name)
         val request = CreateTransactionRequest(
-                TransactionType.CREATE_ORG, createOrgTitle, description, userId, organization.id)
+                TransactionType.CREATE_ORG, createOrgTitle, description, userUuid, organization.id)
         return createTransaction(request)
     }
 
     @Transactional
-    override fun createProjectTransaction(project: Project, userId: Int): TransactionInfo {
+    override fun createProjectTransaction(project: Project, userUuid: String): TransactionInfo {
         val description = createProjectDescription.format(project.name)
         val request = CreateTransactionRequest(
-                TransactionType.CREATE_PROJECT, createProjectTitle, description, userId, project.id)
+                TransactionType.CREATE_PROJECT, createProjectTitle, description, userUuid, project.id)
         return createTransaction(request)
     }
 
     @Transactional
-    override fun createInvestAllowanceTransaction(projectName: String, amount: Long, userId: Int): TransactionInfo {
+    override fun createInvestAllowanceTransaction(
+        projectName: String,
+        amount: Long,
+        userUuid: String
+    ): TransactionInfo {
         val description = investAllowanceDescription.format(projectName, amount.toDouble().div(100))
         val request = CreateTransactionRequest(
-                TransactionType.INVEST_ALLOWANCE, investAllowanceTitle, description, userId)
+                TransactionType.INVEST_ALLOWANCE, investAllowanceTitle, description, userUuid)
         return createTransaction(request)
     }
 
     @Transactional
-    override fun createInvestTransaction(projectName: String, userId: Int): TransactionInfo {
+    override fun createInvestTransaction(projectName: String, userUuid: String): TransactionInfo {
         val description = investDescription.format(projectName)
         val request = CreateTransactionRequest(
-                TransactionType.INVEST, investTitle, description, userId)
+                TransactionType.INVEST, investTitle, description, userUuid)
         return createTransaction(request)
     }
 
@@ -71,7 +75,7 @@ class TransactionInfoServiceImpl(
             type = request.type
             title = request.title
             description = request.description
-            userId = request.userId
+            userUuid = request.userUuid
             companionId = request.companionId
         }
         return transactionInfoRepository.save(transaction)

@@ -4,25 +4,28 @@ import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
+import javax.persistence.GeneratedValue
+import javax.persistence.GenerationType
 import javax.persistence.Id
-import javax.persistence.IdClass
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 import javax.persistence.Table
 
 @Entity
-@Table(name = "organization_invite")
-@IdClass(OrganizationUserCompositeId::class)
-data class OrganizationInvite(
-
+@Table(name = "organization_invitation")
+data class OrganizationInvitation(
     @Id
-    var organizationId: Int,
-
-    @Id
-    var userId: Int,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Int,
 
     @Column(nullable = false)
-    var invitedBy: Int,
+    var organizationId: Int,
+
+    @Column(nullable = false)
+    var email: String,
+
+    @Column(nullable = false)
+    var invitedByUserUuid: String,
 
     @ManyToOne
     @JoinColumn(name = "role_id")
@@ -30,10 +33,6 @@ data class OrganizationInvite(
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invitedBy", insertable = false, updatable = false)
-    var invitedByUser: User?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organizationId", insertable = false, updatable = false)

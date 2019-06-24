@@ -7,22 +7,14 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationFollower
-import com.ampnet.crowdfundingbackend.persistence.model.OrganizationInvite
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Role
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationFollowerRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
 import com.ampnet.crowdfundingbackend.service.StorageService
-import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
-import com.ampnet.crowdfundingbackend.service.pojo.OrganizationInviteServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -33,11 +25,7 @@ import java.time.ZonedDateTime
 class OrganizationServiceImpl(
     private val organizationRepository: OrganizationRepository,
     private val membershipRepository: OrganizationMembershipRepository,
-    private val followerRepository: OrganizationFollowerRepository,
-    private val inviteRepository: OrganizationInviteRepository,
     private val roleRepository: RoleRepository,
-    private val userRepository: UserRepository,
-    private val mailService: MailService,
     private val blockchainService: BlockchainService,
     private val storageService: StorageService
 ) : OrganizationService {
@@ -56,13 +44,13 @@ class OrganizationServiceImpl(
 
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = serviceRequest.name
-        organization.createdByUser = serviceRequest.owner
+        organization.createdByUserUuid = serviceRequest.ownerUuid
         organization.legalInfo = serviceRequest.legalInfo
         organization.approved = false
         organization.createdAt = ZonedDateTime.now()
 
         val savedOrganization = organizationRepository.save(organization)
-        addUserToOrganization(serviceRequest.owner.id, organization.id, OrganizationRoleType.ORG_ADMIN)
+        addUserToOrganization(serviceRequest.ownerUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
 
         return savedOrganization
     }
@@ -85,26 +73,21 @@ class OrganizationServiceImpl(
     }
 
     @Transactional
-    override fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: User): Organization {
+    override fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: String): Organization {
         val organization = getOrganization(organizationId)
         val wallet = organization.wallet ?: throw ResourceNotFoundException(
                 ErrorCode.WALLET_MISSING, "Organization need to have wallet before it can be approved"
         )
         organization.approved = approve
         organization.updatedAt = ZonedDateTime.now()
-        organization.approvedBy = approvedBy
+        organization.approvedByUserUuid = approvedBy
         blockchainService.activateOrganization(wallet.hash)
         return organization
     }
 
     @Transactional(readOnly = true)
-    override fun findAllUsersFromOrganization(organizationId: Int): List<User> {
-        return userRepository.findAllUserForOrganization(organizationId)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAllOrganizationsForUser(userId: Int): List<Organization> {
-        return organizationRepository.findAllOrganizationsForUser(userId)
+    override fun findAllOrganizationsForUser(userUuid: String): List<Organization> {
+        return organizationRepository.findAllOrganizationsForUserUuid(userUuid)
     }
 
     @Transactional(readOnly = true)
@@ -114,91 +97,22 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun addUserToOrganization(
-        userId: Int,
+        userUuid: String,
         organizationId: Int,
         role: OrganizationRoleType
     ): OrganizationMembership {
         // user can have only one membership(role) per one organization
-        membershipRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
+        membershipRepository.findByOrganizationIdAndUserUuid(organizationId, userUuid).ifPresent {
             throw ResourceAlreadyExistsException(ErrorCode.ORG_DUPLICATE_USER,
-                    "User ${it.userId} is already a member of this organization ${it.organizationId}")
+                    "User ${it.userUuid} is already a member of this organization ${it.organizationId}")
         }
 
         val membership = OrganizationMembership::class.java.getConstructor().newInstance()
         membership.organizationId = organizationId
-        membership.userId = userId
+        membership.userUuid = userUuid
         membership.role = getRole(role)
         membership.createdAt = ZonedDateTime.now()
         return membershipRepository.save(membership)
-    }
-
-    @Transactional
-    override fun inviteUserToOrganization(request: OrganizationInviteServiceRequest): OrganizationInvite {
-        val user = userRepository.findByEmail(request.email).orElseThrow {
-            ResourceNotFoundException(ErrorCode.USER_MISSING,
-                    "User with email: ${request.email} does not exists")
-        }
-        val invitedToOrganization = getOrganization(request.organizationId)
-
-        inviteRepository.findByOrganizationIdAndUserId(request.organizationId, user.id).ifPresent {
-            throw ResourceAlreadyExistsException(ErrorCode.ORG_DUPLICATE_INVITE,
-                    "User is already invited to join organization")
-        }
-
-        val organizationInvite = OrganizationInvite::class.java.getConstructor().newInstance()
-        organizationInvite.organizationId = request.organizationId
-        organizationInvite.userId = user.id
-        organizationInvite.role = getRole(request.roleType)
-        organizationInvite.invitedBy = request.invitedByUser.id
-        organizationInvite.createdAt = ZonedDateTime.now()
-
-        val savedInvite = inviteRepository.save(organizationInvite)
-        sendMailInvitationToJoinOrganization(request.email, request.invitedByUser, invitedToOrganization)
-        return savedInvite
-    }
-
-    @Transactional
-    override fun revokeInvitationToJoinOrganization(organizationId: Int, userId: Int) {
-        inviteRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
-            inviteRepository.delete(it)
-        }
-    }
-
-    @Transactional(readOnly = true)
-    override fun getAllOrganizationInvitesForUser(userId: Int): List<OrganizationInvite> {
-        return inviteRepository.findByUserIdWithUserAndOrganizationData(userId)
-    }
-
-    @Transactional
-    override fun answerToOrganizationInvitation(userId: Int, join: Boolean, organizationId: Int) {
-        inviteRepository.findByOrganizationIdAndUserId(organizationId, userId).ifPresent {
-            if (join) {
-                val role = OrganizationRoleType.fromInt(it.role.id)
-                        ?: throw ResourceNotFoundException(ErrorCode.USER_ROLE_MISSING,
-                                "Missing role wiht id: ${it.role.id}")
-                addUserToOrganization(it.userId, it.organizationId, role)
-            }
-            inviteRepository.delete(it)
-        }
-    }
-
-    @Transactional
-    override fun followOrganization(userId: Int, organizationId: Int): OrganizationFollower {
-        ServiceUtils.wrapOptional(followerRepository.findByUserIdAndOrganizationId(userId, organizationId))?.let {
-            return it
-        }
-        val follower = OrganizationFollower::class.java.getConstructor().newInstance()
-        follower.userId = userId
-        follower.organizationId = organizationId
-        follower.createdAt = ZonedDateTime.now()
-        return followerRepository.save(follower)
-    }
-
-    @Transactional
-    override fun unfollowOrganization(userId: Int, organizationId: Int) {
-        ServiceUtils.wrapOptional(followerRepository.findByUserIdAndOrganizationId(userId, organizationId))?.let {
-            followerRepository.delete(it)
-        }
     }
 
     @Transactional
@@ -230,11 +144,6 @@ class OrganizationServiceImpl(
         documents += document
         organization.documents = documents
         organizationRepository.save(organization)
-    }
-
-    private fun sendMailInvitationToJoinOrganization(to: String, invitedBy: User, invitedTo: Organization) {
-        logger.debug { "Sending invitation mail to user: $to for organization: ${invitedTo.name}" }
-        mailService.sendOrganizationInvitationMail(to, invitedBy.getFullName(), invitedTo.name)
     }
 
     private fun getRole(role: OrganizationRoleType): Role {

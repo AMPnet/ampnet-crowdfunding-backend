@@ -4,7 +4,6 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.SignedTransactionR
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionAndLinkResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -31,13 +30,12 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
     fun mustBeAbleToGenerateMintTransaction() {
         suppose("User has a wallet") {
             databaseCleanerService.deleteAllWalletsAndOwners()
-            testContext.user = createUser("user@email.com")
-            createWalletForUser(testContext.user, testContext.userWalletHash)
+            createWalletForUser(userUuid, testContext.userWalletHash)
         }
         suppose("Blockchain service will generate mint transaction") {
-            val walletHash = getWalletHash(testContext.user.wallet)
+            val userWalletHash = getUserWalletHash(userUuid)
             Mockito.`when`(
-                blockchainService.generateMintTransaction(testContext.from, walletHash, testContext.amount)
+                blockchainService.generateMintTransaction(testContext.from, userWalletHash, testContext.amount)
             ).thenReturn(testContext.transactionData)
         }
 
@@ -45,7 +43,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             val result = mockMvc.perform(
                 MockMvcRequestBuilders.get("$pathIssuer/mint")
                     .param("amount", testContext.amount.toString())
-                    .param("email", testContext.user.email)
+                    .param("uuid", userUuid)
                     .param("from", testContext.from))
                 .andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
@@ -74,32 +72,16 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun mustNotBeAbleToGenerateMintTransactionForMissingUser() {
-        verify("User can get burn transaction") {
-            val response = mockMvc.perform(
-                    MockMvcRequestBuilders.get("$pathIssuer/mint")
-                            .param("amount", testContext.amount.toString())
-                            .param("email", "non-existing@user.com")
-                            .param("from", testContext.from))
-                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
-                    .andReturn()
-
-            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
-        }
-    }
-
-    @Test
     fun mustNotBeAbleToGenerateMintTransactionForMissingUserWallet() {
-        suppose("User exist") {
+        suppose("User does not have a wallet") {
             databaseCleanerService.deleteAllWalletsAndOwners()
-            testContext.user = createUser("user@email.com")
         }
 
         verify("User cannot generate burn transaction if the user wallet is missing") {
             val response = mockMvc.perform(
                     MockMvcRequestBuilders.get("$pathIssuer/mint")
                             .param("amount", testContext.amount.toString())
-                            .param("email", testContext.user.email)
+                            .param("uuid", userUuid)
                             .param("from", testContext.from))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
@@ -113,13 +95,12 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
     fun mustBeAbleToGenerateBurnTransaction() {
         suppose("User has a wallet") {
             databaseCleanerService.deleteAllWalletsAndOwners()
-            testContext.user = createUser("user@email.com")
-            createWalletForUser(testContext.user, testContext.userWalletHash)
+            createWalletForUser(userUuid, testContext.userWalletHash)
         }
         suppose("Blockchain service will generate burn transaction") {
-            val walletHash = getWalletHash(testContext.user.wallet)
+            val userWalletHash = getUserWalletHash(userUuid)
             Mockito.`when`(
-                blockchainService.generateBurnTransaction(testContext.from, walletHash, testContext.amount)
+                blockchainService.generateBurnTransaction(testContext.from, userWalletHash, testContext.amount)
             ).thenReturn(testContext.transactionData)
         }
 
@@ -127,7 +108,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             val result = mockMvc.perform(
                 MockMvcRequestBuilders.get("$pathIssuer/burn")
                     .param("amount", testContext.amount.toString())
-                    .param("email", testContext.user.email)
+                    .param("uuid", userUuid)
                     .param("from", testContext.from))
                 .andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
@@ -156,32 +137,16 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun mustNotBeAbleToGenerateBurnTransactionForMissingUser() {
-        verify("User cannot generate burn transaction if the user is missing") {
-            val response = mockMvc.perform(
-                MockMvcRequestBuilders.get("$pathIssuer/burn")
-                    .param("amount", testContext.amount.toString())
-                    .param("email", "non-existing@user.com")
-                    .param("from", testContext.from))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest)
-                .andReturn()
-
-            verifyResponseErrorCode(response, ErrorCode.USER_MISSING)
-        }
-    }
-
-    @Test
     fun mustNotBeAbleToGenerateBurnTransactionForMissingUserWallet() {
-        suppose("User exist") {
+        suppose("User does not have a wallet") {
             databaseCleanerService.deleteAllWalletsAndOwners()
-            testContext.user = createUser("user@email.com")
         }
 
         verify("User cannot generate burn transaction if the user wallet is missing") {
             val response = mockMvc.perform(
                 MockMvcRequestBuilders.get("$pathIssuer/burn")
                     .param("amount", testContext.amount.toString())
-                    .param("email", testContext.user.email)
+                    .param("uuid", userUuid)
                     .param("from", testContext.from))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest)
                 .andReturn()
@@ -224,6 +189,5 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
         val signedTransaction = "SignedTransaction"
         val txHash = "0xa2addee8b62501fb423c8e69a6867a02eaa021a16f66583050a5dd643ad7e41b"
         lateinit var transactionResponse: TransactionAndLinkResponse
-        lateinit var user: User
     }
 }

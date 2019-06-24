@@ -6,15 +6,13 @@ import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
-import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.ProjectServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
@@ -27,10 +25,6 @@ class ProjectServiceTest : JpaServiceTestBase() {
         val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)
         ProjectServiceImpl(projectRepository, storageServiceImpl)
     }
-    private val user: User by lazy {
-        databaseCleanerService.deleteAllUsers()
-        createUser("test@email.com", "Test", "User")
-    }
     private val imageContent = "data".toByteArray()
 
     private lateinit var organization: Organization
@@ -39,7 +33,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
     @BeforeEach
     fun initTestContext() {
         databaseCleanerService.deleteAllWalletsAndOwners()
-        organization = createOrganization("Das Organization", user)
+        organization = createOrganization("Das Organization", userUuid)
         testContext = TestContext()
     }
 
@@ -56,11 +50,10 @@ class ProjectServiceTest : JpaServiceTestBase() {
         }
 
         verify("Project is created") {
-            val optionalProject = projectRepository.findByIdWithOrganizationAndCreator(testContext.project.id)
+            val optionalProject = projectRepository.findByIdWithOrganization(testContext.project.id)
             assertThat(optionalProject).isPresent
             val project = optionalProject.get()
             val request = testContext.createProjectRequest
-            assertAll()
             assertThat(project.name).isEqualTo(request.name)
             assertThat(project.description).isEqualTo(request.description)
             assertThat(project.location).isEqualTo(request.location)
@@ -72,7 +65,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             assertThat(project.currency).isEqualTo(request.currency)
             assertThat(project.minPerUser).isEqualTo(request.minPerUser)
             assertThat(project.maxPerUser).isEqualTo(request.maxPerUser)
-            assertThat(project.createdBy.id).isEqualTo(request.createdBy.id)
+            assertThat(project.createdByUserUuid).isEqualTo(request.createdByUserUuid)
             assertThat(project.organization.id).isEqualTo(organization.id)
             assertThat(project.active).isEqualTo(request.active)
             assertThat(project.mainImage.isNullOrEmpty()).isTrue()
@@ -111,7 +104,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     100,
                     10000,
                     false,
-                    user
+                    userUuid
             )
         }
 
@@ -255,7 +248,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     100,
                     10000,
                     false,
-                    user
+                    userUuid
             )
         }
 
@@ -285,7 +278,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     1_000,
                     1,
                     false,
-                    user
+                    userUuid
             )
         }
 
@@ -315,7 +308,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     1,
                     projectService.maxPerUserInvestment + 1,
                     false,
-                    user
+                    userUuid
             )
         }
 
@@ -345,7 +338,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                     1,
                     1_000_000_000,
                     false,
-                    user
+                    userUuid
             )
         }
 
@@ -382,7 +375,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
                 100,
                 10000,
                 false,
-                user
+                userUuid
         )
     }
 

@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.service.pojo
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.SignupRequestUserInfo
 import com.ampnet.crowdfundingbackend.validation.PasswordConstraint
 import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.validation.EmailConstraint
@@ -27,23 +26,4 @@ data class CreateUserServiceRequest(
     val phoneNumber: String?,
 
     val authMethod: AuthMethod
-) {
-
-    constructor(signupRequestUserInfo: SignupRequestUserInfo, signupMethod: AuthMethod) : this(
-            signupRequestUserInfo.email,
-            signupRequestUserInfo.password,
-            signupRequestUserInfo.firstName,
-            signupRequestUserInfo.lastName,
-            signupRequestUserInfo.phoneNumber,
-            signupMethod
-    )
-
-    constructor(socialUserInfo: SocialUser, signupMethod: AuthMethod) : this(
-            socialUserInfo.email,
-            null,
-            socialUserInfo.firstName,
-            socialUserInfo.lastName,
-            null,
-            signupMethod
-    )
-}
+)

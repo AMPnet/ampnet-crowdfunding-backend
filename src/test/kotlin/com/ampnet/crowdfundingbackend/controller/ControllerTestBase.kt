@@ -3,10 +3,8 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
-import com.ampnet.crowdfundingbackend.enums.AuthMethod
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
-import com.ampnet.crowdfundingbackend.enums.UserRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
@@ -14,19 +12,21 @@ import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
+import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
-import com.ampnet.crowdfundingbackend.persistence.repository.UserRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.CloudStorageService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
@@ -52,13 +52,12 @@ import java.time.ZonedDateTime
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
+    protected val userUuid = "1234-1234-1234-1234"
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
     @Autowired
     protected lateinit var databaseCleanerService: DatabaseCleanerService
-    @Autowired
-    protected lateinit var userRepository: UserRepository
     @Autowired
     protected lateinit var roleRepository: RoleRepository
     @Autowired
@@ -75,6 +74,10 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var transactionInfoRepository: TransactionInfoRepository
     @Autowired
     protected lateinit var cloudStorageService: CloudStorageService
+    @Autowired
+    protected lateinit var organizationInviteRepository: OrganizationInviteRepository
+    @Autowired
+    protected lateinit var userWalletRepository: UserWalletRepository
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 
@@ -103,22 +106,10 @@ abstract class ControllerTestBase : TestBase() {
         assert(response.errCode == expectedErrorCode)
     }
 
-    protected fun createUser(email: String): User {
-        val user = User::class.java.getConstructor().newInstance()
-        user.authMethod = AuthMethod.EMAIL
-        user.createdAt = ZonedDateTime.now()
-        user.email = email
-        user.enabled = true
-        user.firstName = "First"
-        user.lastName = "Last"
-        user.role = roleRepository.getOne(UserRoleType.USER.id)
-        return userRepository.save(user)
-    }
-
-    protected fun createWalletForUser(user: User, hash: String): Wallet {
+    protected fun createWalletForUser(userUuid: String, hash: String): Wallet {
         val wallet = createWallet(hash, WalletType.USER)
-        user.wallet = wallet
-        userRepository.save(user)
+        val userWallet = UserWallet(0, userUuid, wallet)
+        userWalletRepository.save(userWallet)
         return wallet
     }
 
@@ -145,20 +136,20 @@ abstract class ControllerTestBase : TestBase() {
         return walletRepository.save(wallet)
     }
 
-    protected fun createOrganization(name: String, user: User): Organization {
+    protected fun createOrganization(name: String, userUuid: String): Organization {
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = name
         organization.legalInfo = "some legal info"
         organization.createdAt = ZonedDateTime.now()
         organization.approved = true
-        organization.createdByUser = user
+        organization.createdByUserUuid = userUuid
         organization.documents = emptyList()
         return organizationRepository.save(organization)
     }
 
-    protected fun addUserToOrganization(userId: Int, organizationId: Int, role: OrganizationRoleType) {
+    protected fun addUserToOrganization(userUuid: String, organizationId: Int, role: OrganizationRoleType) {
         val membership = OrganizationMembership::class.java.getConstructor().newInstance()
-        membership.userId = userId
+        membership.userUuid = userUuid
         membership.organizationId = organizationId
         membership.role = roleRepository.getOne(role.id)
         membership.createdAt = ZonedDateTime.now()
@@ -168,7 +159,7 @@ abstract class ControllerTestBase : TestBase() {
     protected fun createProject(
         name: String,
         organization: Organization,
-        createdBy: User,
+        createdByUserUuid: String,
         active: Boolean = true,
         startDate: ZonedDateTime = ZonedDateTime.now(),
         endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
@@ -189,7 +180,7 @@ abstract class ControllerTestBase : TestBase() {
         project.currency = Currency.EUR
         project.minPerUser = minPerUser
         project.maxPerUser = maxPerUser
-        project.createdBy = createdBy
+        project.createdByUserUuid = createdByUserUuid
         project.active = active
         project.createdAt = startDate.minusMinutes(1)
         return projectRepository.save(project)
@@ -200,16 +191,22 @@ abstract class ControllerTestBase : TestBase() {
         link: String,
         type: String,
         size: Int,
-        createdBy: User
+        createdByUserUuid: String
     ): Document {
         val document = Document::class.java.getDeclaredConstructor().newInstance()
         document.name = name
         document.link = link
         document.type = type
         document.size = size
-        document.createdBy = createdBy
+        document.createdByUserUuid = createdByUserUuid
         document.createdAt = ZonedDateTime.now()
         return documentRepository.save(document)
+    }
+
+    protected fun getUserWalletHash(userUuid: String): String {
+        val optionalUserWallet = userWalletRepository.findByUserUuid(userUuid)
+        assertThat(optionalUserWallet).isPresent
+        return optionalUserWallet.get().wallet.hash
     }
 
     protected fun getWalletHash(wallet: Wallet?): String = wallet?.hash ?: fail("User wallet must not be null")

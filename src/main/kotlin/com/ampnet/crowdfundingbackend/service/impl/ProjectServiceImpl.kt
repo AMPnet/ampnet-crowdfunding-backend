@@ -155,7 +155,7 @@ class ProjectServiceImpl(
         project.currency = request.currency
         project.minPerUser = request.minPerUser
         project.maxPerUser = request.maxPerUser
-        project.createdBy = request.createdBy
+        project.createdByUserUuid = request.createdByUserUuid
         project.active = request.active
         return project
     }

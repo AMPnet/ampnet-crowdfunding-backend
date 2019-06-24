@@ -4,17 +4,10 @@ CREATE TABLE role (
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL
 );
-
--- Country
-CREATE TABLE country (
-  id SERIAL PRIMARY KEY,
-  iso VARCHAR(2) NOT NULL,
-  name VARCHAR(80) NOT NULL,
-  nicename VARCHAR(80) NOT NULL,
-  iso3 VARCHAR(3) DEFAULT NULL,
-  numcode SMALLINT DEFAULT NULL,
-  phonecode INT NOT NULL
-);
+INSERT INTO role VALUES
+  (1, 'ORG_ADMIN', 'Administrators can manage users in organization.');
+INSERT INTO role VALUES
+  (2, 'ORG_MEMBER', 'Members can use organization.');
 
 -- Wallet
 CREATE TABLE wallet (
@@ -24,64 +17,44 @@ CREATE TABLE wallet (
     currency VARCHAR(3) NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
-
--- User
-CREATE TABLE app_user (
+CREATE TABLE user_wallet (
     id SERIAL PRIMARY KEY,
-    email VARCHAR UNIQUE NOT NULL,
-    password VARCHAR(60),
-    first_name VARCHAR(30),
-    last_name VARCHAR(30),
-    country_id INT REFERENCES country(id),
-    phone_number VARCHAR,
-    role_id INT REFERENCES role(id),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    auth_method VARCHAR(8) NOT NULL,
-    enabled BOOLEAN NOT NULL,
-    wallet_id INT REFERENCES wallet(id)
-);
-CREATE TABLE mail_token (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES app_user(id) NOT NULL,
-    token UUID NOT NULL,
-    created_at TIMESTAMP NOT NULL
+    user_uuid VARCHAR NOT NULL,
+    wallet_id INT REFERENCES wallet(id) NOT NULL
 );
 
 -- Organization
 CREATE TABLE organization (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
-    created_by INT REFERENCES app_user(id) NOT NULL,
+    created_by_user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     approved BOOLEAN NOT NULL,
-    approved_by INT REFERENCES app_user(id),
+    approved_by_user_uuid VARCHAR,
     legal_info VARCHAR,
     wallet_id INT REFERENCES wallet(id)
 );
 CREATE TABLE organization_membership (
+    id SERIAL PRIMARY KEY,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    user_id INT REFERENCES app_user(id) NOT NULL,
+    user_uuid VARCHAR NOT NULL,
     role_id INT REFERENCES role(id),
-    created_at TIMESTAMP NOT NULL,
-
-    PRIMARY KEY (organization_id, user_id)
+    created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE organization_follower (
+    id SERIAL PRIMARY KEY,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    user_id INT REFERENCES app_user(id) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-
-    PRIMARY KEY (organization_id, user_id)
+    user_uuid VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL
 );
-CREATE TABLE organization_invite (
-    user_id INT REFERENCES app_user(id) NOT NULL,
+CREATE TABLE organization_invitation (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR NOT NULL,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    invited_by INT REFERENCES app_user(id) NOT NULL,
+    invited_by_user_uuid VARCHAR NOT NULL,
     role_id INT REFERENCES role(id),
-    created_at TIMESTAMP NOT NULL,
-
-    PRIMARY KEY (organization_id, user_id)
+    created_at TIMESTAMP NOT NULL
 );
 
 -- Project
@@ -101,7 +74,7 @@ CREATE TABLE project (
     max_per_user BIGINT NOT NULL,
     main_image VARCHAR,
     gallery TEXT,
-    created_by INT REFERENCES app_user(id) NOT NULL,
+    created_by_user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL,
     wallet_id INT REFERENCES wallet(id),
     active BOOLEAN NOT NULL
@@ -110,11 +83,11 @@ CREATE TABLE project (
 -- Document
 CREATE TABLE document (
     id SERIAL PRIMARY KEY,
-    hash VARCHAR NOT NULL,
+    link VARCHAR NOT NULL,
     name VARCHAR NOT NULL,
     type VARCHAR(16) NOT NULL,
     size INT NOT NULL,
-    created_by INT REFERENCES app_user(id) NOT NULL,
+    created_by_user_uuid VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE project_document(
@@ -128,4 +101,14 @@ CREATE TABLE organization_document(
     document_id INT REFERENCES document(id) NOT NULL,
 
     PRIMARY KEY (organization_id, document_id)
+);
+
+-- Transaction
+CREATE TABLE transaction_info (
+  id SERIAL PRIMARY KEY,
+  type VARCHAR(16) NOT NULL,
+  title VARCHAR NOT NULL,
+  description VARCHAR NOT NULL,
+  user_uuid VARCHAR NOT NULL,
+  companion_id INT
 );

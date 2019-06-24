@@ -6,7 +6,6 @@ import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Project
-import com.ampnet.crowdfundingbackend.persistence.model.User
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
@@ -31,7 +30,7 @@ class ProjectInvestmentServiceImpl(
         verifyProjectIsStillActive(request.project)
         verifyInvestmentAmountIsValid(request.project, request.amount)
 
-        val userWallet = getUserWallet(request.investor)
+        val userWallet = getUserWallet(request.investorUuid)
         verifyUserHasEnoughFunds(userWallet, request.amount)
 
         val projectWallet = getProjectWallet(request.project)
@@ -40,7 +39,7 @@ class ProjectInvestmentServiceImpl(
         val investRequest = ProjectInvestmentTxRequest(userWallet.hash, projectWallet.hash, request.amount)
         val data = blockchainService.generateProjectInvestmentTransaction(investRequest)
         val info = transactionInfoService.createInvestAllowanceTransaction(
-                request.project.name, request.amount, request.investor.id)
+                request.project.name, request.amount, request.investorUuid)
         return TransactionDataAndInfo(data, info)
     }
 
@@ -48,12 +47,12 @@ class ProjectInvestmentServiceImpl(
             blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST)
 
     @Transactional
-    override fun generateConfirmInvestment(user: User, project: Project): TransactionDataAndInfo {
-        val userWallet = getUserWallet(user)
+    override fun generateConfirmInvestment(userUuid: String, project: Project): TransactionDataAndInfo {
+        val userWallet = getUserWallet(userUuid)
         val projectWallet = getProjectWallet(project)
 
         val data = blockchainService.generateConfirmInvestment(userWallet.hash, projectWallet.hash)
-        val info = transactionInfoService.createInvestTransaction(project.name, user.id)
+        val info = transactionInfoService.createInvestTransaction(project.name, userUuid)
         return TransactionDataAndInfo(data, info)
     }
 
@@ -94,7 +93,7 @@ class ProjectInvestmentServiceImpl(
         }
     }
 
-    private fun getUserWallet(user: User) = user.wallet
+    private fun getUserWallet(userUuid: String) = walletService.getUserWallet(userUuid)
         ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have the wallet")
 
     private fun getProjectWallet(project: Project) = project.wallet

@@ -18,24 +18,11 @@ class MailServiceImpl(
 
     companion object : KLogging()
 
-    val confirmationMailSubject = "Confirmation mail"
     val invitationMailSubject = "Invitation to join organization"
 
     @Async
-    override fun sendConfirmationMail(to: String, token: String) {
-        val link = getConfirmationLink(token)
-        val message = "Follow the link the confirm your email: $link"
-        val mail = createMailMessage(to, confirmationMailSubject, message)
-        if (applicationProperties.mail.enabled) {
-            sendEmail(mail)
-        } else {
-            logger.warn { "Sending email is disabled. \nEmail: $mail" }
-        }
-    }
-
-    @Async
-    override fun sendOrganizationInvitationMail(to: String, invitedBy: String, organizationName: String) {
-        val message = "You have been invited by $invitedBy to join organization: $organizationName.\n" +
+    override fun sendOrganizationInvitationMail(to: String, organizationName: String) {
+        val message = "You have been invited to join organization: $organizationName.\n" +
                 "To review invite, please follow the link: ${applicationProperties.mail.organizationInvitationsLink}"
         val mail = createMailMessage(to, invitationMailSubject, message)
         if (applicationProperties.mail.enabled) {
@@ -66,7 +53,4 @@ class MailServiceImpl(
     }
 
     private fun getSenderMail(): String = applicationProperties.mail.sender
-
-    private fun getConfirmationLink(token: String): String =
-            "${applicationProperties.mail.confirmationBaseLink}?token=$token"
 }

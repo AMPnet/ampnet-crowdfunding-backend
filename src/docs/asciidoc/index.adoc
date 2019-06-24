@@ -5,248 +5,6 @@
 :source-highlighter: prettify
 :docinfo: shared
 
-== Registration API
-Collection of endpoints for registering users
-
-=== Social method - Facebook and Google
-
-==== Successful user signup (FACEBOOK method)
-.Request
-include::{snippets}/RegistrationControllerTest/signupUsingFacebookMethod/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/signupUsingFacebookMethod/http-response.adoc[]
-
-==== Successful user signup (GOOGLE method)
-.Request
-include::{snippets}/RegistrationControllerTest/signupUsingGoogleMethod/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/signupUsingGoogleMethod/http-response.adoc[]
-
-=== Email method
-
-==== Successful user signup
-.Request
-include::{snippets}/RegistrationControllerTest/mustBeAbleToSignUpUser/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustBeAbleToSignUpUser/http-response.adoc[]
-
-==== Incomplete signup information
-.Request
-include::{snippets}/RegistrationControllerTest/incompleteSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/incompleteSignupRequestShouldFail/http-response.adoc[]
-
-==== Signup information complete but invalid
-
-===== Empty first name
-.Request
-include::{snippets}/RegistrationControllerTest/emptyNameSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/emptyNameSignupRequestShouldFail/http-response.adoc[]
-
-===== Invalid email
-.Request
-include::{snippets}/RegistrationControllerTest/invalidEmailSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/invalidEmailSignupRequestShouldFail/http-response.adoc[]
-
-===== Short password
-.Request
-include::{snippets}/RegistrationControllerTest/shortPasswordSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/shortPasswordSignupRequestShouldFail/http-response.adoc[]
-
-===== Invalid phone number
-.Request
-include::{snippets}/RegistrationControllerTest/invalidPhoneNumberSignupRequestShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/invalidPhoneNumberSignupRequestShouldFail/http-response.adoc[]
-
-==== Signup failed because user exists
-.Request
-include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExists/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/signupShouldFailIfUserAlreadyExists/http-response.adoc[]
-
-==== Email confirmation
-
-===== Successful Email confirmation
-.Request
-include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustBeAbleToConfirmEmail/http-response.adoc[]
-
-===== Resend Email confirmation
-.Request
-include::{snippets}/RegistrationControllerTest/mustBeAbleToResendConfirmationEmail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustBeAbleToResendConfirmationEmail/http-response.adoc[]
-
-===== Failed Email confirmation, invalid token format
-.Request
-include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustGetBadRequestForInvalidTokenFormat/http-response.adoc[]
-
-===== Failed Email confirmation, non existing token
-.Request
-include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustGetNotFoundRandomToken/http-response.adoc[]
-
-===== Failed Email confirmation, token expired
-.Request
-include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustNotBeAbleToConfirmEmailWithExpiredToken/http-response.adoc[]
-
-==== Check Email
-
-===== Email used
-.Request
-include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailIsUsed/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustReturnTrueIfEmailIsUsed/http-response.adoc[]
-
-===== Email not used
-.Request
-include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/http-request.adoc[]
-.Response
-include::{snippets}/RegistrationControllerTest/mustReturnFalseForUnusedEmail/http-response.adoc[]
-
-=== Identyum token
-.Request
-include::{snippets}/IdentyumControllerTest/mustBeAbleToGetIdentyumToken/http-request.adoc[]
-.Response
-include::{snippets}/IdentyumControllerTest/mustBeAbleToGetIdentyumToken/http-response.adoc[]
-
-== Authentication API
-
-=== Successful user signin (EMAIL method)
-.Request
-include::{snippets}/AuthenticationControllerTest/signInRegular/http-request.adoc[]
-.Response
-include::{snippets}/AuthenticationControllerTest/signInRegular/http-response.adoc[]
-
-=== Successful user signin (GOOGLE method)
-
-Token in this case is obtained from Google on frontend, and then passed as request parameter.
-
-.Request
-include::{snippets}/AuthenticationControllerTest/signInGoogle/http-request.adoc[]
-.Response
-include::{snippets}/AuthenticationControllerTest/signInGoogle/http-response.adoc[]
-
-=== Successful user signin (FACEBOOK method)
-
-Token in this case is obtained from Facebook on frontend, and then passed as request parameter.
-
-.Request
-include::{snippets}/AuthenticationControllerTest/signInFacebook/http-request.adoc[]
-.Response
-include::{snippets}/AuthenticationControllerTest/signInFacebook/http-response.adoc[]
-
-=== Invalid credentials
-.Request
-include::{snippets}/AuthenticationControllerTest/signInWithInvalidCredentialsShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/AuthenticationControllerTest/signInWithInvalidCredentialsShouldFail/http-response.adoc[]
-
-=== Invalid login method
-
-For example, user was registered using regular method (filling out email, password...) but he is trying
-to login using Google oauth.
-
-.Request
-include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/AuthenticationControllerTest/signInWithInvalidLoginMethodShouldFail/http-response.adoc[]
-
-=== Non-existing user login
-.Request
-include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-request.adoc[]
-.Response
-include::{snippets}/AuthenticationControllerTest/signInWithNonExistingUserShouldFail/http-response.adoc[]
-
-== Users API
-Collection of endpoints for managing users
-
-=== Get own profile
-
-==== Successful fetch own profile
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToGetOwnProfile/http-response.adoc[]
-
-==== Successful update own profile
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToUpdateProfile/http-response.adoc[]
-
-==== Failed to update others profile
-.Request
-include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustNotBeAbleToUpdateOthersUserProfile/http-response.adoc[]
-
-=== Fetch users
-
-==== Successful fetch list of users (admin)
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToGetAListOfUsers/http-response.adoc[]
-
-==== Failed to fetch list of users
-Missing privilege: `PRA_PROFILE`
-
-.Request
-include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustNotBeAbleToGetAListOfUsersWithoutAdminPermission/http-response.adoc[]
-
-=== Change user role
-
-==== Successfully change
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToChangeRoleWithPrivilege/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToChangeRoleWithPrivilege/http-response.adoc[]
-
-==== Missing privilege to change role
-Missing privilege: `PWA_PROFILE`
-
-.Request
-include::{snippets}/UserControllerTest/mustNotBeAbleToChangeRoleWithUserRole/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustNotBeAbleToChangeRoleWithUserRole/http-response.adoc[]
-
-=== Organization invites
-
-==== Get a list of organization invites
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToGetOrganizationInvites/http-response.adoc[]
-
-==== Accept organization invite
-`/me/invites/{organizationId}/accept`
-
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToAcceptOrganizationInvite/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToAcceptOrganizationInvite/http-response.adoc[]
-
-==== Reject organization invite
-`/me/invites/{organizationId}/reject`
-
-.Request
-include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-request.adoc[]
-.Response
-include::{snippets}/UserControllerTest/mustBeAbleToRejectOrganizationInvite/http-response.adoc[]
-
 == Wallet API
 Collection of endpoints for managing wallets
 
@@ -308,19 +66,14 @@ include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-r
 .Response
 include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-response.adoc[]
 
-===== Project does not exists
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
-
-===== User did not create the project
-User can only access a wallet for project HE created
-
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
+// TODO: check test
+//===== User did not create the project
+//User can only access a wallet for project HE created
+//
+//.Request
+//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
+//.Response
+//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
 ===== Non existing project
 .Request
@@ -335,14 +88,6 @@ include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProje
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateProjectWalletTransaction/http-response.adoc[]
-
-===== Cannot create project wallet
-User can create project wallet only for his project
-
-.Request
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
 ===== Invalid address
 .Request
@@ -423,44 +168,6 @@ include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationW
 .Response
 include::{snippets}/OrganizationControllerTest/mustNotBeAbleApproveOrganizationWithoutPrivilege/http-response.adoc[]
 
-=== Get organization members
-.Request
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
-
-=== Invite user to organization
-
-==== Successfully invite user to organization with organization admin role
-User must have a privilege: `OrganizationPrivilegeType.PW_USERS`
-
-.Request
-include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-response.adoc[]
-
-==== Failed invite user to organization without organization admin role
-User missing a privilege: `OrganizationPrivilegeType.PW_USERS`
-
-.Request
-include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-response.adoc[]
-
-==== Revoke user invitation
-`/organization/{organizationId}/invite/{revokeUserId}/revoke`
-
-.Request
-include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
-
-=== Get organization users
-.Request
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-request.adoc[]
-.Response
-include::{snippets}/OrganizationControllerTest/mustReturnUsersListForOrganization/http-response.adoc[]
-
 === Documents
 
 ==== Add document for organization
@@ -474,6 +181,52 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToStoreDocumentForOrgan
 include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationDocument/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationDocument/http-response.adoc[]
+
+=== Organization Invitation
+
+==== Get a list of invitations
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToGetOrganizationInvitations/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToGetOrganizationInvitations/http-response.adoc[]
+
+==== Invite user to organization
+
+===== Send invitation
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToInviteUserToOrganizationWithOrgAdminRole/http-response.adoc[]
+
+===== Failed to send invitation without organization admin role
+User missing a privilege: `OrganizationPrivilegeType.PW_USERS`
+
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustNotBeAbleToInviteUserToOrganizationWithoutOrgAdminRole/http-response.adoc[]
+
+===== Revoke invitation
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserInvitation/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
+
+==== Accept invitation
+`/me/invites/{organizationId}/accept`
+
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-response.adoc[]
+
+==== Reject invitation
+`/me/invites/{organizationId}/reject`
+
+.Request
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-response.adoc[]
 
 == Project API
 Collection of endpoints for managing project
@@ -595,14 +348,6 @@ include::{snippets}/BroadcastTransactionControllerTest/mustNotBeAbleToPostNonExi
 include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-request.adoc[]
 .Response
 include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTransaction/http-response.adoc[]
-
-===== Missing user
-Cannot generate mint transaction if the user is missing
-
-.Request
-include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUser/http-request.adoc[]
-.Response
-include::{snippets}/IssuingAuthorityControllerTest/mustNotBeAbleToGenerateMintTransactionForMissingUser/http-response.adoc[]
 
 ===== Missing user wallet
 Cannot generate mint transaction if the user wallet is missing
