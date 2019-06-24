@@ -129,15 +129,6 @@ class ProjectControllerTest : ControllerTestBase() {
 
     @Test
     @WithMockCrowdfoundUser
-    fun mustReturnNotFoundForMissingProject() {
-        verify("Controller returns not found") {
-            mockMvc.perform(get("$projectPath/0"))
-                    .andExpect(status().isNotFound)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser
     fun mustReturnErrorForMissingOrganization() {
         suppose("User is not a member of organization") {
             databaseCleanerService.deleteAllOrganizationMemberships()
