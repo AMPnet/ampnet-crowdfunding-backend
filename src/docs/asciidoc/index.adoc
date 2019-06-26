@@ -273,7 +273,7 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveProjectDocument/http
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveProjectDocument/http-response.adoc[]
 
-=== Project images
+=== Images
 
 ==== Add main image
 .Request
@@ -292,6 +292,20 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToAddGalleryImage/http-respo
 include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveGalleryImage/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveGalleryImage/http-response.adoc[]
+
+=== News
+
+==== Add news
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToAddNews/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToAddNews/http-response.adoc[]
+
+==== Delete news
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveNews/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToRemoveNews/http-response.adoc[]
 
 === Greenvest
 
