@@ -79,6 +79,7 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
                 it.assertThat(projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
                 it.assertThat(projectResponse.gallery).isEqualTo(testContext.project.gallery.orEmpty())
+                it.assertThat(projectResponse.news).isEqualTo(testContext.project.newsLinks.orEmpty())
                 it.assertThat(projectResponse.active).isEqualTo(testContext.project.active)
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
@@ -212,6 +213,7 @@ class ProjectControllerTest : ControllerTestBase() {
                 it.assertThat(projectResponse.active).isEqualTo(testContext.projectRequest.active)
                 it.assertThat(projectResponse.mainImage).isNullOrEmpty()
                 it.assertThat(projectResponse.gallery).isNullOrEmpty()
+                it.assertThat(projectResponse.news).isNullOrEmpty()
                 it.assertThat(projectResponse.organization.id).isEqualTo(organization.id)
                 it.assertThat(projectResponse.organization.name).isEqualTo(organization.name)
                 it.assertThat(projectResponse.organization.legalInfo).isEqualTo(organization.legalInfo)
@@ -267,6 +269,8 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(testContext.projectResponse.maxPerUser).isEqualTo(testContext.project.maxPerUser)
             assertThat(testContext.projectResponse.mainImage).isEqualTo(testContext.project.mainImage)
             assertThat(testContext.projectResponse.active).isEqualTo(testContext.project.active)
+            assertThat(testContext.projectResponse.news).isEqualTo(testContext.project.newsLinks.orEmpty())
+            assertThat(testContext.projectResponse.gallery).isEqualTo(testContext.project.newsLinks.orEmpty())
             assertThat(testContext.projectResponse.walletHash).isNull()
         }
     }
