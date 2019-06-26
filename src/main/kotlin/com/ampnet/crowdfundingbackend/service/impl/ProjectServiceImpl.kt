@@ -2,7 +2,6 @@ package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
@@ -87,30 +86,36 @@ class ProjectServiceImpl(
     }
 
     @Transactional
-    override fun addDocument(projectId: Int, request: DocumentSaveRequest): Document {
-        val project = projectRepository.findById(projectId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
-                    "Trying to add document to missing project. Project: $projectId")
-        }
-
+    override fun addDocument(project: Project, request: DocumentSaveRequest): Document {
         val document = storageService.saveDocument(request)
         addDocumentToProject(project, document)
         return document
     }
 
     @Transactional
-    override fun removeDocument(projectId: Int, documentId: Int) {
-        val project = projectRepository.findById(projectId).orElseThrow {
-            throw ResourceNotFoundException(ErrorCode.PRJ_MISSING,
-                    "Trying to add document to missing project. Project: $projectId")
-        }
-
+    override fun removeDocument(project: Project, documentId: Int) {
         val storedDocuments = project.documents.orEmpty().toMutableList()
         storedDocuments.firstOrNull { it.id == documentId }.let {
             storedDocuments.remove(it)
             project.documents = storedDocuments
             projectRepository.save(project)
         }
+    }
+
+    @Transactional
+    override fun addNews(project: Project, link: String) {
+        val news = project.newsLinks.orEmpty().toMutableList()
+        news.add(link)
+        project.newsLinks = news
+        projectRepository.save(project)
+    }
+
+    @Transactional
+    override fun removeNews(project: Project, link: String) {
+        val news = project.newsLinks.orEmpty().toMutableList()
+        news.remove(link)
+        project.newsLinks = news
+        projectRepository.save(project)
     }
 
     private fun validateCreateProjectRequest(request: CreateProjectServiceRequest) {

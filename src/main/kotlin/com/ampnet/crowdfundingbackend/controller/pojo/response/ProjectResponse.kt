@@ -19,6 +19,7 @@ data class ProjectResponse(
     val maxPerUser: Long,
     val mainImage: String?,
     val gallery: List<String>,
+    val news: List<String>,
     val active: Boolean,
     val walletHash: String?
 ) {
@@ -36,7 +37,8 @@ data class ProjectResponse(
         project.minPerUser,
         project.maxPerUser,
         project.mainImage,
-        project.gallery ?: emptyList(),
+        project.gallery.orEmpty(),
+        project.newsLinks.orEmpty(),
         project.active,
         project.wallet?.hash
     )

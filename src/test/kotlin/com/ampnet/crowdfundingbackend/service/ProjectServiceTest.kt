@@ -3,7 +3,6 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
-import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
@@ -11,6 +10,7 @@ import com.ampnet.crowdfundingbackend.service.impl.ProjectServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -179,7 +179,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.createProjectRequest = createProjectRequest("Image")
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
-        suppose("The has gallery") {
+        suppose("The project has gallery") {
             testContext.gallery = listOf("link-1", "link-2")
             testContext.project.gallery = testContext.gallery
             projectRepository.save(testContext.project)
@@ -212,7 +212,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             testContext.createProjectRequest = createProjectRequest("Image")
             testContext.project = projectService.createProject(testContext.createProjectRequest)
         }
-        suppose("The has gallery") {
+        suppose("The project has gallery") {
             testContext.gallery = listOf("link-1", "link-2", "link-3")
             testContext.project.gallery = testContext.gallery
             projectRepository.save(testContext.project)
@@ -221,7 +221,7 @@ class ProjectServiceTest : JpaServiceTestBase() {
             projectService.removeImagesFromGallery(testContext.project, listOf("link-1", "link-3"))
         }
 
-        verify("Gallery has additional image") {
+        verify("Gallery does not have deleted image") {
             val optionalProject = projectRepository.findById(testContext.project.id)
             assertThat(optionalProject).isPresent
             val gallery = optionalProject.get().gallery
@@ -351,12 +351,51 @@ class ProjectServiceTest : JpaServiceTestBase() {
     }
 
     @Test
-    fun mustNotBeAbleToRemoveDocumentFromNonExistingProject() {
-        verify("Service will throw an exception") {
-            val exception = assertThrows<ResourceNotFoundException> {
-                projectService.removeDocument(0, 0)
-            }
-            assertThat(exception.errorCode).isEqualTo(ErrorCode.PRJ_MISSING)
+    fun mustBeAbleToAddNews() {
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(organization,
+                    "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+        }
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.createProjectRequest = createProjectRequest("Image")
+            testContext.project = projectService.createProject(testContext.createProjectRequest)
+        }
+
+        verify("News can be added to project") {
+            val newsLink = "news"
+            testContext.news = listOf(newsLink)
+            projectService.addNews(testContext.project, newsLink)
+        }
+        verify("News is added to project") {
+            val project = projectService.getProjectById(testContext.project.id) ?: fail("Missing project")
+            assertThat(project.newsLinks).hasSize(1).contains(testContext.news.first())
+        }
+    }
+
+    @Test
+    fun mustBeAbleToRemoveNews() {
+        suppose("Organization has a wallet") {
+            createWalletForOrganization(organization,
+                    "0xc5825e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+        }
+        suppose("Project exists") {
+            databaseCleanerService.deleteAllProjects()
+            testContext.createProjectRequest = createProjectRequest("Image")
+            testContext.project = projectService.createProject(testContext.createProjectRequest)
+        }
+        suppose("Project has news") {
+            testContext.news = listOf("news1", "news2", "news3")
+            testContext.project.newsLinks = testContext.news
+            projectRepository.save(testContext.project)
+        }
+
+        verify("News can be removed project") {
+            projectService.removeNews(testContext.project, testContext.news.first())
+        }
+        verify("News is removed to project") {
+            val project = projectService.getProjectById(testContext.project.id) ?: fail("Missing project")
+            assertThat(project.newsLinks).hasSize(2).doesNotContain(testContext.news.first())
         }
     }
 
@@ -384,5 +423,6 @@ class ProjectServiceTest : JpaServiceTestBase() {
         lateinit var project: Project
         lateinit var imageLink: String
         lateinit var gallery: List<String>
+        lateinit var news: List<String>
     }
 }

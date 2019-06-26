@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ImageLinkListRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.LinkRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
@@ -45,18 +46,12 @@ class ProjectController(
     @GetMapping("/project/{id}")
     fun getProject(@PathVariable id: Int): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to get project with id: $id" }
+        val project = getProjectByIdWithAllData(id)
+        val currentFunding = getCurrentFundingForProject(project)
+        logger.debug { "Project $id current funding is: $currentFunding" }
 
-        projectService.getProjectByIdWithAllData(id)?.let { project ->
-            logger.debug { "Project found: ${project.id}" }
-
-            val currentFunding = getCurrentFundingForProject(project)
-            logger.debug { "Project $id current funding is: $currentFunding" }
-
-            val response = ProjectWithFundingResponse(project, currentFunding)
-            return ResponseEntity.ok(response)
-        }
-        logger.info { "Project with id: $id not found" }
-        return ResponseEntity.notFound().build()
+        val response = ProjectWithFundingResponse(project, currentFunding)
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/project")
@@ -83,11 +78,11 @@ class ProjectController(
     ): ResponseEntity<DocumentResponse> {
         logger.debug { "Received request to add document to project: $projectId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        val project = getProjectById(projectId)
+        val project = getProjectByIdWithAllData(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             val request = DocumentSaveRequest(file, userPrincipal.uuid)
-            val document = projectService.addDocument(project.id, request)
+            val document = projectService.addDocument(project, request)
             DocumentResponse(document)
         }
     }
@@ -99,10 +94,10 @@ class ProjectController(
     ): ResponseEntity<Unit> {
         logger.debug { "Received request to delete document: $documentId for project $projectId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        val project = getProjectById(projectId)
+        val project = getProjectByIdWithAllData(projectId)
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
-            projectService.removeDocument(projectId, documentId)
+            projectService.removeDocument(project, documentId)
         }
     }
 
@@ -147,6 +142,34 @@ class ProjectController(
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
             projectService.removeImagesFromGallery(project, request.images)
+        }
+    }
+
+    @PostMapping("/project/{projectId}/news")
+    fun addNews(
+        @PathVariable("projectId") projectId: Int,
+        @RequestBody request: LinkRequest
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to add gallery image to project: $projectId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            projectService.addNews(project, request.link)
+        }
+    }
+
+    @DeleteMapping("/project/{projectId}/news")
+    fun removeNews(
+        @PathVariable("projectId") projectId: Int,
+        @RequestBody request: LinkRequest
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to delete gallery images for project: $projectId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            projectService.removeNews(project, request.link)
         }
     }
 
@@ -205,6 +228,10 @@ class ProjectController(
     private fun getProjectById(projectId: Int): Project =
         projectService.getProjectById(projectId)
             ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
+
+    private fun getProjectByIdWithAllData(projectId: Int): Project =
+            projectService.getProjectByIdWithAllData(projectId)
+                    ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
 
     private fun <T> ifUserHasPrivilegeToWriteInProjectThenReturn(
         userUuid: String,
