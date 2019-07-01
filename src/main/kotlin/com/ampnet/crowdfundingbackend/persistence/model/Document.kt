@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
 import java.time.ZonedDateTime
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -28,7 +29,7 @@ data class Document(
     var size: Int,
 
     @Column(nullable = false)
-    var createdByUserUuid: String,
+    var createdByUserUuid: UUID,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime

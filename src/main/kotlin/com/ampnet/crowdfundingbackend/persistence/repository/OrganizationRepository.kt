@@ -4,6 +4,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import java.util.Optional
+import java.util.UUID
 
 interface OrganizationRepository : JpaRepository<Organization, Int> {
 
@@ -13,7 +14,7 @@ interface OrganizationRepository : JpaRepository<Organization, Int> {
     // TODO: won't work, change!
     // Each Organization in the list will have only one membership because of inner join
     @Query("SELECT org FROM Organization org INNER JOIN FETCH org.memberships mem WHERE mem.userUuid = ?1")
-    fun findAllOrganizationsForUserUuid(userUuid: String): List<Organization>
+    fun findAllOrganizationsForUserUuid(userUuid: UUID): List<Organization>
 
     fun findByName(name: String): Optional<Organization>
 

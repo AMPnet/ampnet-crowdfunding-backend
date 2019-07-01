@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class OrganizationServiceTest : JpaServiceTestBase() {
 
@@ -232,7 +233,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         assertThat(receivedDocument.createdByUserUuid).isEqualTo(savedDocument.createdByUserUuid)
     }
 
-    private fun verifyUserMembership(userUuid: String, organizationId: Int, role: OrganizationRoleType) {
+    private fun verifyUserMembership(userUuid: UUID, organizationId: Int, role: OrganizationRoleType) {
         val memberships = membershipRepository.findByUserUuid(userUuid)
         assertThat(memberships).hasSize(1)
         val membership = memberships[0]
@@ -244,7 +245,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
 
     private fun createOrganizationDocument(
         organization: Organization,
-        createdByUserUuid: String,
+        createdByUserUuid: UUID,
         name: String,
         link: String,
         type: String = "document/type",

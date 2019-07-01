@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class ProjectControllerTest : ControllerTestBase() {
 
@@ -605,7 +606,7 @@ class ProjectControllerTest : ControllerTestBase() {
 
     private fun createProjectDocument(
         project: Project,
-        createdByUserUuid: String,
+        createdByUserUuid: UUID,
         name: String,
         link: String,
         type: String = "document/type",

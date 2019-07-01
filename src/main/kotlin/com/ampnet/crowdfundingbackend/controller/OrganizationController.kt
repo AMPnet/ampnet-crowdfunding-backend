@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.util.UUID
 import javax.validation.Valid
 
 @RestController
@@ -105,7 +106,7 @@ class OrganizationController(private val organizationService: OrganizationServic
     }
 
     private fun <T> ifUserHasPrivilegeWriteUserInOrganizationThenReturn(
-        userUuid: String,
+        userUuid: UUID,
         organizationId: Int,
         action: () -> (T)
     ): ResponseEntity<T> {

@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
 import java.time.ZonedDateTime
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -19,7 +20,7 @@ data class OrganizationFollower(
     var organizationId: Int,
 
     @Column(nullable = false)
-    var userUuid: String,
+    var userUuid: UUID,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime

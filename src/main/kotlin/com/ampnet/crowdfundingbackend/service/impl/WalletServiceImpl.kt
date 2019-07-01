@@ -24,6 +24,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 import java.time.ZonedDateTime
 
 @Service
@@ -45,13 +46,13 @@ class WalletServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getUserWallet(userUuid: String): Wallet? {
+    override fun getUserWallet(userUuid: UUID): Wallet? {
         return ServiceUtils.wrapOptional(userWalletRepository.findByUserUuid(userUuid))?.wallet
     }
 
     @Transactional
     @Throws(ResourceAlreadyExistsException::class, InternalException::class)
-    override fun createUserWallet(userUuid: String, request: WalletCreateRequest): Wallet {
+    override fun createUserWallet(userUuid: UUID, request: WalletCreateRequest): Wallet {
         userWalletRepository.findByUserUuid(userUuid).ifPresent {
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS, "User: $userUuid already has a wallet.")
         }
@@ -64,7 +65,7 @@ class WalletServiceImpl(
     }
 
     @Transactional
-    override fun generateTransactionToCreateProjectWallet(project: Project, userUuid: String): TransactionDataAndInfo {
+    override fun generateTransactionToCreateProjectWallet(project: Project, userUuid: UUID): TransactionDataAndInfo {
         throwExceptionIfProjectHasWallet(project)
         val userWalletHash = getUserWallet(userUuid)?.hash
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User wallet is missing")
@@ -91,7 +92,7 @@ class WalletServiceImpl(
     @Transactional
     override fun generateTransactionToCreateOrganizationWallet(
         organization: Organization,
-        userUuid: String
+        userUuid: UUID
     ): TransactionDataAndInfo {
         throwExceptionIfOrganizationAlreadyHasWallet(organization)
         val walletHash = getUserWallet(userUuid)?.hash

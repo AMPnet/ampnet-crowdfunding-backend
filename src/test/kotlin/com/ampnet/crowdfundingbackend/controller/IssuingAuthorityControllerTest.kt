@@ -43,7 +43,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             val result = mockMvc.perform(
                 MockMvcRequestBuilders.get("$pathIssuer/mint")
                     .param("amount", testContext.amount.toString())
-                    .param("uuid", userUuid)
+                    .param("uuid", userUuid.toString())
                     .param("from", testContext.from))
                 .andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
@@ -81,12 +81,25 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             val response = mockMvc.perform(
                     MockMvcRequestBuilders.get("$pathIssuer/mint")
                             .param("amount", testContext.amount.toString())
-                            .param("uuid", userUuid)
+                            .param("uuid", userUuid.toString())
                             .param("from", testContext.from))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
 
             verifyResponseErrorCode(response, ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Test
+    fun mustThrowBadRequestForInvalidUserUuid() {
+
+        verify("User cannot generate burn transaction if the user wallet is missing") {
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get("$pathIssuer/mint")
+                            .param("amount", testContext.amount.toString())
+                            .param("uuid", "invalid-uuid")
+                            .param("from", testContext.from))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
         }
     }
 
@@ -108,7 +121,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             val result = mockMvc.perform(
                 MockMvcRequestBuilders.get("$pathIssuer/burn")
                     .param("amount", testContext.amount.toString())
-                    .param("uuid", userUuid)
+                    .param("uuid", userUuid.toString())
                     .param("from", testContext.from))
                 .andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
@@ -146,7 +159,7 @@ class IssuingAuthorityControllerTest : ControllerTestBase() {
             val response = mockMvc.perform(
                 MockMvcRequestBuilders.get("$pathIssuer/burn")
                     .param("amount", testContext.amount.toString())
-                    .param("uuid", userUuid)
+                    .param("uuid", userUuid.toString())
                     .param("from", testContext.from))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest)
                 .andReturn()

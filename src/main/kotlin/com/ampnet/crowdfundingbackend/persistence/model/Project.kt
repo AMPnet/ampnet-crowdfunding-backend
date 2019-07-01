@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.persistence.model
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.persistence.HashArrayToStringConverter
 import java.time.ZonedDateTime
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Convert
 import javax.persistence.Entity
@@ -76,7 +77,7 @@ data class Project(
     var newsLinks: List<String>?,
 
     @Column(nullable = true)
-    var createdByUserUuid: String,
+    var createdByUserUuid: UUID,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime,

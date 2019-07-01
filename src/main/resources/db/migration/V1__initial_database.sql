@@ -19,7 +19,7 @@ CREATE TABLE wallet (
 );
 CREATE TABLE user_wallet (
     id SERIAL PRIMARY KEY,
-    user_uuid VARCHAR NOT NULL,
+    user_uuid UUID NOT NULL,
     wallet_id INT REFERENCES wallet(id) NOT NULL
 );
 
@@ -27,32 +27,32 @@ CREATE TABLE user_wallet (
 CREATE TABLE organization (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
-    created_by_user_uuid VARCHAR NOT NULL,
+    created_by_user_uuid UUID NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     approved BOOLEAN NOT NULL,
-    approved_by_user_uuid VARCHAR,
+    approved_by_user_uuid UUID,
     legal_info VARCHAR,
     wallet_id INT REFERENCES wallet(id)
 );
 CREATE TABLE organization_membership (
     id SERIAL PRIMARY KEY,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    user_uuid VARCHAR NOT NULL,
+    user_uuid UUID NOT NULL,
     role_id INT REFERENCES role(id),
     created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE organization_follower (
     id SERIAL PRIMARY KEY,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    user_uuid VARCHAR NOT NULL,
+    user_uuid UUID NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE organization_invitation (
     id SERIAL PRIMARY KEY,
     email VARCHAR NOT NULL,
     organization_id INT REFERENCES organization(id) NOT NULL,
-    invited_by_user_uuid VARCHAR NOT NULL,
+    invited_by_user_uuid UUID NOT NULL,
     role_id INT REFERENCES role(id),
     created_at TIMESTAMP NOT NULL
 );
@@ -75,7 +75,7 @@ CREATE TABLE project (
     main_image VARCHAR,
     gallery TEXT,
     news_links TEXT,
-    created_by_user_uuid VARCHAR NOT NULL,
+    created_by_user_uuid UUID NOT NULL,
     created_at TIMESTAMP NOT NULL,
     wallet_id INT REFERENCES wallet(id),
     active BOOLEAN NOT NULL
@@ -88,7 +88,7 @@ CREATE TABLE document (
     name VARCHAR NOT NULL,
     type VARCHAR(16) NOT NULL,
     size INT NOT NULL,
-    created_by_user_uuid VARCHAR NOT NULL,
+    created_by_user_uuid UUID NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 CREATE TABLE project_document(
@@ -110,6 +110,6 @@ CREATE TABLE transaction_info (
   type VARCHAR(16) NOT NULL,
   title VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
-  user_uuid VARCHAR NOT NULL,
+  user_uuid UUID NOT NULL,
   companion_id INT
 );

@@ -5,16 +5,17 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
+import java.util.UUID
 
 interface WalletService {
     fun getWalletBalance(wallet: Wallet): Long
-    fun getUserWallet(userUuid: String): Wallet?
-    fun createUserWallet(userUuid: String, request: WalletCreateRequest): Wallet
-    fun generateTransactionToCreateProjectWallet(project: Project, userUuid: String): TransactionDataAndInfo
+    fun getUserWallet(userUuid: UUID): Wallet?
+    fun createUserWallet(userUuid: UUID, request: WalletCreateRequest): Wallet
+    fun generateTransactionToCreateProjectWallet(project: Project, userUuid: UUID): TransactionDataAndInfo
     fun createProjectWallet(project: Project, signedTransaction: String): Wallet
     fun generateTransactionToCreateOrganizationWallet(
         organization: Organization,
-        userUuid: String
+        userUuid: UUID
     ): TransactionDataAndInfo
     fun createOrganizationWallet(organization: Organization, signedTransaction: String): Wallet
 }

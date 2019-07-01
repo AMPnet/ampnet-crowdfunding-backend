@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.persistence.model
 import com.ampnet.crowdfundingbackend.enums.OrganizationPrivilegeType
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import java.time.ZonedDateTime
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -23,7 +24,7 @@ data class OrganizationMembership(
     var organizationId: Int,
 
     @Column(nullable = false)
-    var userUuid: String,
+    var userUuid: UUID,
 
     @ManyToOne
     @JoinColumn(name = "role_id")

@@ -64,9 +64,9 @@ abstract class JpaServiceTestBase : TestBase() {
     protected lateinit var userWalletRepository: UserWalletRepository
 
     protected val mockedBlockchainService: BlockchainService = Mockito.mock(BlockchainService::class.java)
-    protected val userUuid = UUID.randomUUID().toString()
+    protected val userUuid: UUID = UUID.randomUUID()
 
-    protected fun createOrganization(name: String, createdByUuid: String): Organization {
+    protected fun createOrganization(name: String, createdByUuid: UUID): Organization {
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = name
         organization.legalInfo = "some legal info"
@@ -77,7 +77,7 @@ abstract class JpaServiceTestBase : TestBase() {
         return organizationRepository.save(organization)
     }
 
-    protected fun createWalletForUser(userUuid: String, hash: String): Wallet {
+    protected fun createWalletForUser(userUuid: UUID, hash: String): Wallet {
         val wallet = createWallet(hash, WalletType.USER)
         val userWallet = UserWallet(0, userUuid, wallet)
         userWalletRepository.save(userWallet)
@@ -110,7 +110,7 @@ abstract class JpaServiceTestBase : TestBase() {
     protected fun createProject(
         name: String,
         organization: Organization,
-        createdByUserUuid: String,
+        createdByUserUuid: UUID,
         active: Boolean = true,
         startDate: ZonedDateTime = ZonedDateTime.now(),
         endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
@@ -140,7 +140,7 @@ abstract class JpaServiceTestBase : TestBase() {
     protected fun saveDocument(
         name: String,
         link: String,
-        createdByUserUuid: String,
+        createdByUserUuid: UUID,
         type: String = "document/type",
         size: Int = 100
     ): Document {
@@ -148,7 +148,7 @@ abstract class JpaServiceTestBase : TestBase() {
         return documentRepository.save(document)
     }
 
-    protected fun getUserWalletHash(userUuid: String): String {
+    protected fun getUserWalletHash(userUuid: UUID): String {
         val optionalUserWallet = userWalletRepository.findByUserUuid(userUuid)
         assertThat(optionalUserWallet).isPresent
         return optionalUserWallet.get().wallet.hash

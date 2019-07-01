@@ -20,6 +20,7 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @Service
 class OrganizationInviteServiceImpl(
@@ -84,7 +85,7 @@ class OrganizationInviteServiceImpl(
     }
 
     @Transactional
-    override fun followOrganization(userUuid: String, organizationId: Int): OrganizationFollower {
+    override fun followOrganization(userUuid: UUID, organizationId: Int): OrganizationFollower {
         ServiceUtils.wrapOptional(followerRepository.findByUserUuidAndOrganizationId(userUuid, organizationId))?.let {
             return it
         }
@@ -96,7 +97,7 @@ class OrganizationInviteServiceImpl(
     }
 
     @Transactional
-    override fun unfollowOrganization(userUuid: String, organizationId: Int) {
+    override fun unfollowOrganization(userUuid: UUID, organizationId: Int) {
         ServiceUtils.wrapOptional(followerRepository.findByUserUuidAndOrganizationId(userUuid, organizationId))?.let {
             followerRepository.delete(it)
         }

@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
 import com.ampnet.crowdfundingbackend.enums.TransactionType
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
@@ -29,7 +30,7 @@ data class TransactionInfo(
     var description: String,
 
     @Column(nullable = false)
-    var userUuid: String,
+    var userUuid: UUID,
 
     @Column(nullable = true)
     var companionId: Int?
