@@ -35,7 +35,7 @@ class IssuingAuthorityController(
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionAndLinkResponse> {
         logger.info { "Received mint request from=$from to uuid=$userUuid in amount=$amount" }
-        val userWalletHash = getUserWalletHashFromEmail(userUuid)
+        val userWalletHash = getUserWalletHashFromUuid(userUuid)
 
         val transaction = blockchainService.generateMintTransaction(from, userWalletHash, amount)
         val link = transactionTypeLink + IssuerTransactionType.MINT.value
@@ -51,7 +51,7 @@ class IssuingAuthorityController(
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionAndLinkResponse> {
         logger.info { "Received burn request from=$from for uuid=$userUuid in amount=$amount" }
-        val userWalletHash = getUserWalletHashFromEmail(userUuid)
+        val userWalletHash = getUserWalletHashFromUuid(userUuid)
 
         val transaction = blockchainService.generateBurnTransaction(from, userWalletHash, amount)
         val link = transactionTypeLink + IssuerTransactionType.BURN.value
@@ -69,7 +69,7 @@ class IssuingAuthorityController(
         val postTransactionType = when (type) {
             IssuerTransactionType.BURN.value -> PostTransactionType.ISSUER_BURN
             IssuerTransactionType.MINT.value -> PostTransactionType.ISSUER_MINT
-            else -> throw InvalidRequestException(ErrorCode.INT_INVALID_VALUE, "Invalid type value")
+            else -> throw InvalidRequestException(ErrorCode.INT_INVALID_VALUE, "Invalid transaction type value")
         }
         val txHash = blockchainService.postTransaction(request.data, postTransactionType)
         logger.info { "Issuer successfully posted transaction, type = $type. TxHash = $txHash" }
@@ -77,7 +77,7 @@ class IssuingAuthorityController(
         return ResponseEntity.ok(TxHashResponse(txHash))
     }
 
-    private fun getUserWalletHashFromEmail(userUuid: String) =
+    private fun getUserWalletHashFromUuid(userUuid: String) =
             walletService.getUserWallet(userUuid)?.hash
                     ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have a wallet")
 
