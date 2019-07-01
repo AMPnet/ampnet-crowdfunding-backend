@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.util.UUID
 import javax.validation.Valid
 
 @RestController
@@ -202,7 +203,7 @@ class ProjectController(
     private fun getImageNameFromMultipartFile(multipartFile: MultipartFile): String =
             multipartFile.originalFilename ?: multipartFile.name
 
-    private fun createProject(request: ProjectRequest, userUuid: String): ProjectWithFundingResponse {
+    private fun createProject(request: ProjectRequest, userUuid: UUID): ProjectWithFundingResponse {
         val organization = getOrganization(request.organizationId)
         val serviceRequest = CreateProjectServiceRequest(request, organization, userUuid)
         val project = projectService.createProject(serviceRequest)
@@ -222,7 +223,7 @@ class ProjectController(
                     ?: throw ResourceNotFoundException(
                             ErrorCode.ORG_MISSING, "Missing organization with id: $organizationId")
 
-    private fun getUserMembershipInOrganization(userUuid: String, organizationId: Int): OrganizationMembership? =
+    private fun getUserMembershipInOrganization(userUuid: UUID, organizationId: Int): OrganizationMembership? =
             organizationService.getOrganizationMemberships(organizationId).find { it.userUuid == userUuid }
 
     private fun getProjectById(projectId: Int): Project =
@@ -234,7 +235,7 @@ class ProjectController(
                     ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project: $projectId")
 
     private fun <T> ifUserHasPrivilegeToWriteInProjectThenReturn(
-        userUuid: String,
+        userUuid: UUID,
         organizationId: Int,
         action: () -> (T)
     ): ResponseEntity<T> {

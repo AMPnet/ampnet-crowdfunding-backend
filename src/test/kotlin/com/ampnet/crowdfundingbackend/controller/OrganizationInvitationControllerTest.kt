@@ -211,7 +211,7 @@ class OrganizationInvitationControllerTest : ControllerTestBase() {
     private fun inviteUserToOrganization(
         email: String,
         organizationId: Int,
-        invitedByUuid: String,
+        invitedByUuid: UUID,
         role: OrganizationRoleType
     ) {
         val invitation = OrganizationInvitation::class.java.getConstructor().newInstance()
@@ -226,7 +226,7 @@ class OrganizationInvitationControllerTest : ControllerTestBase() {
     private fun createOrganizationInvite(
         email: String,
         organizationId: Int,
-        invitedByUuid: String,
+        invitedByUuid: UUID,
         role: OrganizationRoleType
     ): OrganizationInvitation {
         val organizationInvite = OrganizationInvitation::class.java.getConstructor().newInstance()
@@ -240,7 +240,7 @@ class OrganizationInvitationControllerTest : ControllerTestBase() {
 
     private class TestContext {
         lateinit var organization: Organization
-        val uuid = UUID.randomUUID().toString()
+        val uuid: UUID = UUID.randomUUID()
         val invitedEmail = "invited@email.com"
     }
 }

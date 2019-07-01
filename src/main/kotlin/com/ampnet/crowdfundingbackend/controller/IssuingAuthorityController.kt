@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 class IssuingAuthorityController(
@@ -31,7 +32,7 @@ class IssuingAuthorityController(
     @GetMapping("/issuer/mint")
     fun getMintTransaction(
         @RequestParam(name = "from") from: String,
-        @RequestParam(name = "uuid") userUuid: String,
+        @RequestParam(name = "uuid") userUuid: UUID,
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionAndLinkResponse> {
         logger.info { "Received mint request from=$from to uuid=$userUuid in amount=$amount" }
@@ -47,7 +48,7 @@ class IssuingAuthorityController(
     @GetMapping("/issuer/burn")
     fun getBurnTransaction(
         @RequestParam(name = "from") from: String,
-        @RequestParam(name = "uuid") userUuid: String,
+        @RequestParam(name = "uuid") userUuid: UUID,
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionAndLinkResponse> {
         logger.info { "Received burn request from=$from for uuid=$userUuid in amount=$amount" }
@@ -77,7 +78,7 @@ class IssuingAuthorityController(
         return ResponseEntity.ok(TxHashResponse(txHash))
     }
 
-    private fun getUserWalletHashFromUuid(userUuid: String) =
+    private fun getUserWalletHashFromUuid(userUuid: UUID) =
             walletService.getUserWallet(userUuid)?.hash
                     ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have a wallet")
 

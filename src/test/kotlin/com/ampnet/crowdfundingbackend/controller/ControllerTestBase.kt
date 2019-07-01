@@ -45,6 +45,7 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
@@ -52,7 +53,7 @@ import java.time.ZonedDateTime
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
-    protected val userUuid = "1234-1234-1234-1234"
+    protected val userUuid: UUID = UUID.fromString("89fb3b1c-9c0a-11e9-a2a3-2a2ae2dbcce4")
 
     @Autowired
     protected lateinit var objectMapper: ObjectMapper
@@ -106,7 +107,7 @@ abstract class ControllerTestBase : TestBase() {
         assert(response.errCode == expectedErrorCode)
     }
 
-    protected fun createWalletForUser(userUuid: String, hash: String): Wallet {
+    protected fun createWalletForUser(userUuid: UUID, hash: String): Wallet {
         val wallet = createWallet(hash, WalletType.USER)
         val userWallet = UserWallet(0, userUuid, wallet)
         userWalletRepository.save(userWallet)
@@ -136,7 +137,7 @@ abstract class ControllerTestBase : TestBase() {
         return walletRepository.save(wallet)
     }
 
-    protected fun createOrganization(name: String, userUuid: String): Organization {
+    protected fun createOrganization(name: String, userUuid: UUID): Organization {
         val organization = Organization::class.java.getConstructor().newInstance()
         organization.name = name
         organization.legalInfo = "some legal info"
@@ -147,7 +148,7 @@ abstract class ControllerTestBase : TestBase() {
         return organizationRepository.save(organization)
     }
 
-    protected fun addUserToOrganization(userUuid: String, organizationId: Int, role: OrganizationRoleType) {
+    protected fun addUserToOrganization(userUuid: UUID, organizationId: Int, role: OrganizationRoleType) {
         val membership = OrganizationMembership::class.java.getConstructor().newInstance()
         membership.userUuid = userUuid
         membership.organizationId = organizationId
@@ -159,7 +160,7 @@ abstract class ControllerTestBase : TestBase() {
     protected fun createProject(
         name: String,
         organization: Organization,
-        createdByUserUuid: String,
+        createdByUserUuid: UUID,
         active: Boolean = true,
         startDate: ZonedDateTime = ZonedDateTime.now(),
         endDate: ZonedDateTime = ZonedDateTime.now().plusDays(30),
@@ -191,7 +192,7 @@ abstract class ControllerTestBase : TestBase() {
         link: String,
         type: String,
         size: Int,
-        createdByUserUuid: String
+        createdByUserUuid: UUID
     ): Document {
         val document = Document::class.java.getDeclaredConstructor().newInstance()
         document.name = name
@@ -203,7 +204,7 @@ abstract class ControllerTestBase : TestBase() {
         return documentRepository.save(document)
     }
 
-    protected fun getUserWalletHash(userUuid: String): String {
+    protected fun getUserWalletHash(userUuid: UUID): String {
         val optionalUserWallet = userWalletRepository.findByUserUuid(userUuid)
         assertThat(optionalUserWallet).isPresent
         return optionalUserWallet.get().wallet.hash

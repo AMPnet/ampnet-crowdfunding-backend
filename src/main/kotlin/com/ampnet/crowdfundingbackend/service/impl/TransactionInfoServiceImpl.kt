@@ -9,6 +9,7 @@ import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateTransactionRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class TransactionInfoServiceImpl(
@@ -26,7 +27,7 @@ class TransactionInfoServiceImpl(
     private val investDescription = "You are signing transaction to confirm investment to project: %s"
 
     @Transactional
-    override fun createOrgTransaction(organization: Organization, userUuid: String): TransactionInfo {
+    override fun createOrgTransaction(organization: Organization, userUuid: UUID): TransactionInfo {
         val description = createOrgDescription.format(organization.name)
         val request = CreateTransactionRequest(
                 TransactionType.CREATE_ORG, createOrgTitle, description, userUuid, organization.id)
@@ -34,7 +35,7 @@ class TransactionInfoServiceImpl(
     }
 
     @Transactional
-    override fun createProjectTransaction(project: Project, userUuid: String): TransactionInfo {
+    override fun createProjectTransaction(project: Project, userUuid: UUID): TransactionInfo {
         val description = createProjectDescription.format(project.name)
         val request = CreateTransactionRequest(
                 TransactionType.CREATE_PROJECT, createProjectTitle, description, userUuid, project.id)
@@ -45,7 +46,7 @@ class TransactionInfoServiceImpl(
     override fun createInvestAllowanceTransaction(
         projectName: String,
         amount: Long,
-        userUuid: String
+        userUuid: UUID
     ): TransactionInfo {
         val description = investAllowanceDescription.format(projectName, amount.toDouble().div(100))
         val request = CreateTransactionRequest(
@@ -54,7 +55,7 @@ class TransactionInfoServiceImpl(
     }
 
     @Transactional
-    override fun createInvestTransaction(projectName: String, userUuid: String): TransactionInfo {
+    override fun createInvestTransaction(projectName: String, userUuid: UUID): TransactionInfo {
         val description = investDescription.format(projectName)
         val request = CreateTransactionRequest(
                 TransactionType.INVEST, investTitle, description, userUuid)

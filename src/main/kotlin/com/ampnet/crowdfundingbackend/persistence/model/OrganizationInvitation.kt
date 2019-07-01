@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
 import java.time.ZonedDateTime
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -25,7 +26,7 @@ data class OrganizationInvitation(
     var email: String,
 
     @Column(nullable = false)
-    var invitedByUserUuid: String,
+    var invitedByUserUuid: UUID,
 
     @ManyToOne
     @JoinColumn(name = "role_id")

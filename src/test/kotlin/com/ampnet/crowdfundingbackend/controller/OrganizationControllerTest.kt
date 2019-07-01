@@ -23,6 +23,7 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
+import java.util.UUID
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.fileUpload
 
@@ -309,7 +310,7 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     private fun createOrganizationDocument(
         organization: Organization,
-        createdByUserUuid: String,
+        createdByUserUuid: UUID,
         name: String,
         link: String,
         type: String = "document/type",

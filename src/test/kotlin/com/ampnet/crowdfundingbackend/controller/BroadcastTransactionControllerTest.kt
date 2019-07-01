@@ -18,6 +18,7 @@ import org.mockito.Mockito
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class BroadcastTransactionControllerTest : ControllerTestBase() {
 
@@ -268,7 +269,7 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
 
     private fun createTransactionInfo(
         type: TransactionType,
-        userUuid: String,
+        userUuid: UUID,
         companionId: Int? = null
     ): TransactionInfo {
         val transactionInfo = TransactionInfo(0, type, "title", "description", userUuid, companionId)

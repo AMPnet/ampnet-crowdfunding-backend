@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
 import java.time.ZonedDateTime
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -27,7 +28,7 @@ data class Organization(
     var legalInfo: String?,
 
     @Column(nullable = true)
-    var createdByUserUuid: String,
+    var createdByUserUuid: UUID,
 
     @Column(nullable = false)
     var createdAt: ZonedDateTime,
@@ -39,7 +40,7 @@ data class Organization(
     var approved: Boolean,
 
     @Column
-    var approvedByUserUuid: String?,
+    var approvedByUserUuid: UUID?,
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "organization_document",

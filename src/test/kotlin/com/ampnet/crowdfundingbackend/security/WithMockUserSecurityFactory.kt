@@ -7,6 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.context.support.WithSecurityContextFactory
+import java.util.UUID
 
 class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoundUser> {
 
@@ -16,7 +17,7 @@ class WithMockUserSecurityFactory : WithSecurityContextFactory<WithMockCrowdfoun
     override fun createSecurityContext(annotation: WithMockCrowdfoundUser): SecurityContext {
         val authorities = mapPrivilegesOrRoleToAuthorities(annotation)
         val userPrincipal = UserPrincipal(
-                annotation.uuid,
+                UUID.fromString(annotation.uuid),
                 annotation.email,
                 fullName,
                 authorities.asSequence().map { it.authority }.toSet(),

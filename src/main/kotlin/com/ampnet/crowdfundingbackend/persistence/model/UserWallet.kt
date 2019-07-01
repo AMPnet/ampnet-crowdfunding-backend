@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -17,7 +18,7 @@ data class UserWallet(
     val id: Int,
 
     @Column(nullable = false)
-    val userUuid: String,
+    val userUuid: UUID,
 
     @OneToOne
     @JoinColumn(name = "wallet_id")

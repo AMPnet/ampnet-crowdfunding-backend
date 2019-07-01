@@ -15,6 +15,7 @@ import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
 import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 import java.time.ZonedDateTime
 
 @Service
@@ -47,7 +48,7 @@ class ProjectInvestmentServiceImpl(
             blockchainService.postTransaction(signedTransaction, PostTransactionType.PRJ_INVEST)
 
     @Transactional
-    override fun generateConfirmInvestment(userUuid: String, project: Project): TransactionDataAndInfo {
+    override fun generateConfirmInvestment(userUuid: UUID, project: Project): TransactionDataAndInfo {
         val userWallet = getUserWallet(userUuid)
         val projectWallet = getProjectWallet(project)
 
@@ -93,7 +94,7 @@ class ProjectInvestmentServiceImpl(
         }
     }
 
-    private fun getUserWallet(userUuid: String) = walletService.getUserWallet(userUuid)
+    private fun getUserWallet(userUuid: UUID) = walletService.getUserWallet(userUuid)
         ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User does not have the wallet")
 
     private fun getProjectWallet(project: Project) = project.wallet

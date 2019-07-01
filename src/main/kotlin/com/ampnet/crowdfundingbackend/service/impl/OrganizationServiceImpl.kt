@@ -20,6 +20,7 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @Service
 class OrganizationServiceImpl(
@@ -73,7 +74,7 @@ class OrganizationServiceImpl(
     }
 
     @Transactional
-    override fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: String): Organization {
+    override fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: UUID): Organization {
         val organization = getOrganization(organizationId)
         val wallet = organization.wallet ?: throw ResourceNotFoundException(
                 ErrorCode.WALLET_MISSING, "Organization need to have wallet before it can be approved"
@@ -86,7 +87,7 @@ class OrganizationServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllOrganizationsForUser(userUuid: String): List<Organization> {
+    override fun findAllOrganizationsForUser(userUuid: UUID): List<Organization> {
         return organizationRepository.findAllOrganizationsForUserUuid(userUuid)
     }
 
@@ -97,7 +98,7 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun addUserToOrganization(
-        userUuid: String,
+        userUuid: UUID,
         organizationId: Int,
         role: OrganizationRoleType
     ): OrganizationMembership {

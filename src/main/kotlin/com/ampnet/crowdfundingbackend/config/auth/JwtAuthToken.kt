@@ -16,7 +16,7 @@ class JwtAuthToken(private val token: String, private val userPrincipal: UserPri
     }
 
     override fun getName(): String? {
-        return userPrincipal?.uuid
+        return userPrincipal?.uuid.toString()
     }
 
     override fun getCredentials(): Any {
