@@ -117,6 +117,18 @@ class OrganizationServiceImpl(
     }
 
     @Transactional
+    override fun removeUserFromOrganization(userUuid: UUID, organizationId: Int) {
+        membershipRepository.findByOrganizationIdAndUserUuid(organizationId, userUuid).ifPresent {
+            membershipRepository.delete(it)
+        }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAllMembersForOrganization(organizationId: Int): List<OrganizationMembership> {
+        return membershipRepository.findByOrganizationId(organizationId)
+    }
+
+    @Transactional
     override fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document {
         val organization = getOrganization(organizationId)
         val document = storageService.saveDocument(request)

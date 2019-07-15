@@ -15,8 +15,12 @@ interface OrganizationService {
     fun findOrganizationByIdWithWallet(id: Int): Organization?
     fun approveOrganization(organizationId: Int, approve: Boolean, approvedBy: UUID): Organization
     fun findAllOrganizationsForUser(userUuid: UUID): List<Organization>
+
+    // TODO: extract to OrganizationMembershipService
     fun getOrganizationMemberships(organizationId: Int): List<OrganizationMembership>
     fun addUserToOrganization(userUuid: UUID, organizationId: Int, role: OrganizationRoleType): OrganizationMembership
+    fun removeUserFromOrganization(userUuid: UUID, organizationId: Int)
+    fun getAllMembersForOrganization(organizationId: Int): List<OrganizationMembership>
 
     fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document
     fun removeDocument(organizationId: Int, documentId: Int)
