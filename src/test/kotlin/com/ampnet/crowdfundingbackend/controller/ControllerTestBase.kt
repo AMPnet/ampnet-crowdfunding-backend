@@ -68,7 +68,7 @@ abstract class ControllerTestBase : TestBase() {
     @Autowired
     protected lateinit var organizationRepository: OrganizationRepository
     @Autowired
-    private lateinit var membershipRepository: OrganizationMembershipRepository
+    protected lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     protected lateinit var blockchainService: BlockchainService
     @Autowired

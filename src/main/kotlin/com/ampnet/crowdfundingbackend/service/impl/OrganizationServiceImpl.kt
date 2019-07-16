@@ -123,11 +123,6 @@ class OrganizationServiceImpl(
         }
     }
 
-    @Transactional(readOnly = true)
-    override fun getAllMembersForOrganization(organizationId: Int): List<OrganizationMembership> {
-        return membershipRepository.findByOrganizationId(organizationId)
-    }
-
     @Transactional
     override fun addDocument(organizationId: Int, request: DocumentSaveRequest): Document {
         val organization = getOrganization(organizationId)

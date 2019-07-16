@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationMembershipsResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
@@ -70,10 +71,10 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(organizationWithDocumentResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(organizationWithDocumentResponse.walletHash).isNull()
 
-            testContext.organizationId = organizationWithDocumentResponse.id
+            testContext.createdOrganizationId = organizationWithDocumentResponse.id
         }
         verify("Organization is stored in database") {
-            val organization = organizationService.findOrganizationById(testContext.organizationId)
+            val organization = organizationService.findOrganizationById(testContext.createdOrganizationId)
                     ?: fail("Organization must no be null")
             assertThat(organization.name).isEqualTo(testContext.organizationRequest.name)
             assertThat(organization.legalInfo).isEqualTo(testContext.organizationRequest.legalInfo)
@@ -237,6 +238,58 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Test
     @WithMockCrowdfoundUser
+    fun mustBeAbleToDeleteOrganizationMember() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", userUuid)
+        }
+        suppose("User is a admin of organization") {
+            addUserToOrganization(userUuid, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Organization has a member") {
+            testContext.member = UUID.randomUUID()
+            addUserToOrganization(testContext.member, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can delete organization member") {
+            mockMvc.perform(
+                    delete("$organizationPath/${testContext.organization.id}/members/${testContext.member}"))
+                    .andExpect(status().isOk)
+        }
+        verify("Member is delete from organization") {
+            val memberships = membershipRepository.findByOrganizationId(testContext.organization.id)
+            assertThat(memberships).hasSize(1)
+            assertThat(memberships[0].userUuid).isNotEqualTo(testContext.member)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetOrganizationMembers() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", userUuid)
+        }
+        suppose("User is a admin of organization") {
+            addUserToOrganization(userUuid, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Organization has a member") {
+            testContext.member = UUID.randomUUID()
+            addUserToOrganization(testContext.member, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("Controller returns all organization members") {
+            val result = mockMvc.perform(get("$organizationPath/${testContext.organization.id}/members"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val members: OrganizationMembershipsResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(members.members).hasSize(2)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
     fun mustBeAbleToStoreDocumentForOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
@@ -326,11 +379,12 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     private class TestContext {
         lateinit var organizationRequest: OrganizationRequest
-        var organizationId: Int = -1
+        var createdOrganizationId: Int = -1
         lateinit var organization: Organization
         val documentLink = "link"
         lateinit var document: Document
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
+        lateinit var member: UUID
     }
 }

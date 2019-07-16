@@ -213,20 +213,30 @@ include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserI
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
 
 ==== Accept invitation
-`/me/invites/{organizationId}/accept`
-
 .Request
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-response.adoc[]
 
 ==== Reject invitation
-`/me/invites/{organizationId}/reject`
-
 .Request
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-response.adoc[]
+
+=== Members
+
+==== List all members
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganizationMembers/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganizationMembers/http-response.adoc[]
+
+==== Delete a member
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationMember/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationMember/http-response.adoc[]
 
 == Project API
 Collection of endpoints for managing project

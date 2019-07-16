@@ -228,7 +228,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
             organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
             organizationService.addUserToOrganization(
                     testContext.member, organization.id, OrganizationRoleType.ORG_MEMBER)
-
         }
         suppose("There is another organization with members") {
             val additionalOrganization = createOrganization("Second organization", userUuid)
@@ -237,7 +236,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
 
         verify("Service will list all members of organization") {
-            val memberships = organizationService.getAllMembersForOrganization(organization.id)
+            val memberships = organizationService.getOrganizationMemberships(organization.id)
             assertThat(memberships).hasSize(2)
             assertThat(memberships.map { it.userUuid }).containsAll(listOf(userUuid, testContext.member))
         }
