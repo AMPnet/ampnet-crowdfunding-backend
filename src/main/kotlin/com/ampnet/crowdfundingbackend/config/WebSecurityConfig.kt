@@ -55,7 +55,8 @@ class WebSecurityConfig(
         configuration.allowedHeaders = listOf(
             HttpHeaders.AUTHORIZATION,
             HttpHeaders.CONTENT_TYPE,
-            HttpHeaders.CACHE_CONTROL
+            HttpHeaders.CACHE_CONTROL,
+            HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS
         )
 
         val source = UrlBasedCorsConfigurationSource()
