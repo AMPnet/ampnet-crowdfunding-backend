@@ -49,6 +49,7 @@ class WebSecurityConfig(
             HttpMethod.GET.name,
             HttpMethod.POST.name,
             HttpMethod.PUT.name,
+            HttpMethod.OPTIONS.name,
             HttpMethod.DELETE.name
         )
         configuration.allowedHeaders = listOf(
