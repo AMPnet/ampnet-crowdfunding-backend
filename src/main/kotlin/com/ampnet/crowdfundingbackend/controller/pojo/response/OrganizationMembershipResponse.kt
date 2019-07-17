@@ -1,17 +1,24 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.response
 
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
+import com.ampnet.crowdfundingbackend.userservice.pojo.UserResponse
 import java.time.ZonedDateTime
+import java.util.UUID
 
 data class OrganizationMembershipsResponse(val members: List<OrganizationMembershipResponse>)
 
 data class OrganizationMembershipResponse(
-    val uuid: String,
-    val name: String,
+    val uuid: UUID,
+    val firstName: String,
+    val lastName: String,
     val role: String,
     val memberSince: ZonedDateTime
 ) {
-    constructor(membership: OrganizationMembership, name: String) : this(
-        membership.userUuid.toString(), name, membership.role.name, membership.createdAt
+    constructor(membership: OrganizationMembership, userResponse: UserResponse?) : this(
+        membership.userUuid,
+        userResponse?.firstName.orEmpty(),
+        userResponse?.lastName.orEmpty(),
+        membership.role.name,
+        membership.createdAt
     )
 }

@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithD
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
+import com.ampnet.crowdfundingbackend.userservice.UserService
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -26,7 +27,10 @@ import java.util.UUID
 import javax.validation.Valid
 
 @RestController
-class OrganizationController(private val organizationService: OrganizationService) {
+class OrganizationController(
+    private val organizationService: OrganizationService,
+    private val userService: UserService
+) {
 
     companion object : KLogging()
 
@@ -88,8 +92,11 @@ class OrganizationController(private val organizationService: OrganizationServic
 
         return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
             val members = organizationService.getOrganizationMemberships(organizationId)
-            // TODO: fetch users for user-service
-            val membersResponse = members.map { OrganizationMembershipResponse(it, "name") }
+            val users = userService.getUsers(members.map { it.userUuid })
+
+            val membersResponse = members.map {
+                OrganizationMembershipResponse(it, users.firstOrNull { user -> user.uuid == it.userUuid })
+            }
             OrganizationMembershipsResponse(membersResponse)
         }
     }

@@ -11,6 +11,8 @@ import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
+import com.ampnet.crowdfundingbackend.userservice.UserService
+import com.ampnet.crowdfundingbackend.userservice.pojo.UserResponse
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -34,6 +36,8 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var organizationService: OrganizationService
+    @Autowired
+    private lateinit var userService: UserService
 
     private lateinit var testContext: TestContext
 
@@ -277,6 +281,13 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.member = UUID.randomUUID()
             addUserToOrganization(testContext.member, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
         }
+        suppose("User service will return user data") {
+            val userResponse = UserResponse(userUuid, "email@mail.com", "first", "last", true)
+            val memberResponse = UserResponse(testContext.member, "email@mail.com", "ss", "ll", true)
+            testContext.userResponses = listOf(userResponse, memberResponse)
+            Mockito.`when`(userService.getUsers(listOf(userUuid, testContext.member)))
+                    .thenReturn(testContext.userResponses)
+        }
 
         verify("Controller returns all organization members") {
             val result = mockMvc.perform(get("$organizationPath/${testContext.organization.id}/members"))
@@ -285,6 +296,14 @@ class OrganizationControllerTest : ControllerTestBase() {
 
             val members: OrganizationMembershipsResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(members.members).hasSize(2)
+            assertThat(members.members[0].uuid).isEqualTo(userUuid)
+            assertThat(members.members[0].firstName).isEqualTo(testContext.userResponses[0].firstName)
+            assertThat(members.members[0].lastName).isEqualTo(testContext.userResponses[0].lastName)
+            assertThat(members.members[0].role).isEqualTo(OrganizationRoleType.ORG_ADMIN.name)
+            assertThat(members.members[1].uuid).isEqualTo(testContext.member)
+            assertThat(members.members[1].firstName).isEqualTo(testContext.userResponses[1].firstName)
+            assertThat(members.members[1].lastName).isEqualTo(testContext.userResponses[1].lastName)
+            assertThat(members.members[1].role).isEqualTo(OrganizationRoleType.ORG_MEMBER.name)
         }
     }
 
@@ -386,5 +405,6 @@ class OrganizationControllerTest : ControllerTestBase() {
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
         lateinit var member: UUID
+        var userResponses: List<UserResponse> = emptyList()
     }
 }
