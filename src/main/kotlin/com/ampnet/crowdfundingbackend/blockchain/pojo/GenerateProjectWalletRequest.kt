@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.service.pojo
+package com.ampnet.crowdfundingbackend.blockchain.pojo
 
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import java.time.ZonedDateTime

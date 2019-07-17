@@ -11,8 +11,8 @@ import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.blockchain.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
