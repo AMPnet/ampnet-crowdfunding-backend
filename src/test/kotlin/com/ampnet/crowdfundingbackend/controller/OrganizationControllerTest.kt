@@ -12,7 +12,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.userservice.UserService
-import com.ampnet.crowdfundingbackend.userservice.pojo.UserResponse
+import com.ampnet.userservice.proto.UserResponse
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -282,8 +282,8 @@ class OrganizationControllerTest : ControllerTestBase() {
             addUserToOrganization(testContext.member, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
         }
         suppose("User service will return user data") {
-            val userResponse = UserResponse(userUuid, "email@mail.com", "first", "last", true)
-            val memberResponse = UserResponse(testContext.member, "email@mail.com", "ss", "ll", true)
+            val userResponse = createUserResponse(userUuid, "email@mail.com", "first", "last", true)
+            val memberResponse = createUserResponse(testContext.member, "email@mail.com", "ss", "ll", true)
             testContext.userResponses = listOf(userResponse, memberResponse)
             Mockito.`when`(userService.getUsers(listOf(userUuid, testContext.member)))
                     .thenReturn(testContext.userResponses)
@@ -395,6 +395,16 @@ class OrganizationControllerTest : ControllerTestBase() {
         organizationRepository.save(organization)
         return savedDocument
     }
+
+    private fun createUserResponse(uuid: UUID, email: String, first: String, last: String, enabled: Boolean):
+        UserResponse =
+            UserResponse.newBuilder()
+                    .setUuid(uuid.toString())
+                    .setEmail(email)
+                    .setFirstName(first)
+                    .setLastName(last)
+                    .setEnabled(enabled)
+                    .build()
 
     private class TestContext {
         lateinit var organizationRequest: OrganizationRequest

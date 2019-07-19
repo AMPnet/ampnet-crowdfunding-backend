@@ -1,6 +1,6 @@
 package com.ampnet.crowdfundingbackend.userservice
 
-import com.ampnet.crowdfundingbackend.userservice.pojo.UserResponse
+import com.ampnet.userservice.proto.UserResponse
 import java.util.UUID
 
 interface UserService {

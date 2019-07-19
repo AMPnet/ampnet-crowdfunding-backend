@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller.pojo.response
 
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
-import com.ampnet.crowdfundingbackend.userservice.pojo.UserResponse
+import com.ampnet.userservice.proto.UserResponse
 import java.time.ZonedDateTime
 import java.util.UUID
 

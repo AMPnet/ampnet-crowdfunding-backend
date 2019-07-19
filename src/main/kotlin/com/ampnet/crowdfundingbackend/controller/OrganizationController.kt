@@ -95,7 +95,7 @@ class OrganizationController(
             val users = userService.getUsers(members.map { it.userUuid })
 
             val membersResponse = members.map {
-                OrganizationMembershipResponse(it, users.firstOrNull { user -> user.uuid == it.userUuid })
+                OrganizationMembershipResponse(it, users.firstOrNull { user -> user.uuid == it.userUuid.toString() })
             }
             OrganizationMembershipsResponse(membersResponse)
         }

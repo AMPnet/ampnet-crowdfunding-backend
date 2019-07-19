@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.userservice
 
-import com.ampnet.crowdfundingbackend.userservice.pojo.UserResponse
 import com.ampnet.userservice.proto.GetUsersRequest
+import com.ampnet.userservice.proto.UserResponse
 import com.ampnet.userservice.proto.UserServiceGrpc
 import mu.KLogging
 import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory
@@ -25,6 +25,6 @@ class UserServiceImpl(
         val request = GetUsersRequest.newBuilder()
                 .addAllUuids(uuids.map { it.toString() })
                 .build()
-        return serviceBlockingStub.getUsers(request).usersList.map { UserResponse(it) }
+        return serviceBlockingStub.getUsers(request).usersList
     }
 }
