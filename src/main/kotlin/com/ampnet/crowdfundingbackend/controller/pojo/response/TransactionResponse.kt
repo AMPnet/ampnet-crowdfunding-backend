@@ -9,7 +9,6 @@ data class TransactionResponse(
     val tx: TransactionData,
     val txId: Int,
     val info: TransactionInfoResponse
-        // TODO: add infoSig
 ) {
     constructor(transaction: TransactionDataAndInfo) : this(
         transaction.transactionData,

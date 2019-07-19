@@ -66,15 +66,6 @@ include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-r
 .Response
 include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-response.adoc[]
 
-// TODO: check test
-//===== User did not create the project
-//User can only access a wallet for project HE created
-//
-//.Request
-//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-//.Response
-//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
-
 ===== Non existing project
 .Request
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-request.adoc[]

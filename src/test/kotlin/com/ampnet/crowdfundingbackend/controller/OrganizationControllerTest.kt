@@ -287,6 +287,8 @@ class OrganizationControllerTest : ControllerTestBase() {
             testContext.userResponses = listOf(userResponse, memberResponse)
             Mockito.`when`(userService.getUsers(listOf(userUuid, testContext.member)))
                     .thenReturn(testContext.userResponses)
+            Mockito.`when`(userService.getUsers(listOf(testContext.member, userUuid)))
+                    .thenReturn(testContext.userResponses)
         }
 
         verify("Controller returns all organization members") {
@@ -295,15 +297,11 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andReturn()
 
             val members: OrganizationMembershipsResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(members.members).hasSize(2)
-            assertThat(members.members[0].uuid).isEqualTo(userUuid)
-            assertThat(members.members[0].firstName).isEqualTo(testContext.userResponses[0].firstName)
-            assertThat(members.members[0].lastName).isEqualTo(testContext.userResponses[0].lastName)
-            assertThat(members.members[0].role).isEqualTo(OrganizationRoleType.ORG_ADMIN.name)
-            assertThat(members.members[1].uuid).isEqualTo(testContext.member)
-            assertThat(members.members[1].firstName).isEqualTo(testContext.userResponses[1].firstName)
-            assertThat(members.members[1].lastName).isEqualTo(testContext.userResponses[1].lastName)
-            assertThat(members.members[1].role).isEqualTo(OrganizationRoleType.ORG_MEMBER.name)
+            assertThat(members.members.map { it.uuid }).hasSize(2).containsAll(listOf(userUuid, testContext.member))
+            assertThat(members.members.map { it.role }).hasSize(2)
+                    .containsAll(listOf(OrganizationRoleType.ORG_ADMIN.name, OrganizationRoleType.ORG_MEMBER.name))
+            assertThat(members.members.map { it.firstName }).containsAll(testContext.userResponses.map { it.firstName })
+            assertThat(members.members.map { it.lastName }).containsAll(testContext.userResponses.map { it.lastName })
         }
     }
 

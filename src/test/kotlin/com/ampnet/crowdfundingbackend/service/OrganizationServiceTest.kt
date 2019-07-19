@@ -105,7 +105,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     }
 
     @Test
-    fun userCanGetListOfHisOrganizations() {
+    fun userCanGetListOfPersonalOrganizations() {
         suppose("User is a member of two organizations") {
             databaseCleanerService.deleteAllOrganizationMemberships()
             testContext.secondOrganization = createOrganization("Second org", userUuid)
