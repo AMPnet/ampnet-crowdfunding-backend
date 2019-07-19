@@ -241,6 +241,12 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationMem
 == Project API
 Collection of endpoints for managing project
 
+=== Get all projects
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnAllProjects/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnAllProjects/http-response.adoc[]
+
 === Get project
 .Request
 include::{snippets}/ProjectControllerTest/mustReturnProject/http-request.adoc[]

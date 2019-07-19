@@ -55,6 +55,14 @@ class ProjectController(
         return ResponseEntity.ok(response)
     }
 
+    @GetMapping("/project")
+    fun getProject(): ResponseEntity<ProjectListResponse> {
+        logger.debug { "Received request to get project all projects" }
+        val projectsResponse = projectService.getAllProjects().map { ProjectResponse(it) }
+        val response = ProjectListResponse(projectsResponse)
+        return ResponseEntity.ok(response)
+    }
+
     @PostMapping("/project")
     fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectWithFundingResponse> {
         logger.debug { "Received request to create project: $request" }

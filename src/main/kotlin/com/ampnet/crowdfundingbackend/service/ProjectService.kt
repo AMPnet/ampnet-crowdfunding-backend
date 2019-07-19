@@ -11,6 +11,8 @@ interface ProjectService {
     fun getProjectByIdWithWallet(id: Int): Project?
     fun getProjectByIdWithAllData(id: Int): Project?
     fun getAllProjectsForOrganization(organizationId: Int): List<Project>
+    fun getAllProjects(): List<Project>
+
     fun addMainImage(project: Project, name: String, content: ByteArray)
     fun addImageToGallery(project: Project, name: String, content: ByteArray)
     fun removeImagesFromGallery(project: Project, images: List<String>)

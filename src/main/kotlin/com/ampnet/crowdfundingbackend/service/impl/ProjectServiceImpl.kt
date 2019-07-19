@@ -59,6 +59,11 @@ class ProjectServiceImpl(
         return projectRepository.findAllByOrganizationId(organizationId)
     }
 
+    @Transactional(readOnly = true)
+    override fun getAllProjects(): List<Project> {
+        return projectRepository.findAll()
+    }
+
     @Transactional
     override fun addMainImage(project: Project, name: String, content: ByteArray) {
         val link = storageService.saveImage(name, content)

@@ -95,6 +95,31 @@ class ProjectControllerTest : ControllerTestBase() {
 
     @Test
     @WithMockCrowdfoundUser
+    fun mustReturnAllProjects() {
+        suppose("Project exists") {
+            testContext.project = createProject("My project", organization, userUuid)
+        }
+        suppose("Another organization has project") {
+            val secondOrganization = createOrganization("Second organization", userUuid)
+            createWalletForOrganization(secondOrganization,
+                    "0xacv23e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
+            testContext.secondProject = createProject("Second project", secondOrganization, userUuid)
+        }
+
+        verify("Controller will return all projects") {
+            val result = mockMvc.perform(get(projectPath))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val projectsResponse: ProjectListResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(projectsResponse.projects).hasSize(2)
+            assertThat(projectsResponse.projects.map { it.id })
+                    .containsAll(listOf(testContext.project.id, testContext.secondProject.id))
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
     fun mustReturnProjectWithDocumentsAndFunding() {
         suppose("Project exists") {
             testContext.project = createProject("My project", organization, userUuid)
