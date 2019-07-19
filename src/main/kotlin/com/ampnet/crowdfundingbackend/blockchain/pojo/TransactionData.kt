@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.service.pojo
+package com.ampnet.crowdfundingbackend.blockchain.pojo
 
 import com.ampnet.crowdfunding.proto.RawTxResponse
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo

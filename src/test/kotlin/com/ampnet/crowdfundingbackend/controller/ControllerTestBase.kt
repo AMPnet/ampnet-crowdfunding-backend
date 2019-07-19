@@ -49,7 +49,7 @@ import java.util.UUID
 
 @ExtendWith(value = [SpringExtension::class, RestDocumentationExtension::class])
 @SpringBootTest
-@ActiveProfiles("MailMockConfig, BlockchainServiceMockConfig, CloudStorageMockConfig")
+@ActiveProfiles("MailMockConfig, GrpcServiceMockConfig, CloudStorageMockConfig")
 abstract class ControllerTestBase : TestBase() {
 
     protected val defaultEmail = "user@email.com"
@@ -68,7 +68,7 @@ abstract class ControllerTestBase : TestBase() {
     @Autowired
     protected lateinit var organizationRepository: OrganizationRepository
     @Autowired
-    private lateinit var membershipRepository: OrganizationMembershipRepository
+    protected lateinit var membershipRepository: OrganizationMembershipRepository
     @Autowired
     protected lateinit var blockchainService: BlockchainService
     @Autowired

@@ -12,7 +12,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WalletServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach

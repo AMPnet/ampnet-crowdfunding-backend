@@ -1,9 +1,9 @@
 package com.ampnet.crowdfundingbackend.blockchain
 
 import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
-import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.blockchain.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
 
 interface BlockchainService {
     fun getBalance(hash: String): Long

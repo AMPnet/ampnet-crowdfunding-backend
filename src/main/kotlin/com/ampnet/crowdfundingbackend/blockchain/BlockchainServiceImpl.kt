@@ -14,9 +14,9 @@ import com.ampnet.crowdfunding.proto.PostVaultTxRequest
 import com.ampnet.crowdfundingbackend.blockchain.pojo.ProjectInvestmentTxRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InternalException
-import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.blockchain.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import mu.KLogging

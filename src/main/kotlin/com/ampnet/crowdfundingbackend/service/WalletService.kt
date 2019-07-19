@@ -4,7 +4,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateReques
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
 import java.util.UUID
 
 interface WalletService {

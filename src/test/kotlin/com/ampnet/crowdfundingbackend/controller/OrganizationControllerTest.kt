@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationMembershipsResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
@@ -10,6 +11,8 @@ import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
+import com.ampnet.crowdfundingbackend.userservice.UserService
+import com.ampnet.userservice.proto.UserResponse
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -33,6 +36,8 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var organizationService: OrganizationService
+    @Autowired
+    private lateinit var userService: UserService
 
     private lateinit var testContext: TestContext
 
@@ -70,10 +75,10 @@ class OrganizationControllerTest : ControllerTestBase() {
             assertThat(organizationWithDocumentResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(organizationWithDocumentResponse.walletHash).isNull()
 
-            testContext.organizationId = organizationWithDocumentResponse.id
+            testContext.createdOrganizationId = organizationWithDocumentResponse.id
         }
         verify("Organization is stored in database") {
-            val organization = organizationService.findOrganizationById(testContext.organizationId)
+            val organization = organizationService.findOrganizationById(testContext.createdOrganizationId)
                     ?: fail("Organization must no be null")
             assertThat(organization.name).isEqualTo(testContext.organizationRequest.name)
             assertThat(organization.legalInfo).isEqualTo(testContext.organizationRequest.legalInfo)
@@ -237,6 +242,73 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Test
     @WithMockCrowdfoundUser
+    fun mustBeAbleToDeleteOrganizationMember() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", userUuid)
+        }
+        suppose("User is a admin of organization") {
+            addUserToOrganization(userUuid, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Organization has a member") {
+            testContext.member = UUID.randomUUID()
+            addUserToOrganization(testContext.member, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can delete organization member") {
+            mockMvc.perform(
+                    delete("$organizationPath/${testContext.organization.id}/members/${testContext.member}"))
+                    .andExpect(status().isOk)
+        }
+        verify("Member is delete from organization") {
+            val memberships = membershipRepository.findByOrganizationId(testContext.organization.id)
+            assertThat(memberships).hasSize(1)
+            assertThat(memberships[0].userUuid).isNotEqualTo(testContext.member)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetOrganizationMembers() {
+        suppose("Organization exists") {
+            databaseCleanerService.deleteAllOrganizations()
+            testContext.organization = createOrganization("test organization", userUuid)
+        }
+        suppose("User is a admin of organization") {
+            addUserToOrganization(userUuid, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Organization has a member") {
+            testContext.member = UUID.randomUUID()
+            addUserToOrganization(testContext.member, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+        suppose("User service will return user data") {
+            val userResponse = createUserResponse(userUuid, "email@mail.com", "first", "last", true)
+            val memberResponse = createUserResponse(testContext.member, "email@mail.com", "ss", "ll", true)
+            testContext.userResponses = listOf(userResponse, memberResponse)
+            Mockito.`when`(userService.getUsers(listOf(userUuid, testContext.member)))
+                    .thenReturn(testContext.userResponses)
+        }
+
+        verify("Controller returns all organization members") {
+            val result = mockMvc.perform(get("$organizationPath/${testContext.organization.id}/members"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val members: OrganizationMembershipsResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(members.members).hasSize(2)
+            assertThat(members.members[0].uuid).isEqualTo(userUuid)
+            assertThat(members.members[0].firstName).isEqualTo(testContext.userResponses[0].firstName)
+            assertThat(members.members[0].lastName).isEqualTo(testContext.userResponses[0].lastName)
+            assertThat(members.members[0].role).isEqualTo(OrganizationRoleType.ORG_ADMIN.name)
+            assertThat(members.members[1].uuid).isEqualTo(testContext.member)
+            assertThat(members.members[1].firstName).isEqualTo(testContext.userResponses[1].firstName)
+            assertThat(members.members[1].lastName).isEqualTo(testContext.userResponses[1].lastName)
+            assertThat(members.members[1].role).isEqualTo(OrganizationRoleType.ORG_MEMBER.name)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
     fun mustBeAbleToStoreDocumentForOrganization() {
         suppose("Organization exists") {
             databaseCleanerService.deleteAllOrganizations()
@@ -324,13 +396,25 @@ class OrganizationControllerTest : ControllerTestBase() {
         return savedDocument
     }
 
+    private fun createUserResponse(uuid: UUID, email: String, first: String, last: String, enabled: Boolean):
+        UserResponse =
+            UserResponse.newBuilder()
+                    .setUuid(uuid.toString())
+                    .setEmail(email)
+                    .setFirstName(first)
+                    .setLastName(last)
+                    .setEnabled(enabled)
+                    .build()
+
     private class TestContext {
         lateinit var organizationRequest: OrganizationRequest
-        var organizationId: Int = -1
+        var createdOrganizationId: Int = -1
         lateinit var organization: Organization
         val documentLink = "link"
         lateinit var document: Document
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
+        lateinit var member: UUID
+        var userResponses: List<UserResponse> = emptyList()
     }
 }
