@@ -270,7 +270,7 @@ class ProjectControllerTest : ControllerTestBase() {
 
         verify("Admin can update project") {
             testContext.projectUpdateRequest =
-                    ProjectUpdateRequest("new name", "description", "newLoc", "New Location", "0.1%")
+                    ProjectUpdateRequest("new name", "description", "newLoc", "New Location", "0.1%", false)
             val result = mockMvc.perform(
                     post("$projectPath/${testContext.project.id}")
                             .content(objectMapper.writeValueAsString(testContext.projectUpdateRequest))
@@ -286,6 +286,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(projectResponse.locationText).isEqualTo(testContext.projectUpdateRequest.locationText)
             assertThat(projectResponse.returnOnInvestment)
                     .isEqualTo(testContext.projectUpdateRequest.returnOnInvestment)
+            assertThat(projectResponse.active).isEqualTo(testContext.projectUpdateRequest.active)
         }
         verify("Project is updated") {
             val optionalProject = projectRepository.findById(testContext.project.id)
@@ -296,6 +297,7 @@ class ProjectControllerTest : ControllerTestBase() {
             assertThat(updatedProject.location).isEqualTo(testContext.projectUpdateRequest.location)
             assertThat(updatedProject.locationText).isEqualTo(testContext.projectUpdateRequest.locationText)
             assertThat(updatedProject.returnOnInvestment).isEqualTo(testContext.projectUpdateRequest.returnOnInvestment)
+            assertThat(updatedProject.active).isEqualTo(testContext.projectUpdateRequest.active)
         }
     }
 
@@ -312,7 +314,7 @@ class ProjectControllerTest : ControllerTestBase() {
 
         verify("User cannot update project") {
             testContext.projectUpdateRequest =
-                    ProjectUpdateRequest("new name", "description", "newLoc", "New Location", "0.1%")
+                    ProjectUpdateRequest("new name", "description", "newLoc", "New Location", "0.1%", false)
             mockMvc.perform(
                     post("$projectPath/${testContext.project.id}")
                             .content(objectMapper.writeValueAsString(testContext.projectUpdateRequest))
@@ -326,7 +328,7 @@ class ProjectControllerTest : ControllerTestBase() {
     fun mustReturnErrorForUpdatingNonExistingProject() {
         verify("User cannot update non existing project") {
             testContext.projectUpdateRequest =
-                    ProjectUpdateRequest("new name", "description", null, null, null)
+                    ProjectUpdateRequest("new name", "description", null, null, null, false)
             val response = mockMvc.perform(
                     post("$projectPath/0")
                             .content(objectMapper.writeValueAsString(testContext.projectUpdateRequest))

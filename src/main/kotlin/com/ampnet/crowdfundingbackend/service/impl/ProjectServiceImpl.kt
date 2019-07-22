@@ -72,6 +72,7 @@ class ProjectServiceImpl(
         request.location?.let { project.location = it }
         request.locationText?.let { project.locationText = it }
         request.returnOnInvestment?.let { project.returnOnInvestment = it }
+        request.active?.let { project.active = it }
         return projectRepository.save(project)
     }
 

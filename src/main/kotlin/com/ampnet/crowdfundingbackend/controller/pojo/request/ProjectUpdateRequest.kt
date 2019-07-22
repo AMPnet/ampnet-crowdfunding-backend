@@ -5,5 +5,6 @@ data class ProjectUpdateRequest(
     val description: String?,
     val location: String?,
     val locationText: String?,
-    val returnOnInvestment: String?
+    val returnOnInvestment: String?,
+    val active: Boolean?
 )
