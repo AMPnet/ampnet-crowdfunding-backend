@@ -21,6 +21,8 @@ import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.blockchain.pojo.GenerateProjectWalletRequest
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
+import com.ampnet.crowdfundingbackend.persistence.model.PairWalletCode
+import com.ampnet.crowdfundingbackend.persistence.repository.PairWalletCodeRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,10 +36,13 @@ class WalletServiceImpl(
     private val organizationRepository: OrganizationRepository,
     private val userWalletRepository: UserWalletRepository,
     private val blockchainService: BlockchainService,
-    private val transactionInfoService: TransactionInfoService
+    private val transactionInfoService: TransactionInfoService,
+    private val pairWalletCodeRepository: PairWalletCodeRepository
 ) : WalletService {
 
     companion object : KLogging()
+
+    private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 
     @Transactional(readOnly = true)
     @Throws(InternalException::class)
@@ -55,6 +60,9 @@ class WalletServiceImpl(
     override fun createUserWallet(userUuid: UUID, request: WalletCreateRequest): Wallet {
         userWalletRepository.findByUserUuid(userUuid).ifPresent {
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_EXISTS, "User: $userUuid already has a wallet.")
+        }
+        pairWalletCodeRepository.findByAddress(request.address).ifPresent {
+            pairWalletCodeRepository.delete(it)
         }
 
         val txHash = blockchainService.addWallet(request.address, request.publicKey)
@@ -113,6 +121,23 @@ class WalletServiceImpl(
         return wallet
     }
 
+    @Transactional
+    override fun generatePairWalletCode(request: WalletCreateRequest): PairWalletCode {
+        // TODO: potential problem of accumulating generated unused codes
+        pairWalletCodeRepository.findByAddress(request.address).ifPresent {
+            throw ResourceAlreadyExistsException(
+                    ErrorCode.WALLET_HASH_EXISTS, "Wallet with this address already exists")
+        }
+        val code = generatePairWalletCode()
+        val pairWalletCode = PairWalletCode(0, request.address, request.publicKey, code)
+        return pairWalletCodeRepository.save(pairWalletCode)
+    }
+
+    @Transactional(readOnly = true)
+    override fun getPairWalletCode(code: String): PairWalletCode? {
+        return ServiceUtils.wrapOptional(pairWalletCodeRepository.findByCode(code))
+    }
+
     private fun createWallet(hash: String, type: WalletType): Wallet {
         if (walletRepository.findByHash(hash).isPresent) {
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_HASH_EXISTS,
@@ -135,4 +160,9 @@ class WalletServiceImpl(
                     "Organization: ${organization.name} already has a wallet.")
         }
     }
+
+    private fun generatePairWalletCode(): String = (1..6)
+        .map { kotlin.random.Random.nextInt(0, charPool.size) }
+        .map(charPool::get)
+        .joinToString("")
 }

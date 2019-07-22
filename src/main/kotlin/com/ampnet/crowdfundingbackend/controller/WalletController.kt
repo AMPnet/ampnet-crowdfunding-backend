@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.PairWalletResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -28,6 +29,22 @@ class WalletController(
     companion object : KLogging()
 
     /* User Wallet */
+    @GetMapping("/wallet/pair/{code}")
+    fun getPairWalletCode(@PathVariable code: String): ResponseEntity<PairWalletResponse> {
+        logger.debug { "Received request getPairWalletCode" }
+        walletService.getPairWalletCode(code)?.let {
+            return ResponseEntity.ok(PairWalletResponse(it))
+        }
+        return ResponseEntity.notFound().build()
+    }
+
+    @PostMapping("/wallet/pair")
+    fun generatePairWalletCode(@RequestBody @Valid request: WalletCreateRequest): ResponseEntity<PairWalletResponse> {
+        logger.debug { "Received request to pair wallet: $request" }
+        val pairWalletCode = walletService.generatePairWalletCode(request)
+        return ResponseEntity.ok(PairWalletResponse(pairWalletCode))
+    }
+
     @GetMapping("/wallet")
     fun getMyWallet(): ResponseEntity<WalletResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
