@@ -266,6 +266,12 @@ include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganiz
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]
 
+=== Update
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToUpdateProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToUpdateProject/http-response.adoc[]
+
 === Documents
 
 ==== Add document for project
