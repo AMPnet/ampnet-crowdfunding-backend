@@ -123,10 +123,8 @@ class WalletServiceImpl(
 
     @Transactional
     override fun generatePairWalletCode(request: WalletCreateRequest): PairWalletCode {
-        // TODO: potential problem of accumulating generated unused codes
         pairWalletCodeRepository.findByAddress(request.address).ifPresent {
-            throw ResourceAlreadyExistsException(
-                    ErrorCode.WALLET_HASH_EXISTS, "Wallet with this address already exists")
+            pairWalletCodeRepository.delete(it)
         }
         val code = generatePairWalletCode()
         val pairWalletCode = PairWalletCode(0, request.address, request.publicKey, code)
