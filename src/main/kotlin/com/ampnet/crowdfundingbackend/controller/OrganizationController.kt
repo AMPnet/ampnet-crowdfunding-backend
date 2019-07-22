@@ -92,9 +92,10 @@ class OrganizationController(
 
         return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
             val members = organizationService.getOrganizationMemberships(organizationId)
-            val users = userService.getUsers(members.map { it.userUuid })
+            val membersWithoutMe = members.filter { userPrincipal.uuid != it.userUuid }
+            val users = userService.getUsers(membersWithoutMe.map { it.userUuid })
 
-            val membersResponse = members.map {
+            val membersResponse = membersWithoutMe.map {
                 OrganizationMembershipResponse(it, users.firstOrNull { user -> user.uuid == it.userUuid.toString() })
             }
             OrganizationMembershipsResponse(membersResponse)
