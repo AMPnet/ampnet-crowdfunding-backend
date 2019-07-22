@@ -18,6 +18,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectUpdateRequest
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -216,6 +217,7 @@ class ProjectControllerTest : ControllerTestBase() {
                     post(projectPath)
                             .content(objectMapper.writeValueAsString(testContext.projectRequest))
                             .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk)
                     .andReturn()
 
             val projectResponse: ProjectWithFundingResponse = objectMapper.readValue(result.response.contentAsString)
@@ -252,6 +254,85 @@ class ProjectControllerTest : ControllerTestBase() {
         verify("Project is stored in database") {
             val optionalProject = projectRepository.findByIdWithOrganization(testContext.projectId)
             assertThat(optionalProject).isPresent
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToUpdateProject() {
+        suppose("User is an admin of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
+        }
+        suppose("Project exists") {
+            testContext.project = createProject("My project", organization, userUuid)
+        }
+
+        verify("Admin can update project") {
+            testContext.projectUpdateRequest =
+                    ProjectUpdateRequest("new name", "description", "newLoc", "New Location", "0.1%")
+            val result = mockMvc.perform(
+                    post("$projectPath/${testContext.project.id}")
+                            .content(objectMapper.writeValueAsString(testContext.projectUpdateRequest))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val projectResponse: ProjectResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(projectResponse.id).isEqualTo(testContext.project.id)
+            assertThat(projectResponse.name).isEqualTo(testContext.projectUpdateRequest.name)
+            assertThat(projectResponse.description).isEqualTo(testContext.projectUpdateRequest.description)
+            assertThat(projectResponse.location).isEqualTo(testContext.projectUpdateRequest.location)
+            assertThat(projectResponse.locationText).isEqualTo(testContext.projectUpdateRequest.locationText)
+            assertThat(projectResponse.returnOnInvestment)
+                    .isEqualTo(testContext.projectUpdateRequest.returnOnInvestment)
+        }
+        verify("Project is updated") {
+            val optionalProject = projectRepository.findById(testContext.project.id)
+            assertThat(optionalProject).isPresent
+            val updatedProject = optionalProject.get()
+            assertThat(updatedProject.name).isEqualTo(testContext.projectUpdateRequest.name)
+            assertThat(updatedProject.description).isEqualTo(testContext.projectUpdateRequest.description)
+            assertThat(updatedProject.location).isEqualTo(testContext.projectUpdateRequest.location)
+            assertThat(updatedProject.locationText).isEqualTo(testContext.projectUpdateRequest.locationText)
+            assertThat(updatedProject.returnOnInvestment).isEqualTo(testContext.projectUpdateRequest.returnOnInvestment)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustReturnForbiddenIfUserIsMissingOrgPrivileges() {
+        suppose("User is a member of organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+        suppose("Project exists") {
+            testContext.project = createProject("My project", organization, userUuid)
+        }
+
+        verify("User cannot update project") {
+            testContext.projectUpdateRequest =
+                    ProjectUpdateRequest("new name", "description", "newLoc", "New Location", "0.1%")
+            mockMvc.perform(
+                    post("$projectPath/${testContext.project.id}")
+                            .content(objectMapper.writeValueAsString(testContext.projectUpdateRequest))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isForbidden)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustReturnErrorForUpdatingNonExistingProject() {
+        verify("User cannot update non existing project") {
+            testContext.projectUpdateRequest =
+                    ProjectUpdateRequest("new name", "description", null, null, null)
+            val response = mockMvc.perform(
+                    post("$projectPath/0")
+                            .content(objectMapper.writeValueAsString(testContext.projectUpdateRequest))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andReturn()
+            verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
         }
     }
 
@@ -650,6 +731,7 @@ class ProjectControllerTest : ControllerTestBase() {
         lateinit var secondProject: Project
         lateinit var projectRequest: ProjectRequest
         lateinit var projectResponse: ProjectResponse
+        lateinit var projectUpdateRequest: ProjectUpdateRequest
         lateinit var multipartFile: MockMultipartFile
         lateinit var document: Document
         val documentLink = "link"

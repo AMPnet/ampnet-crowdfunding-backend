@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ImageLinkListRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.LinkRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectUpdateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
@@ -70,6 +71,21 @@ class ProjectController(
 
         return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, request.organizationId) {
             createProject(request, userPrincipal.uuid)
+        }
+    }
+
+    @PostMapping("/project/{projectId}")
+    fun updateProject(
+        @PathVariable("projectId") projectId: Int,
+        @RequestBody @Valid request: ProjectUpdateRequest
+    ): ResponseEntity<ProjectResponse> {
+        logger.debug { "Received request to update project with id: $projectId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        val project = getProjectById(projectId)
+
+        return ifUserHasPrivilegeToWriteInProjectThenReturn(userPrincipal.uuid, project.organization.id) {
+            val updatedProject = projectService.updateProject(project, request)
+            ProjectResponse(updatedProject)
         }
     }
 

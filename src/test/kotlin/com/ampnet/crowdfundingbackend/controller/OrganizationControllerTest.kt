@@ -277,17 +277,20 @@ class OrganizationControllerTest : ControllerTestBase() {
         suppose("User is a admin of organization") {
             addUserToOrganization(userUuid, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
         }
-        suppose("Organization has a member") {
+        suppose("Organization has two members") {
             testContext.member = UUID.randomUUID()
+            testContext.memberSecond = UUID.randomUUID()
             addUserToOrganization(testContext.member, testContext.organization.id, OrganizationRoleType.ORG_MEMBER)
+            addUserToOrganization(
+                    testContext.memberSecond, testContext.organization.id, OrganizationRoleType.ORG_ADMIN)
         }
         suppose("User service will return user data") {
-            val userResponse = createUserResponse(userUuid, "email@mail.com", "first", "last", true)
+            val userResponse = createUserResponse(testContext.memberSecond, "email@mail.com", "first", "last", true)
             val memberResponse = createUserResponse(testContext.member, "email@mail.com", "ss", "ll", true)
             testContext.userResponses = listOf(userResponse, memberResponse)
-            Mockito.`when`(userService.getUsers(listOf(userUuid, testContext.member)))
+            Mockito.`when`(userService.getUsers(listOf(testContext.memberSecond, testContext.member)))
                     .thenReturn(testContext.userResponses)
-            Mockito.`when`(userService.getUsers(listOf(testContext.member, userUuid)))
+            Mockito.`when`(userService.getUsers(listOf(testContext.member, testContext.memberSecond)))
                     .thenReturn(testContext.userResponses)
         }
 
@@ -297,7 +300,8 @@ class OrganizationControllerTest : ControllerTestBase() {
                     .andReturn()
 
             val members: OrganizationMembershipsResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(members.members.map { it.uuid }).hasSize(2).containsAll(listOf(userUuid, testContext.member))
+            assertThat(members.members.map { it.uuid }).hasSize(2)
+                    .containsAll(listOf(testContext.memberSecond, testContext.member))
             assertThat(members.members.map { it.role }).hasSize(2)
                     .containsAll(listOf(OrganizationRoleType.ORG_ADMIN.name, OrganizationRoleType.ORG_MEMBER.name))
             assertThat(members.members.map { it.firstName }).containsAll(testContext.userResponses.map { it.firstName })
@@ -413,6 +417,7 @@ class OrganizationControllerTest : ControllerTestBase() {
         lateinit var multipartFile: MockMultipartFile
         val walletHash = "0x4e4ee58ff3a9e9e78c2dfdbac0d1518e4e1039f9189267e1dc8d3e35cbdf7892"
         lateinit var member: UUID
+        lateinit var memberSecond: UUID
         var userResponses: List<UserResponse> = emptyList()
     }
 }
