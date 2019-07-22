@@ -70,6 +70,8 @@ class WebSecurityConfig(
             .antMatchers("/actuator/**").permitAll()
             .antMatchers("/docs/index.html").permitAll()
             .antMatchers("/issuer/**").permitAll()
+            .antMatchers(HttpMethod.POST, "/wallet/pair").permitAll()
+            .antMatchers(HttpMethod.GET, "/wallet/pair/*").permitAll()
             .antMatchers(HttpMethod.POST, "/tx_broadcast").permitAll()
             .anyRequest().authenticated()
             .and()

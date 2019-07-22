@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
+import com.ampnet.crowdfundingbackend.persistence.model.PairWalletCode
 import java.util.UUID
 
 interface WalletService {
@@ -18,4 +19,6 @@ interface WalletService {
         userUuid: UUID
     ): TransactionDataAndInfo
     fun createOrganizationWallet(organization: Organization, signedTransaction: String): Wallet
+    fun generatePairWalletCode(request: WalletCreateRequest): PairWalletCode
+    fun getPairWalletCode(code: String): PairWalletCode?
 }

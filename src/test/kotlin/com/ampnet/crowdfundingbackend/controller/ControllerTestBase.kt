@@ -18,6 +18,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.PairWalletCodeRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.ProjectRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
@@ -79,6 +80,8 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var organizationInviteRepository: OrganizationInviteRepository
     @Autowired
     protected lateinit var userWalletRepository: UserWalletRepository
+    @Autowired
+    protected lateinit var pairWalletCodeRepository: PairWalletCodeRepository
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 

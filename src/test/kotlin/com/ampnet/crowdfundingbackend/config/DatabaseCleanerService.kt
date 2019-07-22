@@ -47,4 +47,9 @@ class DatabaseCleanerService(val em: EntityManager) {
     fun deleteAllTransactionInfo() {
         em.createNativeQuery("TRUNCATE transaction_info CASCADE ").executeUpdate()
     }
+
+    @Transactional
+    fun deleteAllPairWalletCodes() {
+        em.createNativeQuery("TRUNCATE pair_wallet_code CASCADE ").executeUpdate()
+    }
 }

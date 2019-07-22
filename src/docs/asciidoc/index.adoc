@@ -11,6 +11,20 @@ Collection of endpoints for managing wallets
 === User Wallet
 Collection of endpoints for managing User wallet
 
+==== Pair wallet
+
+===== Generate code
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToGeneratePairWalletCode/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToGeneratePairWalletCode/http-response.adoc[]
+
+===== Get address for code
+.Request
+include::{snippets}/WalletControllerTest/mustReturnPairWalletCode/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustReturnPairWalletCode/http-response.adoc[]
+
 ==== Get wallet for active user
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToGetOwnWallet/http-request.adoc[]
