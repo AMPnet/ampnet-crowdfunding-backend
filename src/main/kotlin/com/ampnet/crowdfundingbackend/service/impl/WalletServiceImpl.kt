@@ -127,7 +127,7 @@ class WalletServiceImpl(
             pairWalletCodeRepository.delete(it)
         }
         val code = generatePairWalletCode()
-        val pairWalletCode = PairWalletCode(0, request.address, request.publicKey, code)
+        val pairWalletCode = PairWalletCode(0, request.address, request.publicKey, code, ZonedDateTime.now())
         return pairWalletCodeRepository.save(pairWalletCode)
     }
 

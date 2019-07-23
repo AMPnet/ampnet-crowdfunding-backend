@@ -69,6 +69,7 @@ class WalletControllerTest : ControllerTestBase() {
             assertThat(pairWalletCode.code).isEqualTo(testData.pairWalletCode)
             assertThat(pairWalletCode.address).isEqualTo(testData.address)
             assertThat(pairWalletCode.publicKey).isEqualTo(testData.publicKey)
+            assertThat(pairWalletCode.createdAt).isBefore(ZonedDateTime.now())
         }
     }
 
@@ -89,7 +90,8 @@ class WalletControllerTest : ControllerTestBase() {
         suppose("User did create pair wallet code") {
             databaseCleanerService.deleteAllPairWalletCodes()
             testData.pairWalletCode = "N4CD12"
-            val pairWalletCode = PairWalletCode(0, testData.address, testData.publicKey, testData.pairWalletCode)
+            val pairWalletCode = PairWalletCode(0, testData.address, testData.publicKey, testData.pairWalletCode,
+                    ZonedDateTime.now())
             pairWalletCodeRepository.save(pairWalletCode)
         }
 

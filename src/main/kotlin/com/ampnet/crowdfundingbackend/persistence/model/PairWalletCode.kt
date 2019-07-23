@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.persistence.model
 
+import java.time.ZonedDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -21,5 +22,8 @@ data class PairWalletCode(
     var publicKey: String,
 
     @Column(nullable = false, length = 6)
-    var code: String
+    var code: String,
+
+    @Column(nullable = false)
+    var createdAt: ZonedDateTime
 )
