@@ -1,0 +1,21 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.ampnet.mailservice.proto;
+
+message MailConfirmationRequest {
+    string to = 1;
+    string token = 2;
+}
+
+message OrganizationInvitationRequest {
+    string to = 1;
+    string organization = 2;
+}
+
+message Empty {
+}
+
+service MailService {
+    rpc SendMailConfirmation(MailConfirmationRequest) returns(Empty);
+    rpc SendOrganizationInvitation(OrganizationInvitationRequest) returns (Empty);
+}
