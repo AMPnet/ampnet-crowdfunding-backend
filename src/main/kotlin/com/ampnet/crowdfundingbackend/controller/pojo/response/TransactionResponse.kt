@@ -2,14 +2,13 @@ package com.ampnet.crowdfundingbackend.controller.pojo.response
 
 import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
 
 data class TransactionResponse(
     val tx: TransactionData,
     val txId: Int,
     val info: TransactionInfoResponse
-        // TODO: add infoSig
 ) {
     constructor(transaction: TransactionDataAndInfo) : this(
         transaction.transactionData,

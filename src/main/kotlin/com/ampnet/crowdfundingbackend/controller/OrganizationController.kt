@@ -3,11 +3,14 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.OrganizationRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DocumentResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationListResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationMembershipResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationMembershipsResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.OrganizationWithDocumentResponse
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
+import com.ampnet.crowdfundingbackend.userservice.UserService
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -24,7 +27,10 @@ import java.util.UUID
 import javax.validation.Valid
 
 @RestController
-class OrganizationController(private val organizationService: OrganizationService) {
+class OrganizationController(
+    private val organizationService: OrganizationService,
+    private val userService: UserService
+) {
 
     companion object : KLogging()
 
@@ -77,6 +83,38 @@ class OrganizationController(private val organizationService: OrganizationServic
         return ResponseEntity.ok(OrganizationWithDocumentResponse(organization))
     }
 
+    @GetMapping("/organization/{organizationId}/members")
+    fun getOrganizationMembers(
+        @PathVariable("organizationId") organizationId: Int
+    ): ResponseEntity<OrganizationMembershipsResponse> {
+        logger.debug { "Received request to get members for organization: $organizationId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
+            val members = organizationService.getOrganizationMemberships(organizationId)
+            val membersWithoutMe = members.filter { userPrincipal.uuid != it.userUuid }
+            val users = userService.getUsers(membersWithoutMe.map { it.userUuid })
+
+            val membersResponse = membersWithoutMe.map {
+                OrganizationMembershipResponse(it, users.firstOrNull { user -> user.uuid == it.userUuid.toString() })
+            }
+            OrganizationMembershipsResponse(membersResponse)
+        }
+    }
+
+    @DeleteMapping("/organization/{organizationId}/members/{memberUuid}")
+    fun deleteOrganizationMember(
+        @PathVariable("organizationId") organizationId: Int,
+        @PathVariable("memberUuid") memberUuid: UUID
+    ): ResponseEntity<Unit> {
+        logger.debug { "Received request to remove member: $memberUuid from organization: $organizationId" }
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+
+        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
+            organizationService.removeUserFromOrganization(memberUuid, organizationId)
+        }
+    }
+
     @PostMapping("/organization/{organizationId}/document")
     fun addDocument(
         @PathVariable("organizationId") organizationId: Int,
@@ -85,7 +123,7 @@ class OrganizationController(private val organizationService: OrganizationServic
         logger.debug { "Received request to add document: ${file.name} to organization: $organizationId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
 
-        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
+        return ifUserHasPrivilegeToWriteOrganizationThenReturn(userPrincipal.uuid, organizationId) {
             val documentSaveRequest = DocumentSaveRequest(file, userPrincipal.uuid)
             val document = organizationService.addDocument(organizationId, documentSaveRequest)
             DocumentResponse(document)
@@ -100,7 +138,7 @@ class OrganizationController(private val organizationService: OrganizationServic
         logger.debug { "Received request to delete document: $documentId for organization $organizationId" }
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
 
-        return ifUserHasPrivilegeWriteUserInOrganizationThenReturn(userPrincipal.uuid, organizationId) {
+        return ifUserHasPrivilegeToWriteOrganizationThenReturn(userPrincipal.uuid, organizationId) {
             organizationService.removeDocument(organizationId, documentId)
         }
     }
@@ -118,6 +156,26 @@ class OrganizationController(private val organizationService: OrganizationServic
                         ResponseEntity.ok(response)
                     } else {
                         logger.info { "User does not have organization privilege to write users: PW_USERS" }
+                        ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+                    }
+                }
+        logger.info { "User $userUuid is not a member of organization $organizationId" }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+    }
+
+    private fun <T> ifUserHasPrivilegeToWriteOrganizationThenReturn(
+        userUuid: UUID,
+        organizationId: Int,
+        action: () -> (T)
+    ): ResponseEntity<T> {
+        organizationService.getOrganizationMemberships(organizationId)
+                .find { it.userUuid == userUuid }
+                ?.let { orgMembership ->
+                    return if (orgMembership.hasPrivilegeToWriteOrganization()) {
+                        val response = action()
+                        ResponseEntity.ok(response)
+                    } else {
+                        logger.info { "User does not have organization privilege: PW_ORG" }
                         ResponseEntity.status(HttpStatus.FORBIDDEN).build()
                     }
                 }

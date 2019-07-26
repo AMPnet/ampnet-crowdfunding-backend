@@ -12,7 +12,7 @@ import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionDataAndInfo
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID

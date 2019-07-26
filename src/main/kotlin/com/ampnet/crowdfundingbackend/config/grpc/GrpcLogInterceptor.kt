@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.blockchain
+package com.ampnet.crowdfundingbackend.config.grpc
 
 import io.grpc.CallOptions
 import io.grpc.Channel

@@ -1,4 +1,4 @@
-package com.ampnet.crowdfundingbackend.blockchain
+package com.ampnet.crowdfundingbackend.config.grpc
 
 import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorConfigurer
 import org.springframework.context.annotation.Bean

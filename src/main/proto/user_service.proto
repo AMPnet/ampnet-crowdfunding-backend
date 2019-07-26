@@ -1,0 +1,23 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.ampnet.userservice.proto;
+
+message GetUsersRequest {
+    repeated string uuids = 1;
+}
+
+message UserResponse {
+    string uuid = 1;
+    string first_name = 2;
+    string last_name = 3;
+    string email = 4;
+    bool enabled = 5;
+}
+
+message UsersResponse {
+    repeated UserResponse users = 1;
+}
+
+service UserService {
+    rpc GetUsers(GetUsersRequest) returns (UsersResponse);
+}

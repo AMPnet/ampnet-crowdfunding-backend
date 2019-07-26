@@ -29,16 +29,14 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         OrganizationServiceImpl(organizationRepository, membershipRepository,
                 roleRepository, mockedBlockchainService, storageServiceImpl)
     }
-    private val organization: Organization by lazy {
-        databaseCleanerService.deleteAllOrganizations()
-        createOrganization("test org", userUuid)
-    }
+    private lateinit var organization: Organization
 
     private lateinit var testContext: TestContext
 
     @BeforeEach
     fun initTestContext() {
-        organization.id
+        databaseCleanerService.deleteAllOrganizations()
+        organization = createOrganization("test org", userUuid)
         testContext = TestContext()
     }
 
@@ -107,7 +105,7 @@ class OrganizationServiceTest : JpaServiceTestBase() {
     }
 
     @Test
-    fun userCanGetListOfHisOrganizations() {
+    fun userCanGetListOfPersonalOrganizations() {
         suppose("User is a member of two organizations") {
             databaseCleanerService.deleteAllOrganizationMemberships()
             testContext.secondOrganization = createOrganization("Second org", userUuid)
@@ -223,6 +221,43 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustBeAbleToGetMembersOfOrganization() {
+        suppose("There are users in organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_ADMIN)
+            organizationService.addUserToOrganization(
+                    testContext.member, organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+        suppose("There is another organization with members") {
+            val additionalOrganization = createOrganization("Second organization", userUuid)
+            organizationService.addUserToOrganization(
+                    UUID.randomUUID(), additionalOrganization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("Service will list all members of organization") {
+            val memberships = organizationService.getOrganizationMemberships(organization.id)
+            assertThat(memberships).hasSize(2)
+            assertThat(memberships.map { it.userUuid }).containsAll(listOf(userUuid, testContext.member))
+        }
+    }
+
+    @Test
+    fun mustBeAbleToRemoveUserFromOrganization() {
+        suppose("There are users in organization") {
+            databaseCleanerService.deleteAllOrganizationMemberships()
+            organizationService.addUserToOrganization(userUuid, organization.id, OrganizationRoleType.ORG_MEMBER)
+        }
+
+        verify("User can be removed from organization") {
+            organizationService.removeUserFromOrganization(userUuid, organization.id)
+        }
+        verify("User is no longer member of organization") {
+            val memberships = membershipRepository.findByOrganizationId(organization.id)
+            assertThat(memberships).hasSize(0)
+        }
+    }
+
     private fun verifyDocument(receivedDocument: Document, savedDocument: Document) {
         assertThat(receivedDocument.id).isEqualTo(savedDocument.id)
         assertThat(receivedDocument.link).isEqualTo(savedDocument.link)
@@ -264,5 +299,6 @@ class OrganizationServiceTest : JpaServiceTestBase() {
         lateinit var document: Document
         lateinit var documentSaveRequest: DocumentSaveRequest
         val documentLink = "link"
+        val member: UUID = UUID.randomUUID()
     }
 }

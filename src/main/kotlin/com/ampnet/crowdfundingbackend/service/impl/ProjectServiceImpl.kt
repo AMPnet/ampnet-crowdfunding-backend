@@ -1,5 +1,6 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectUpdateRequest
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
@@ -57,6 +58,22 @@ class ProjectServiceImpl(
     @Transactional(readOnly = true)
     override fun getAllProjectsForOrganization(organizationId: Int): List<Project> {
         return projectRepository.findAllByOrganizationId(organizationId)
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAllProjects(): List<Project> {
+        return projectRepository.findAll()
+    }
+
+    @Transactional
+    override fun updateProject(project: Project, request: ProjectUpdateRequest): Project {
+        request.name?.let { project.name = it }
+        request.description?.let { project.description = it }
+        request.location?.let { project.location = it }
+        request.locationText?.let { project.locationText = it }
+        request.returnOnInvestment?.let { project.returnOnInvestment = it }
+        request.active?.let { project.active = it }
+        return projectRepository.save(project)
     }
 
     @Transactional

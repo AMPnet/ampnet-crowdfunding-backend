@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WalletCreateRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.PairWalletResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
@@ -27,16 +28,33 @@ class WalletController(
 
     companion object : KLogging()
 
+    /* User Wallet */
+    @GetMapping("/wallet/pair/{code}")
+    fun getPairWalletCode(@PathVariable code: String): ResponseEntity<PairWalletResponse> {
+        logger.debug { "Received request getPairWalletCode" }
+        walletService.getPairWalletCode(code)?.let {
+            return ResponseEntity.ok(PairWalletResponse(it))
+        }
+        return ResponseEntity.notFound().build()
+    }
+
+    @PostMapping("/wallet/pair")
+    fun generatePairWalletCode(@RequestBody @Valid request: WalletCreateRequest): ResponseEntity<PairWalletResponse> {
+        logger.debug { "Received request to pair wallet: $request" }
+        val pairWalletCode = walletService.generatePairWalletCode(request)
+        return ResponseEntity.ok(PairWalletResponse(pairWalletCode))
+    }
+
     @GetMapping("/wallet")
     fun getMyWallet(): ResponseEntity<WalletResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "Received request for Wallet from user: ${userPrincipal.uuid}" }
-        val wallet = walletService.getUserWallet(userPrincipal.uuid)
-                ?: return ResponseEntity.notFound().build()
-
-        val balance = walletService.getWalletBalance(wallet)
-        val response = WalletResponse(wallet, balance)
-        return ResponseEntity.ok(response)
+        walletService.getUserWallet(userPrincipal.uuid)?.let {
+            val balance = walletService.getWalletBalance(it)
+            val response = WalletResponse(it, balance)
+            return ResponseEntity.ok(response)
+        }
+        return ResponseEntity.notFound().build()
     }
 
     @PostMapping("/wallet")
@@ -48,6 +66,7 @@ class WalletController(
         return ResponseEntity.ok(response)
     }
 
+    /* Project Wallet */
     @GetMapping("/wallet/project/{projectId}")
     fun getProjectWallet(@PathVariable projectId: Int): ResponseEntity<WalletResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
@@ -57,16 +76,12 @@ class WalletController(
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
 
-        // TODO: rethink about who can get Project wallet
-//        if (project.createdBy.id == user.id) {
-            project.wallet?.let {
-                val balance = walletService.getWalletBalance(it)
-                val response = WalletResponse(it, balance)
-                return ResponseEntity.ok(response)
-            }
-            return ResponseEntity.notFound().build()
-//        }
-//        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        project.wallet?.let {
+            val balance = walletService.getWalletBalance(it)
+            val response = WalletResponse(it, balance)
+            return ResponseEntity.ok(response)
+        }
+        return ResponseEntity.notFound().build()
     }
 
     @GetMapping("/wallet/project/{projectId}/transaction")
@@ -76,14 +91,15 @@ class WalletController(
         val project = projectService.getProjectByIdWithWallet(projectId)
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
 
-//        if (project.createdBy.id == user.id) {
+        if (project.createdByUserUuid == userPrincipal.uuid) {
             val transaction = walletService.generateTransactionToCreateProjectWallet(project, userPrincipal.uuid)
             val response = TransactionResponse(transaction)
             return ResponseEntity.ok(response)
-//        }
-//        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 
+    /* Organization Wallet */
     @GetMapping("wallet/organization/{organizationId}")
     fun getOrganizationWallet(@PathVariable organizationId: Int): ResponseEntity<WalletResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
@@ -93,13 +109,11 @@ class WalletController(
         val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
                 ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization: $organizationId")
 
-        // TODO: rethink about who can get Organization wallet
-        val wallet = organization.wallet
-                ?: throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
-                        "Missing wallet for organization: $organizationId")
-        val balance = walletService.getWalletBalance(wallet)
-
-        return ResponseEntity.ok(WalletResponse(wallet, balance))
+        organization.wallet?.let {
+            val balance = walletService.getWalletBalance(it)
+            return ResponseEntity.ok(WalletResponse(it, balance))
+        }
+        return ResponseEntity.notFound().build()
     }
 
     @GetMapping("wallet/organization/{organizationId}/transaction")
@@ -113,7 +127,6 @@ class WalletController(
         val organization = organizationService.findOrganizationByIdWithWallet(organizationId)
                 ?: throw ResourceNotFoundException(ErrorCode.ORG_MISSING, "Missing organization: $organizationId")
 
-        // TODO: rethink about define who can create organization wallet
         if (organization.createdByUserUuid == userPrincipal.uuid) {
             val transaction = walletService
                     .generateTransactionToCreateOrganizationWallet(organization, userPrincipal.uuid)

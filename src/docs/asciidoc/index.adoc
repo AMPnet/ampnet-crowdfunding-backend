@@ -11,6 +11,20 @@ Collection of endpoints for managing wallets
 === User Wallet
 Collection of endpoints for managing User wallet
 
+==== Pair wallet
+
+===== Generate code
+.Request
+include::{snippets}/WalletControllerTest/mustBeAbleToGeneratePairWalletCode/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustBeAbleToGeneratePairWalletCode/http-response.adoc[]
+
+===== Get address for code
+.Request
+include::{snippets}/WalletControllerTest/mustReturnPairWalletCode/http-request.adoc[]
+.Response
+include::{snippets}/WalletControllerTest/mustReturnPairWalletCode/http-response.adoc[]
+
 ==== Get wallet for active user
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToGetOwnWallet/http-request.adoc[]
@@ -65,15 +79,6 @@ include::{snippets}/WalletControllerTest/mustBeAbleToGetProjectWallet/http-respo
 include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-response.adoc[]
-
-// TODO: check test
-//===== User did not create the project
-//User can only access a wallet for project HE created
-//
-//.Request
-//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-request.adoc[]
-//.Response
-//include::{snippets}/WalletControllerTest/mustNotBeAbleToGetWalletIfUserDidNotCreatedProject/http-response.adoc[]
 
 ===== Non existing project
 .Request
@@ -213,23 +218,39 @@ include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserI
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRevokeUserInvitation/http-response.adoc[]
 
 ==== Accept invitation
-`/me/invites/{organizationId}/accept`
-
 .Request
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToAcceptOrganizationInvitions/http-response.adoc[]
 
 ==== Reject invitation
-`/me/invites/{organizationId}/reject`
-
 .Request
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-request.adoc[]
 .Response
 include::{snippets}/OrganizationInvitationControllerTest/mustBeAbleToRejectOrganizationInvition/http-response.adoc[]
 
+=== Members
+
+==== List all members
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganizationMembers/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToGetOrganizationMembers/http-response.adoc[]
+
+==== Delete a member
+.Request
+include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationMember/http-request.adoc[]
+.Response
+include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationMember/http-response.adoc[]
+
 == Project API
 Collection of endpoints for managing project
+
+=== Get all projects
+.Request
+include::{snippets}/ProjectControllerTest/mustReturnAllProjects/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustReturnAllProjects/http-response.adoc[]
 
 === Get project
 .Request
@@ -258,6 +279,12 @@ include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizat
 include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-request.adoc[]
 .Response
 include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]
+
+=== Update
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToUpdateProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToUpdateProject/http-response.adoc[]
 
 === Documents
 

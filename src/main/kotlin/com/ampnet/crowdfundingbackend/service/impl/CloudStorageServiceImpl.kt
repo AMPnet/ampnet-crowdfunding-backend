@@ -47,7 +47,10 @@ class CloudStorageServiceImpl(applicationProperties: ApplicationProperties) : Cl
             )
             return getFileLink(key)
         } catch (ex: S3Exception) {
-            throw InternalException(ErrorCode.INT_FILE_STORAGE, "Could not store file with key: $key on cloud")
+            logger.warn { ex.message }
+            throw InternalException(ErrorCode.INT_FILE_STORAGE, "Could not store file with key: $key on cloud\n" +
+                    // TODO: remove ex.message after integration-test fix
+                    "Exception message: ${ex.message}")
         }
     }
 
@@ -56,6 +59,7 @@ class CloudStorageServiceImpl(applicationProperties: ApplicationProperties) : Cl
         try {
             s3client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(key).build())
         } catch (ex: S3Exception) {
+            logger.warn { ex.message }
             throw InternalException(ErrorCode.INT_FILE_STORAGE, "Could not delete file with key: $key on cloud")
         }
     }

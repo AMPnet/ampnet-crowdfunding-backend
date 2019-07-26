@@ -11,8 +11,10 @@ import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.service.pojo.GenerateProjectWalletRequest
-import com.ampnet.crowdfundingbackend.service.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.blockchain.pojo.GenerateProjectWalletRequest
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.controller.pojo.response.PairWalletResponse
+import com.ampnet.crowdfundingbackend.persistence.model.PairWalletCode
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -39,6 +41,72 @@ class WalletControllerTest : ControllerTestBase() {
     }
 
     /* User Wallet */
+    @Test
+    fun mustBeAbleToGeneratePairWalletCode() {
+        suppose("User did not create pair wallet code") {
+            databaseCleanerService.deleteAllPairWalletCodes()
+        }
+
+        verify("User can generate pair wallet code") {
+            val request = WalletCreateRequest(testData.address, testData.publicKey)
+            val result = mockMvc.perform(
+                    post("$walletPath/pair")
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val pairWalletResponse: PairWalletResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(pairWalletResponse.code).isNotEmpty()
+            assertThat(pairWalletResponse.address).isEqualTo(request.address)
+            assertThat(pairWalletResponse.publicKey).isEqualTo(request.publicKey)
+            testData.pairWalletCode = pairWalletResponse.code
+        }
+        verify("Pair wallet code is stored") {
+            val optionalPairWalletCode = pairWalletCodeRepository.findByAddress(testData.address)
+            assertThat(optionalPairWalletCode).isPresent
+            val pairWalletCode = optionalPairWalletCode.get()
+            assertThat(pairWalletCode.code).isEqualTo(testData.pairWalletCode)
+            assertThat(pairWalletCode.address).isEqualTo(testData.address)
+            assertThat(pairWalletCode.publicKey).isEqualTo(testData.publicKey)
+            assertThat(pairWalletCode.createdAt).isBefore(ZonedDateTime.now())
+        }
+    }
+
+    @Test
+    fun mustReturnNotFoundForNonExistingPairWalletCode() {
+        suppose("Pair wallet is missing") {
+            databaseCleanerService.deleteAllPairWalletCodes()
+        }
+
+        verify("User will get not found for non existing pair wallet code") {
+            mockMvc.perform(get("$walletPath/pair/000000"))
+                    .andExpect(status().isNotFound)
+        }
+    }
+
+    @Test
+    fun mustReturnPairWalletCode() {
+        suppose("User did create pair wallet code") {
+            databaseCleanerService.deleteAllPairWalletCodes()
+            testData.pairWalletCode = "N4CD12"
+            val pairWalletCode = PairWalletCode(0, testData.address, testData.publicKey, testData.pairWalletCode,
+                    ZonedDateTime.now())
+            pairWalletCodeRepository.save(pairWalletCode)
+        }
+
+        verify("User can pair wallet code") {
+            val result = mockMvc.perform(get("$walletPath/pair/${testData.pairWalletCode}"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val pairWalletResponse: PairWalletResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(pairWalletResponse.code).isEqualTo(testData.pairWalletCode)
+            assertThat(pairWalletResponse.address).isEqualTo(testData.address)
+            assertThat(pairWalletResponse.publicKey).isEqualTo(testData.publicKey)
+        }
+    }
+
     @Test
     @WithMockCrowdfoundUser
     fun mustBeAbleToGetOwnWallet() {
@@ -122,7 +190,6 @@ class WalletControllerTest : ControllerTestBase() {
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest)
-                    .andReturn()
         }
     }
 
@@ -236,42 +303,6 @@ class WalletControllerTest : ControllerTestBase() {
         }
     }
 
-    // TODO: think about who can access project wallet
-//    @Test
-//    @WithMockCrowdfoundUser(email = "test@test.com")
-//    fun mustNotBeAbleToGetWalletIfUserDidNotCreatedProject() {
-//        suppose("Project exists") {
-//            val creator = createUser("creator@gmail.com")
-//            val organization = createOrganization("Org test", creator)
-//            testData.project = createProject("Test project", organization, creator)
-//        }
-//        suppose("Project wallet exists") {
-//            testData.wallet = createWalletForProject(testData.project, testData.address)
-//        }
-//
-//        verify("User will get forbidden response") {
-//            mockMvc.perform(get("$projectWalletPath/${testData.project.id}"))
-//                    .andExpect(status().isForbidden)
-//                    .andReturn()
-//        }
-//    }
-//
-//    @Test
-//    @WithMockCrowdfoundUser(email = "test@test.com")
-//    fun mustNotBeAbleToGetCreateWalletTransactionIfUserDidNotCreatedProject() {
-//        suppose("Project exists") {
-//            val creator = createUser("creator@gmail.com")
-//            val organization = createOrganization("Org test", creator)
-//            testData.project = createProject("Test project", organization, creator)
-//        }
-//
-//        verify("User will get forbidden response") {
-//            mockMvc.perform(
-//                    get("$projectWalletPath/${testData.project.id}/transaction"))
-//                    .andExpect(status().isForbidden)
-//        }
-//    }
-
     @Test
     @WithMockCrowdfoundUser
     fun mustThrowExceptionIfUserTriesToGenerateProjectWalletForNonExistingProject() {
@@ -336,17 +367,14 @@ class WalletControllerTest : ControllerTestBase() {
 
     @Test
     @WithMockCrowdfoundUser
-    fun mustThrowExceptionIfUserWalletIsMissing() {
+    fun mustReturnNotFoundForMissingOrganizationWallet() {
         suppose("Organization exists") {
             testData.organization = createOrganization("Turk org", userUuid)
         }
 
-        verify("System will throw error for missing user wallet") {
-            val response = mockMvc.perform(
-                    get("$organizationWalletPath/${testData.organization.id}"))
-                    .andExpect(status().isBadRequest)
-                    .andReturn()
-            verifyResponseErrorCode(response, ErrorCode.WALLET_MISSING)
+        verify("Controller will return not found") {
+            mockMvc.perform(get("$organizationWalletPath/${testData.organization.id}"))
+                    .andExpect(status().isNotFound)
         }
     }
 
@@ -408,5 +436,6 @@ class WalletControllerTest : ControllerTestBase() {
         val publicKey = "0xC2D7CF95645D33006175B78989035C7c9061d3F9"
         var balance: Long = -1
         val signedTransaction = "SignedTransaction"
+        lateinit var pairWalletCode: String
     }
 }
