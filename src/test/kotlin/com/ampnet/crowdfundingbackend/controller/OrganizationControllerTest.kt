@@ -11,7 +11,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.ampnet.crowdfundingbackend.service.OrganizationService
-import com.ampnet.crowdfundingbackend.userservice.UserService
 import com.ampnet.userservice.proto.UserResponse
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -36,8 +35,6 @@ class OrganizationControllerTest : ControllerTestBase() {
 
     @Autowired
     private lateinit var organizationService: OrganizationService
-    @Autowired
-    private lateinit var userService: UserService
 
     private lateinit var testContext: TestContext
 
@@ -397,16 +394,6 @@ class OrganizationControllerTest : ControllerTestBase() {
         organizationRepository.save(organization)
         return savedDocument
     }
-
-    private fun createUserResponse(uuid: UUID, email: String, first: String, last: String, enabled: Boolean):
-        UserResponse =
-            UserResponse.newBuilder()
-                    .setUuid(uuid.toString())
-                    .setEmail(email)
-                    .setFirstName(first)
-                    .setLastName(last)
-                    .setEnabled(enabled)
-                    .build()
 
     private class TestContext {
         lateinit var organizationRequest: OrganizationRequest

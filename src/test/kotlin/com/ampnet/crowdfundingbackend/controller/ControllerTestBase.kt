@@ -25,6 +25,8 @@ import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepo
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.CloudStorageService
+import com.ampnet.crowdfundingbackend.userservice.UserService
+import com.ampnet.userservice.proto.UserResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -82,6 +84,8 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var userWalletRepository: UserWalletRepository
     @Autowired
     protected lateinit var pairWalletCodeRepository: PairWalletCodeRepository
+    @Autowired
+    protected lateinit var userService: UserService
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 
@@ -214,4 +218,19 @@ abstract class ControllerTestBase : TestBase() {
     }
 
     protected fun getWalletHash(wallet: Wallet?): String = wallet?.hash ?: fail("User wallet must not be null")
+
+    protected fun createUserResponse(
+        uuid: UUID,
+        email: String = "email@mail.com",
+        first: String = "First",
+        last: String = "Last",
+        enabled: Boolean = true
+    ): UserResponse =
+            UserResponse.newBuilder()
+                    .setUuid(uuid.toString())
+                    .setEmail(email)
+                    .setFirstName(first)
+                    .setLastName(last)
+                    .setEnabled(enabled)
+                    .build()
 }

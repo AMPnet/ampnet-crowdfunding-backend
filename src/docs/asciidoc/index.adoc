@@ -409,3 +409,27 @@ include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToGenerateMintTrans
 include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToPostMintTransaction/http-request.adoc[]
 .Response
 include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToPostMintTransaction/http-response.adoc[]
+
+== Withdraw API
+
+=== Create Withdraw request
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToCreateWithdraw/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToCreateWithdraw/http-response.adoc[]
+
+=== Get unapproved Withdraw requests
+Must have Admin role - privilege: PRA_WITHDRAW
+
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetUnapprovedWithdraws/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetUnapprovedWithdraws/http-response.adoc[]
+
+=== Approve Withdraw request
+Must have Admin role - privilege: PWA_WITHDRAW
+
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToApproveWithdraw/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToApproveWithdraw/http-response.adoc[]

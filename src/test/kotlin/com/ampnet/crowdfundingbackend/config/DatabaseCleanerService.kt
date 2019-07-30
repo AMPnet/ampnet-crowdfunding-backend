@@ -52,4 +52,9 @@ class DatabaseCleanerService(val em: EntityManager) {
     fun deleteAllPairWalletCodes() {
         em.createNativeQuery("TRUNCATE pair_wallet_code CASCADE ").executeUpdate()
     }
+
+    @Transactional
+    fun deleteAllWithdraws() {
+        em.createNativeQuery("DELETE FROM withdraw").executeUpdate()
+    }
 }
