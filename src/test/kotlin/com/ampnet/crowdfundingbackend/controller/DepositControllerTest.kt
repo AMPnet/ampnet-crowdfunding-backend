@@ -70,6 +70,10 @@ class DepositControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser
     fun mustNotBeAbleToCreateDepositWithoutWallet() {
+        suppose("User does not has a wallet") {
+            databaseCleanerService.deleteAllWalletsAndOwners()
+        }
+
         verify("User can create deposit") {
             val result = mockMvc.perform(post(depositPath))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
