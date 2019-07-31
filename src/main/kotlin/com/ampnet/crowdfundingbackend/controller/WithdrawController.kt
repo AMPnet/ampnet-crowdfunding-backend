@@ -3,6 +3,8 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WithdrawApproveRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WithdrawCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserAndAcceptanceListResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserAndAcceptanceResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserResponse
 import com.ampnet.crowdfundingbackend.service.WalletService
@@ -49,6 +51,26 @@ class WithdrawController(
             withdrawWithUserList.add(WithdrawWithUserResponse(withdraw, userResponse, wallet))
         }
         return ResponseEntity.ok(WithdrawWithUserListResponse(withdrawWithUserList))
+    }
+
+    @GetMapping("/api/v1/withdraw/approved")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_WITHDRAW)")
+    fun getApprovedWithdraws(): ResponseEntity<WithdrawWithUserAndAcceptanceListResponse> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.debug { "Received request to get Withdraws by user: ${userPrincipal.uuid}" }
+        val withdraws = withdrawService.getWithdraws(true)
+        val users = userService.getUsers(withdraws.map { it.userUuid })
+        val acceptors = userService.getUsers(withdraws.mapNotNull { it.approvedByUserUuid })
+        val withdrawWithUserList = mutableListOf<WithdrawWithUserAndAcceptanceResponse>()
+        withdraws.forEach { withdraw ->
+            val wallet = walletService.getUserWallet(withdraw.userUuid)?.hash
+            val userUuid = withdraw.userUuid.toString()
+            val acceptorUuid = withdraw.approvedByUserUuid.toString()
+            val userResponse = users.find { it.uuid == userUuid }
+            val acceptor = acceptors.find { it.uuid == acceptorUuid }
+            withdrawWithUserList.add(WithdrawWithUserAndAcceptanceResponse(withdraw, userResponse, acceptor, wallet))
+        }
+        return ResponseEntity.ok(WithdrawWithUserAndAcceptanceListResponse(withdrawWithUserList))
     }
 
     @PostMapping("/api/v1/withdraw/{id}/approve")

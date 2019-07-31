@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WithdrawApproveRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WithdrawCreateRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserAndAcceptanceListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserListResponse
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
@@ -99,6 +100,46 @@ class WithdrawControllerTest : ControllerTestBase() {
             val withdraw = withdrawList.withdraws[0]
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.approved).isFalse()
+            assertThat(withdraw.user?.uuid).isEqualTo(userUuid)
+            assertThat(withdraw.userWallet).isEqualTo(testContext.walletHash)
+            assertThat(withdraw.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+            assertThat(withdraw.id).isNotNull()
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_WITHDRAW])
+    fun mustBeAbleToGetApprovedWithdraws() {
+        suppose("Some withdraws are created") {
+            val approvedWithdraw = Withdraw(0, userUuid, testContext.amount, true, testContext.reference,
+                    userUuid, ZonedDateTime.now(), ZonedDateTime.now())
+            val unapprovedWithdraw = Withdraw(0, userUuid, testContext.amount, false, null,
+                    null, null, ZonedDateTime.now())
+            testContext.withdraws =
+                    listOf(withdrawRepository.save(approvedWithdraw), withdrawRepository.save(unapprovedWithdraw))
+        }
+        suppose("User has a wallet") {
+            databaseCleanerService.deleteAllWalletsAndOwners()
+            createWalletForUser(userUuid, testContext.walletHash)
+        }
+        suppose("User service will return user data") {
+            Mockito.`when`(userService.getUsers(listOf(userUuid))).thenReturn(listOf(createUserResponse(userUuid)))
+        }
+
+        verify("Admin can get list of unapproved withdraws") {
+            val result = mockMvc.perform(get("$withdrawPath/approved"))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val withdrawList: WithdrawWithUserAndAcceptanceListResponse =
+                    objectMapper.readValue(result.response.contentAsString)
+            assertThat(withdrawList.withdraws).hasSize(1)
+            val withdraw = withdrawList.withdraws[0]
+            assertThat(withdraw.amount).isEqualTo(testContext.amount)
+            assertThat(withdraw.approved).isTrue()
+            assertThat(withdraw.approvedReference).isEqualTo(testContext.reference)
+            assertThat(withdraw.approvedBy?.uuid).isEqualTo(userUuid)
+            assertThat(withdraw.approvedAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(withdraw.user?.uuid).isEqualTo(userUuid)
             assertThat(withdraw.userWallet).isEqualTo(testContext.walletHash)
             assertThat(withdraw.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())

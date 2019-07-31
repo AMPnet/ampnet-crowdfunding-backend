@@ -45,4 +45,29 @@ data class WithdrawWithUserResponse(
     )
 }
 
+data class WithdrawWithUserAndAcceptanceResponse(
+        val id: Int,
+        val user: UserControllerResponse?,
+        val amount: Long,
+        val approved: Boolean,
+        val approvedBy: UserControllerResponse?,
+        val approvedReference: String,
+        val approvedAt: ZonedDateTime?,
+        val createdAt: ZonedDateTime,
+        val userWallet: String?
+) {
+    constructor(withdraw: Withdraw, user: UserResponse?, approvedBy: UserResponse?, userWallet: String?) : this(
+            withdraw.id,
+            if (user != null) UserControllerResponse(user) else null,
+            withdraw.amount,
+            withdraw.approved,
+            if (approvedBy != null) UserControllerResponse(approvedBy) else null,
+            withdraw.approvedReference.orEmpty(),
+            withdraw.approvedAt,
+            withdraw.createdAt,
+            userWallet
+    )
+}
+
 data class WithdrawWithUserListResponse(val withdraws: List<WithdrawWithUserResponse>)
+data class WithdrawWithUserAndAcceptanceListResponse(val withdraws: List<WithdrawWithUserAndAcceptanceResponse>)

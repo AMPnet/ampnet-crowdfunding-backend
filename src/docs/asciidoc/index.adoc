@@ -418,13 +418,20 @@ include::{snippets}/WithdrawControllerTest/mustBeAbleToCreateWithdraw/http-reque
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToCreateWithdraw/http-response.adoc[]
 
-=== Get unapproved Withdraw requests
+=== Get Withdraws
 Must have Admin role - privilege: PRA_WITHDRAW
 
+==== Unapproved Withdraws
 .Request
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGetUnapprovedWithdraws/http-request.adoc[]
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGetUnapprovedWithdraws/http-response.adoc[]
+
+==== Approved Withdraws
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetApprovedWithdraws/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetApprovedWithdraws/http-response.adoc[]
 
 === Approve Withdraw request
 Must have Admin role - privilege: PWA_WITHDRAW

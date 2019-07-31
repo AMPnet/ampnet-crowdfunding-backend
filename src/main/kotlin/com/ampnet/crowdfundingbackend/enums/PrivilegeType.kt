@@ -29,7 +29,7 @@ enum class PrivilegeType {
     PRO_ORG_INVITE,
     PWO_ORG_INVITE,
 
-    // WITHDRAW
+    // Withdraw
     PRA_WITHDRAW,
     PWA_WITHDRAW
 }
