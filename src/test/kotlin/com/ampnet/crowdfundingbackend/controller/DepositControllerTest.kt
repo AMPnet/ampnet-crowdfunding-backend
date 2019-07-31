@@ -68,6 +68,17 @@ class DepositControllerTest : ControllerTestBase() {
     }
 
     @Test
+    @WithMockCrowdfoundUser
+    fun mustNotBeAbleToCreateDepositWithoutWallet() {
+        verify("User can create deposit") {
+            val result = mockMvc.perform(post(depositPath))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(result, ErrorCode.WALLET_MISSING)
+        }
+    }
+
+    @Test
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_DEPOSIT])
     fun mustBeAbleToSearchByReference() {
         suppose("Deposit exists") {
