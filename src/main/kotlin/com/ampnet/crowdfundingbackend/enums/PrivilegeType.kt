@@ -31,7 +31,11 @@ enum class PrivilegeType {
 
     // Withdraw
     PRA_WITHDRAW,
-    PWA_WITHDRAW
+    PWA_WITHDRAW,
+
+    // Deposit
+    PRA_DEPOSIT,
+    PWA_DEPOSIT
 }
 
 enum class OrganizationPrivilegeType {

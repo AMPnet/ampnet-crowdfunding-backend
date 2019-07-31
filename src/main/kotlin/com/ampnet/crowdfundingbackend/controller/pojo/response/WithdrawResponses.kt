@@ -37,7 +37,7 @@ data class WithdrawWithUserResponse(
 ) {
     constructor(withdraw: Withdraw, user: UserResponse?, userWallet: String) : this(
         withdraw.id,
-        if (user != null) UserControllerResponse(user) else null,
+        user?.let { UserControllerResponse(it) },
         withdraw.amount,
         withdraw.approved,
         withdraw.createdAt,
@@ -58,10 +58,10 @@ data class WithdrawWithUserAndAcceptanceResponse(
 ) {
     constructor(withdraw: Withdraw, user: UserResponse?, approvedBy: UserResponse?, userWallet: String) : this(
         withdraw.id,
-        if (user != null) UserControllerResponse(user) else null,
+        user?.let { UserControllerResponse(it) },
         withdraw.amount,
         withdraw.approved,
-        if (approvedBy != null) UserControllerResponse(approvedBy) else null,
+        approvedBy?.let { UserControllerResponse(it) },
         withdraw.approvedReference.orEmpty(),
         withdraw.approvedAt,
         withdraw.createdAt,

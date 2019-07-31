@@ -57,4 +57,9 @@ class DatabaseCleanerService(val em: EntityManager) {
     fun deleteAllWithdraws() {
         em.createNativeQuery("DELETE FROM withdraw").executeUpdate()
     }
+
+    @Transactional
+    fun deleteAllDeposits() {
+        em.createNativeQuery("DELETE FROM deposit").executeUpdate()
+    }
 }
