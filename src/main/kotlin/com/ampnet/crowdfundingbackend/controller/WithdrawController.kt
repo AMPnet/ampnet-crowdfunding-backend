@@ -45,7 +45,7 @@ class WithdrawController(
         val users = userService.getUsers(withdraws.map { it.userUuid })
         val withdrawWithUserList = mutableListOf<WithdrawWithUserResponse>()
         withdraws.forEach { withdraw ->
-            val wallet = walletService.getUserWallet(withdraw.userUuid)?.hash
+            val wallet = walletService.getUserWallet(withdraw.userUuid)?.hash.orEmpty()
             val userUuid = withdraw.userUuid.toString()
             val userResponse = users.find { it.uuid == userUuid }
             withdrawWithUserList.add(WithdrawWithUserResponse(withdraw, userResponse, wallet))
@@ -63,7 +63,7 @@ class WithdrawController(
         val acceptors = userService.getUsers(withdraws.mapNotNull { it.approvedByUserUuid })
         val withdrawWithUserList = mutableListOf<WithdrawWithUserAndAcceptanceResponse>()
         withdraws.forEach { withdraw ->
-            val wallet = walletService.getUserWallet(withdraw.userUuid)?.hash
+            val wallet = walletService.getUserWallet(withdraw.userUuid)?.hash.orEmpty()
             val userUuid = withdraw.userUuid.toString()
             val acceptorUuid = withdraw.approvedByUserUuid.toString()
             val userResponse = users.find { it.uuid == userUuid }

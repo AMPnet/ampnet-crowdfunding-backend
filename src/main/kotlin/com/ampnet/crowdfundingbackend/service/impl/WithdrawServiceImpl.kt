@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.service.impl
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
+import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WithdrawRepository
 import com.ampnet.crowdfundingbackend.service.WithdrawService
 import org.springframework.stereotype.Service
@@ -12,7 +13,8 @@ import java.util.UUID
 
 @Service
 class WithdrawServiceImpl(
-    private val withdrawRepository: WithdrawRepository
+    private val withdrawRepository: WithdrawRepository,
+    private val userWalletRepository: UserWalletRepository
 ) : WithdrawService {
 
     @Transactional(readOnly = true)
@@ -22,6 +24,10 @@ class WithdrawServiceImpl(
 
     @Transactional
     override fun createWithdraw(user: UUID, amount: Long): Withdraw {
+        if (userWalletRepository.findByUserUuid(user).isPresent.not()) {
+            throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
+                    "User must have a wallet to make Withdraw request")
+        }
         val withdraw = Withdraw(0, user, amount, false, null, null, null, ZonedDateTime.now())
         return withdrawRepository.save(withdraw)
     }

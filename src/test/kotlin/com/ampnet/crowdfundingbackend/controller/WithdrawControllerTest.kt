@@ -39,6 +39,11 @@ class WithdrawControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser
     fun mustBeAbleToCreateWithdraw() {
+        suppose("User has a wallet") {
+            databaseCleanerService.deleteAllWalletsAndOwners()
+            createWalletForUser(userUuid, testContext.walletHash)
+        }
+
         verify("User can create Withdraw") {
             val request = WithdrawCreateRequest(testContext.amount)
             val result = mockMvc.perform(
@@ -210,6 +215,25 @@ class WithdrawControllerTest : ControllerTestBase() {
                             .content(objectMapper.writeValueAsString(request))
                             .contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andExpect(status().isForbidden)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustNotBeAbleToCreateWithdrawWithUserWallet() {
+        suppose("User does not have a wallet") {
+            databaseCleanerService.deleteAllWalletsAndOwners()
+        }
+
+        verify("User will get forbidden") {
+            val request = WithdrawCreateRequest(testContext.amount)
+            val result = mockMvc.perform(
+                    post(withdrawPath)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isBadRequest)
+                    .andReturn()
+            verifyResponseErrorCode(result, ErrorCode.WALLET_MISSING)
         }
     }
 
