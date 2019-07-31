@@ -21,9 +21,10 @@ class UserServiceImpl(
     }
 
     override fun getUsers(uuids: List<UUID>): List<UserResponse> {
-        logger.debug { "Fetching users: $uuids" }
+        val set = uuids.toSet()
+        logger.debug { "Fetching users: $set" }
         val request = GetUsersRequest.newBuilder()
-                .addAllUuids(uuids.map { it.toString() })
+                .addAllUuids(set.map { it.toString() })
                 .build()
         return serviceBlockingStub.getUsers(request).usersList
     }
