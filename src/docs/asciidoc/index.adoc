@@ -412,7 +412,7 @@ include::{snippets}/IssuingAuthorityControllerTest/mustBeAbleToPostMintTransacti
 
 == Withdraw API
 
-=== Create Withdraw request
+=== Create Withdraw
 .Request
 include::{snippets}/WithdrawControllerTest/mustBeAbleToCreateWithdraw/http-request.adoc[]
 .Response
@@ -433,10 +433,55 @@ include::{snippets}/WithdrawControllerTest/mustBeAbleToGetApprovedWithdraws/http
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGetApprovedWithdraws/http-response.adoc[]
 
-=== Approve Withdraw request
+=== Approve Withdraw
 Must have Admin role - privilege: PWA_WITHDRAW
 
 .Request
 include::{snippets}/WithdrawControllerTest/mustBeAbleToApproveWithdraw/http-request.adoc[]
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToApproveWithdraw/http-response.adoc[]
+
+== Deposit API
+
+=== Create Deposit
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToCreateDeposit/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToCreateDeposit/http-response.adoc[]
+
+=== Get Deposit
+Must have Admin role - privilege: PRA_DEPOSIT
+
+==== Search by reference
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToSearchByReference/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToSearchByReference/http-response.adoc[]
+
+==== Unapproved Deposits
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToGetUnapprovedDeposits/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToGetUnapprovedDeposits/http-response.adoc[]
+
+==== Approved Deposits
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToGetApprovedDeposits/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToGetApprovedDeposits/http-response.adoc[]
+
+=== Approve Deposit
+Must have Admin role - privilege: PWA_DEPOSIT
+
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToApproveDeposit/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToApproveDeposit/http-response.adoc[]
+
+=== Delete Deposit
+Must have Admin role - privilege: PWA_DEPOSIT
+
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToDeleteDeposit/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToDeleteDeposit/http-response.adoc[]
