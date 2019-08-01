@@ -3,6 +3,7 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
+import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
@@ -233,4 +234,39 @@ abstract class ControllerTestBase : TestBase() {
                     .setLastName(last)
                     .setEnabled(enabled)
                     .build()
+
+    protected fun createProjectRequest(organizationId: Int, name: String): ProjectRequest {
+        val time = ZonedDateTime.now()
+        return ProjectRequest(
+                organizationId,
+                name,
+                "description",
+                "location",
+                "locationText",
+                "1%-100%",
+                time,
+                time.plusDays(30),
+                1_000_000,
+                Currency.EUR,
+                1,
+                1_000_000,
+                true
+        )
+    }
+
+    protected fun createProjectDocument(
+        project: Project,
+        createdByUserUuid: UUID,
+        name: String,
+        link: String,
+        type: String = "document/type",
+        size: Int = 100
+    ): Document {
+        val savedDocument = saveDocument(name, link, type, size, createdByUserUuid)
+        val documents = project.documents.orEmpty().toMutableList()
+        documents.add(savedDocument)
+        project.documents = documents
+        projectRepository.save(project)
+        return savedDocument
+    }
 }
