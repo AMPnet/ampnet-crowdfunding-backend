@@ -1,13 +1,20 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
+import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
+import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Deposit
 import com.ampnet.crowdfundingbackend.persistence.repository.DepositRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.service.DepositService
 import com.ampnet.crowdfundingbackend.service.StorageService
+import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.pojo.ApproveDepositRequest
+import com.ampnet.crowdfundingbackend.service.pojo.MintServiceRequest
+import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
@@ -17,6 +24,8 @@ import java.util.UUID
 class DepositServiceImpl(
     private val depositRepository: DepositRepository,
     private val walletRepository: UserWalletRepository,
+    private val blockchainService: BlockchainService,
+    private val transactionInfoService: TransactionInfoService,
     private val storageService: StorageService
 ) : DepositService {
 
@@ -28,7 +37,7 @@ class DepositServiceImpl(
             throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User must have a wallet to create a Deposit")
         }
         val deposit = Deposit(0, user, generateDepositReference(), false,
-            null, null, null, null, ZonedDateTime.now()
+            null, null, null, null, null, ZonedDateTime.now()
         )
         return depositRepository.save(deposit)
     }
@@ -62,6 +71,47 @@ class DepositServiceImpl(
     @Transactional(readOnly = true)
     override fun findByReference(reference: String): Deposit? {
         return ServiceUtils.wrapOptional(depositRepository.findByReference(reference))
+    }
+
+    @Transactional
+    override fun generateMintTransaction(request: MintServiceRequest): TransactionDataAndInfo {
+        val deposit = getDepositForId(request.depositId)
+        throwExceptionIfDepositHasTxHash(deposit)
+        throwExceptionIfDepositIsNotApproved(deposit)
+        val senderWallet = "not-needed"
+        val data = blockchainService.generateMintTransaction(senderWallet, request.toWallet, request.amount)
+        val info = transactionInfoService.createMintTransaction(request)
+        return TransactionDataAndInfo(data, info)
+    }
+
+    @Transactional
+    override fun confirmMintTransaction(signedTransaction: String, depositId: Int): Deposit {
+        val deposit = getDepositForId(depositId)
+        throwExceptionIfDepositHasTxHash(deposit)
+        throwExceptionIfDepositIsNotApproved(deposit)
+        val txHash = blockchainService.postTransaction(signedTransaction, PostTransactionType.ISSUER_MINT)
+        deposit.txHash = txHash
+        return depositRepository.save(deposit)
+    }
+
+    private fun throwExceptionIfDepositIsNotApproved(deposit: Deposit) {
+        if (deposit.approved.not()) {
+            throw InvalidRequestException(ErrorCode.WALLET_DEPOSIT_NOT_APPROVED,
+                    "Deposit: ${deposit.id} is not approved")
+        }
+    }
+
+    private fun throwExceptionIfDepositHasTxHash(deposit: Deposit) {
+        if (deposit.txHash != null) {
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_DEPOSIT_MINTED, "Mint txHash: ${deposit.txHash}")
+        }
+    }
+
+    private fun getDepositForId(depositId: Int): Deposit {
+        return depositRepository.findById(depositId).orElseThrow {
+            throw ResourceNotFoundException(ErrorCode.WALLET_DEPOSIT_MISSING,
+                    "For mint transaction missing deposit: $depositId")
+        }
     }
 
     private fun generateDepositReference(): String = (1..8)

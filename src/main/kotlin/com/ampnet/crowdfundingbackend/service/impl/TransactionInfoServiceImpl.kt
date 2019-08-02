@@ -7,6 +7,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateTransactionRequest
+import com.ampnet.crowdfundingbackend.service.pojo.MintServiceRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -25,6 +26,8 @@ class TransactionInfoServiceImpl(
             "%s with amount %.2f"
     private val investTitle = "Invest"
     private val investDescription = "You are signing transaction to confirm investment to project: %s"
+    private val mintTitle = "Mint"
+    private val mintDescription = "You are singing mint transaction for wallet: %s"
 
     @Transactional
     override fun createOrgTransaction(organization: Organization, userUuid: UUID): TransactionInfo {
@@ -60,6 +63,14 @@ class TransactionInfoServiceImpl(
         val request = CreateTransactionRequest(
                 TransactionType.INVEST, investTitle, description, userUuid)
         return createTransaction(request)
+    }
+
+    @Transactional
+    override fun createMintTransaction(request: MintServiceRequest): TransactionInfo {
+        val description = mintDescription.format(request.toWallet)
+        val txRequest = CreateTransactionRequest(
+                TransactionType.MINT, mintTitle, description, request.byUser, request.depositId)
+        return createTransaction(txRequest)
     }
 
     @Transactional

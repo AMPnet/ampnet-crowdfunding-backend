@@ -3,7 +3,6 @@ package com.ampnet.crowdfundingbackend.service
 import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
-import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationInviteServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
@@ -18,8 +17,6 @@ import java.time.ZonedDateTime
 class OrganizationInvitationServiceTest : JpaServiceTestBase() {
 
     private val mailService: MailServiceImpl = Mockito.mock(MailServiceImpl::class.java)
-
-    private val cloudStorageService: CloudStorageServiceImpl = Mockito.mock(CloudStorageServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
         val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)

@@ -1,12 +1,15 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.controller.pojo.request.GenerateMintRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.persistence.model.Deposit
 import com.ampnet.crowdfundingbackend.service.DepositService
 import com.ampnet.crowdfundingbackend.service.pojo.ApproveDepositRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
+import com.ampnet.crowdfundingbackend.service.pojo.MintServiceRequest
 import com.ampnet.crowdfundingbackend.userservice.UserService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
@@ -89,6 +93,16 @@ class DepositController(
         val deposits = depositService.getAllWithDocuments(true)
         val response = createDepositWithUserListResponse(deposits)
         return ResponseEntity.ok(response)
+    }
+
+    @PostMapping("/api/v1/deposit/transaction")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_DEPOSIT)")
+    fun generateMintTransaction(@RequestBody request: GenerateMintRequest): ResponseEntity<TransactionResponse> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.info { "Received request to generate mint transaction by user: ${userPrincipal.uuid}" }
+        val serviceRequest = MintServiceRequest(request.toWallet, request.amount, userPrincipal.uuid, request.depositId)
+        val transactionDataAndInfo = depositService.generateMintTransaction(serviceRequest)
+        return ResponseEntity.ok(TransactionResponse(transactionDataAndInfo))
     }
 
     private fun createDepositWithUserListResponse(deposits: List<Deposit>): DepositWithUserListResponse {

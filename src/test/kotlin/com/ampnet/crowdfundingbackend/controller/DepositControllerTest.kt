@@ -1,19 +1,22 @@
 package com.ampnet.crowdfundingbackend.controller
 
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.controller.pojo.request.GenerateMintRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.enums.PrivilegeType
+import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.persistence.model.Deposit
-import com.ampnet.crowdfundingbackend.persistence.repository.DepositRepository
 import com.ampnet.crowdfundingbackend.security.WithMockCrowdfoundUser
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.fileUpload
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -24,9 +27,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class DepositControllerTest : ControllerTestBase() {
-
-    @Autowired
-    private lateinit var depositRepository: DepositRepository
 
     private val depositPath = "/api/v1/deposit"
     private lateinit var testContext: TestContext
@@ -270,18 +270,51 @@ class DepositControllerTest : ControllerTestBase() {
         }
     }
 
-    private fun createUnapprovedDeposit(user: UUID): Deposit {
-        val deposit = Deposit(0, user, "S34SDGFT", false,
-                null, null, null, null, ZonedDateTime.now()
-        )
-        return depositRepository.save(deposit)
+    @Test
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_DEPOSIT])
+    fun mustBeAbleToGenerateMintTransaction() {
+        suppose("Transaction info is clean") {
+            databaseCleanerService.deleteAllTransactionInfo()
+        }
+        suppose("Approved deposit exists") {
+            val approved = createApprovedDeposit(userUuid)
+            testContext.deposits = listOf(approved)
+        }
+        suppose("Blockchain service will return tx") {
+            testContext.transactionData = generateTransactionData("signed-transaction")
+            Mockito.`when`(
+                    blockchainService.generateMintTransaction("not-needed", testContext.walletHash, testContext.amount)
+            ).thenReturn(testContext.transactionData)
+        }
+
+        verify("User can generate mint transaction") {
+            val request = GenerateMintRequest(
+                    testContext.walletHash, testContext.amount, testContext.deposits.first().id)
+            val result = mockMvc.perform(
+                    post("$depositPath/transaction")
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+
+            val transactionResponse: TransactionResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(transactionResponse.tx).isEqualTo(testContext.transactionData)
+            assertThat(transactionResponse.txId).isNotNull()
+            assertThat(transactionResponse.info.txType).isEqualTo(TransactionType.MINT)
+        }
+        verify("Transaction info is created") {
+            val transactionInfos = transactionInfoRepository.findAll()
+            assertThat(transactionInfos).hasSize(1)
+            val transactionInfo = transactionInfos[0]
+            assertThat(transactionInfo.companionId).isEqualTo(testContext.deposits.first().id)
+            assertThat(transactionInfo.type).isEqualTo(TransactionType.MINT)
+            assertThat(transactionInfo.userUuid).isEqualTo(userUuid)
+        }
     }
 
-    private fun createApprovedDeposit(user: UUID): Deposit {
-        val document = saveDocument("doc", testContext.documentLink, "type", 1, user)
-        val deposit = Deposit(0, user, "S34SDGFT", true,
-                user, ZonedDateTime.now(), testContext.amount, document, ZonedDateTime.now()
-        )
+    private fun createUnapprovedDeposit(user: UUID): Deposit {
+        val deposit = Deposit(0, user, "S34SDGFT", false,
+                null, null, null, null, null, ZonedDateTime.now())
         return depositRepository.save(deposit)
     }
 
@@ -291,5 +324,6 @@ class DepositControllerTest : ControllerTestBase() {
         var deposits = listOf<Deposit>()
         val documentLink = "document-link"
         lateinit var multipartFile: MockMultipartFile
+        lateinit var transactionData: TransactionData
     }
 }
