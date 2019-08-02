@@ -35,6 +35,24 @@ class DepositServiceTest : JpaServiceTestBase() {
     }
 
     @Test
+    fun mustThrowExceptionIfUnapprovedDepositExistsForCreatingDeposit() {
+        suppose("User has a wallet") {
+            databaseCleanerService.deleteAllWalletsAndOwners()
+            createWalletForUser(userUuid, "wallet-hash")
+        }
+        suppose("Unapproved and approved deposits exists") {
+            createUnapprovedDeposit()
+            createApprovedDeposit()
+        }
+
+        verify("Service will throw exception for existing unapproved deposit") {
+            assertThrows<ResourceAlreadyExistsException> {
+                depositService.create(userUuid)
+            }
+        }
+    }
+
+    @Test
     fun mustThrowExceptionIfDepositIsMissingForMintTransaction() {
         verify("Service will throw exception if the deposit is missing") {
             assertThrows<ResourceNotFoundException> {

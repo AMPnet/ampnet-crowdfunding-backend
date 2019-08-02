@@ -36,6 +36,12 @@ class DepositServiceImpl(
         if (walletRepository.findByUserUuid(user).isPresent.not()) {
             throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User must have a wallet to create a Deposit")
         }
+        val unapprovedDeposits = depositRepository.findByUserUuid(user).filter { it.approved.not() }
+        if (unapprovedDeposits.isEmpty().not()) {
+            throw ResourceAlreadyExistsException(ErrorCode.WALLET_DEPOSIT_EXISTS,
+                    "Check your unapproved deposit: ${unapprovedDeposits.firstOrNull()?.id}")
+        }
+
         val deposit = Deposit(0, user, generateDepositReference(), false,
             null, null, null, null, null, ZonedDateTime.now()
         )

@@ -14,6 +14,7 @@ enum class ErrorCode(val categoryCode: String, var specificCode: String, var mes
     WALLET_DEPOSIT_MISSING("05", "06", "Missing deposit"),
     WALLET_DEPOSIT_MINTED("05", "07", "Deposit is already minted"),
     WALLET_DEPOSIT_NOT_APPROVED("05", "08", "Deposit is not approved"),
+    WALLET_DEPOSIT_EXISTS("05", "09", "Unapproved deposit exists"),
 
     // Organization: 06
     ORG_MISSING("06", "01", "Non existing organization"),

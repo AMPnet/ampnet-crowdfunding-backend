@@ -44,6 +44,9 @@ class DepositControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllWalletsAndOwners()
             createWalletForUser(userUuid, testContext.walletHash)
         }
+        suppose("User has approved deposit") {
+            createApprovedDeposit(userUuid, "tx_hash")
+        }
 
         verify("User can create deposit") {
             val result = mockMvc.perform(post(depositPath))
@@ -58,8 +61,8 @@ class DepositControllerTest : ControllerTestBase() {
         }
         verify("Deposit is stored") {
             val deposits = depositRepository.findAll()
-            assertThat(deposits).hasSize(1)
-            val deposit = deposits.first()
+            assertThat(deposits).hasSize(2)
+            val deposit = deposits.filter { it.approved.not() }.first()
             assertThat(deposit.userUuid).isEqualTo(userUuid)
             assertThat(deposit.approved).isFalse()
             assertThat(deposit.reference).isNotNull()
