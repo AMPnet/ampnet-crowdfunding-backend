@@ -82,11 +82,12 @@ class DepositServiceImpl(
     @Transactional
     override fun generateMintTransaction(request: MintServiceRequest): TransactionDataAndInfo {
         val deposit = getDepositForId(request.depositId)
-        throwExceptionIfDepositHasTxHash(deposit)
-        throwExceptionIfDepositIsNotApproved(deposit)
+        validateDepositForMintTransaction(deposit)
+        val amount = deposit.amount
+                ?: throw ResourceNotFoundException(ErrorCode.WALLET_DEPOSIT_MISSING, "Deposit is missing amount value")
         val receivingWallet = getUserWalletHash(deposit)
         val senderWallet = "not-needed"
-        val data = blockchainService.generateMintTransaction(senderWallet, receivingWallet, request.amount)
+        val data = blockchainService.generateMintTransaction(senderWallet, receivingWallet, amount)
         val info = transactionInfoService.createMintTransaction(request, receivingWallet)
         return TransactionDataAndInfo(data, info)
     }
@@ -94,21 +95,17 @@ class DepositServiceImpl(
     @Transactional
     override fun confirmMintTransaction(signedTransaction: String, depositId: Int): Deposit {
         val deposit = getDepositForId(depositId)
-        throwExceptionIfDepositHasTxHash(deposit)
-        throwExceptionIfDepositIsNotApproved(deposit)
+        validateDepositForMintTransaction(deposit)
         val txHash = blockchainService.postTransaction(signedTransaction, PostTransactionType.ISSUER_MINT)
         deposit.txHash = txHash
         return depositRepository.save(deposit)
     }
 
-    private fun throwExceptionIfDepositIsNotApproved(deposit: Deposit) {
+    private fun validateDepositForMintTransaction(deposit: Deposit) {
         if (deposit.approved.not()) {
             throw InvalidRequestException(ErrorCode.WALLET_DEPOSIT_NOT_APPROVED,
                     "Deposit: ${deposit.id} is not approved")
         }
-    }
-
-    private fun throwExceptionIfDepositHasTxHash(deposit: Deposit) {
         if (deposit.txHash != null) {
             throw ResourceAlreadyExistsException(ErrorCode.WALLET_DEPOSIT_MINTED, "Mint txHash: ${deposit.txHash}")
         }

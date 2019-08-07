@@ -1,6 +1,5 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.GenerateMintRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserResponse
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
@@ -95,12 +93,12 @@ class DepositController(
         return ResponseEntity.ok(response)
     }
 
-    @PostMapping("/api/v1/deposit/transaction")
+    @PostMapping("/api/v1/deposit/{id}/transaction")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_DEPOSIT)")
-    fun generateMintTransaction(@RequestBody request: GenerateMintRequest): ResponseEntity<TransactionResponse> {
+    fun generateMintTransaction(@PathVariable("id") id: Int): ResponseEntity<TransactionResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.info { "Received request to generate mint transaction by user: ${userPrincipal.uuid}" }
-        val serviceRequest = MintServiceRequest(request.amount, userPrincipal.uuid, request.depositId)
+        val serviceRequest = MintServiceRequest(id, userPrincipal.uuid)
         val transactionDataAndInfo = depositService.generateMintTransaction(serviceRequest)
         return ResponseEntity.ok(TransactionResponse(transactionDataAndInfo))
     }

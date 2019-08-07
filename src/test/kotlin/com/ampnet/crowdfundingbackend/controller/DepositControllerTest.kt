@@ -1,7 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
-import com.ampnet.crowdfundingbackend.controller.pojo.request.GenerateMintRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserResponse
@@ -16,7 +15,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.fileUpload
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -62,7 +60,7 @@ class DepositControllerTest : ControllerTestBase() {
         verify("Deposit is stored") {
             val deposits = depositRepository.findAll()
             assertThat(deposits).hasSize(2)
-            val deposit = deposits.filter { it.approved.not() }.first()
+            val deposit = deposits.first { it.approved.not() }
             assertThat(deposit.userUuid).isEqualTo(userUuid)
             assertThat(deposit.approved).isFalse()
             assertThat(deposit.reference).isNotNull()
@@ -284,7 +282,7 @@ class DepositControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllTransactionInfo()
         }
         suppose("Approved deposit exists") {
-            val approved = createApprovedDeposit(userUuid)
+            val approved = createApprovedDeposit(userUuid, amount = testContext.amount)
             testContext.deposits = listOf(approved)
         }
         suppose("Blockchain service will return tx") {
@@ -294,12 +292,10 @@ class DepositControllerTest : ControllerTestBase() {
             ).thenReturn(testContext.transactionData)
         }
 
-        verify("User can generate mint transaction") {
-            val request = GenerateMintRequest(testContext.amount, testContext.deposits.first().id)
+        verify("Admin can generate mint transaction") {
+            val depositId = testContext.deposits.first().id
             val result = mockMvc.perform(
-                    post("$depositPath/transaction")
-                            .content(objectMapper.writeValueAsString(request))
-                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    post("$depositPath/$depositId/transaction"))
                     .andExpect(MockMvcResultMatchers.status().isOk)
                     .andReturn()
 

@@ -57,13 +57,13 @@ class DepositServiceTest : JpaServiceTestBase() {
         suppose("User does not have a wallet") {
             databaseCleanerService.deleteAllWalletsAndOwners()
         }
-        suppose("Unapproved and approved deposits exists") {
+        suppose("Unapproved deposit exist") {
             testContext.deposit = createApprovedDeposit(null)
         }
 
         verify("Service will throw exception for existing unapproved deposit") {
             assertThrows<ResourceNotFoundException> {
-                val request = MintServiceRequest(100L, userUuid, testContext.deposit.id)
+                val request = MintServiceRequest(testContext.deposit.id, userUuid)
                 depositService.generateMintTransaction(request)
             }
         }
@@ -73,7 +73,7 @@ class DepositServiceTest : JpaServiceTestBase() {
     fun mustThrowExceptionIfDepositIsMissingForMintTransaction() {
         verify("Service will throw exception if the deposit is missing") {
             assertThrows<ResourceNotFoundException> {
-                val request = MintServiceRequest(1000, userUuid, 0)
+                val request = MintServiceRequest(0, userUuid)
                 depositService.generateMintTransaction(request)
             }
         }
@@ -87,7 +87,7 @@ class DepositServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception if the deposit already has tx hash") {
             assertThrows<ResourceAlreadyExistsException> {
-                val request = MintServiceRequest(1000, userUuid, testContext.deposit.id)
+                val request = MintServiceRequest(testContext.deposit.id, userUuid)
                 depositService.generateMintTransaction(request)
             }
         }
@@ -101,7 +101,7 @@ class DepositServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception if the deposit is not approved") {
             assertThrows<InvalidRequestException> {
-                val request = MintServiceRequest(1000, userUuid, testContext.deposit.id)
+                val request = MintServiceRequest(testContext.deposit.id, userUuid)
                 depositService.generateMintTransaction(request)
             }
         }
@@ -138,6 +138,24 @@ class DepositServiceTest : JpaServiceTestBase() {
         verify("Service will throw exception if the deposit is not approved") {
             assertThrows<InvalidRequestException> {
                 depositService.confirmMintTransaction("signed-transaction", testContext.deposit.id)
+            }
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionIfDepositIsMissingAmount() {
+        suppose("Deposit is missing amount") {
+            val document = saveDocument("doc", "doc-link", userUuid, "type", 1)
+            val depositWithoutAmount = Deposit(0, userUuid, "MSSNGVL1", true,
+                    userUuid, ZonedDateTime.now(), null, document, null, ZonedDateTime.now()
+            )
+            testContext.deposit = depositRepository.save(depositWithoutAmount)
+        }
+
+        verify("Service will throw exception for missing amount") {
+            assertThrows<ResourceNotFoundException> {
+                val request = MintServiceRequest(testContext.deposit.id, userUuid)
+                depositService.generateMintTransaction(request)
             }
         }
     }
