@@ -35,7 +35,7 @@ class IssuingAuthorityController(
         @RequestParam(name = "uuid") userUuid: UUID,
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionAndLinkResponse> {
-        logger.info { "Received mint request from=$from to uuid=$userUuid in amount=$amount" }
+        logger.info { "Received mint request from=$from to user=$userUuid with amount=$amount" }
         val userWalletHash = getUserWalletHashFromUuid(userUuid)
 
         val transaction = blockchainService.generateMintTransaction(from, userWalletHash, amount)
@@ -51,7 +51,7 @@ class IssuingAuthorityController(
         @RequestParam(name = "uuid") userUuid: UUID,
         @RequestParam(name = "amount") amount: Long
     ): ResponseEntity<TransactionAndLinkResponse> {
-        logger.info { "Received burn request from=$from for uuid=$userUuid in amount=$amount" }
+        logger.info { "Received burn request from=$from for user=$userUuid with amount=$amount" }
         val userWalletHash = getUserWalletHashFromUuid(userUuid)
 
         val transaction = blockchainService.generateBurnTransaction(from, userWalletHash, amount)

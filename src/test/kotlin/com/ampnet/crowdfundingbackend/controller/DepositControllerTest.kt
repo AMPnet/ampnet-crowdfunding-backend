@@ -276,6 +276,10 @@ class DepositControllerTest : ControllerTestBase() {
     @Test
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_DEPOSIT])
     fun mustBeAbleToGenerateMintTransaction() {
+        suppose("User has a wallet") {
+            databaseCleanerService.deleteAllWalletsAndOwners()
+            createWalletForUser(userUuid, testContext.walletHash)
+        }
         suppose("Transaction info is clean") {
             databaseCleanerService.deleteAllTransactionInfo()
         }
@@ -291,8 +295,7 @@ class DepositControllerTest : ControllerTestBase() {
         }
 
         verify("User can generate mint transaction") {
-            val request = GenerateMintRequest(
-                    testContext.walletHash, testContext.amount, testContext.deposits.first().id)
+            val request = GenerateMintRequest(testContext.amount, testContext.deposits.first().id)
             val result = mockMvc.perform(
                     post("$depositPath/transaction")
                             .content(objectMapper.writeValueAsString(request))

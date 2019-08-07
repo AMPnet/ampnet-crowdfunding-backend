@@ -66,8 +66,8 @@ class TransactionInfoServiceImpl(
     }
 
     @Transactional
-    override fun createMintTransaction(request: MintServiceRequest): TransactionInfo {
-        val description = mintDescription.format(request.toWallet)
+    override fun createMintTransaction(request: MintServiceRequest, receivingWallet: String): TransactionInfo {
+        val description = mintDescription.format(receivingWallet)
         val txRequest = CreateTransactionRequest(
                 TransactionType.MINT, mintTitle, description, request.byUser, request.depositId)
         return createTransaction(txRequest)

@@ -100,7 +100,7 @@ class DepositController(
     fun generateMintTransaction(@RequestBody request: GenerateMintRequest): ResponseEntity<TransactionResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.info { "Received request to generate mint transaction by user: ${userPrincipal.uuid}" }
-        val serviceRequest = MintServiceRequest(request.toWallet, request.amount, userPrincipal.uuid, request.depositId)
+        val serviceRequest = MintServiceRequest(request.amount, userPrincipal.uuid, request.depositId)
         val transactionDataAndInfo = depositService.generateMintTransaction(serviceRequest)
         return ResponseEntity.ok(TransactionResponse(transactionDataAndInfo))
     }

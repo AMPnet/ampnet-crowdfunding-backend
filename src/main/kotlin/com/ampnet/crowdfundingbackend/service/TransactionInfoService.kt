@@ -11,7 +11,7 @@ interface TransactionInfoService {
     fun createProjectTransaction(project: Project, userUuid: UUID): TransactionInfo
     fun createInvestAllowanceTransaction(projectName: String, amount: Long, userUuid: UUID): TransactionInfo
     fun createInvestTransaction(projectName: String, userUuid: UUID): TransactionInfo
-    fun createMintTransaction(request: MintServiceRequest): TransactionInfo
+    fun createMintTransaction(request: MintServiceRequest, receivingWallet: String): TransactionInfo
     fun deleteTransaction(id: Int)
     fun findTransactionInfo(id: Int): TransactionInfo?
 }
