@@ -67,23 +67,6 @@ class WalletController(
     }
 
     /* Project Wallet */
-    @GetMapping("/wallet/project/{projectId}")
-    fun getProjectWallet(@PathVariable projectId: Int): ResponseEntity<WalletResponse> {
-        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        logger.debug {
-            "Received request to get Wallet for project: $projectId wallet by user: ${userPrincipal.uuid}"
-        }
-        val project = projectService.getProjectByIdWithWallet(projectId)
-                ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id $projectId")
-
-        project.wallet?.let {
-            val balance = walletService.getWalletBalance(it)
-            val response = WalletResponse(it, balance)
-            return ResponseEntity.ok(response)
-        }
-        return ResponseEntity.notFound().build()
-    }
-
     @GetMapping("/wallet/project/{projectId}/transaction")
     fun getTransactionToCreateProjectWallet(@PathVariable projectId: Int): ResponseEntity<TransactionResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()

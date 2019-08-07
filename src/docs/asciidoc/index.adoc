@@ -66,25 +66,25 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/h
 === Project Wallet
 Collection of endpoints for managing Project wallet
 
-==== Get project wallet
+==== Public - Get project wallet
 
 ===== Successfully get wallet
 .Request
-include::{snippets}/WalletControllerTest/mustBeAbleToGetProjectWallet/http-request.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetProjectWallet/http-request.adoc[]
 .Response
-include::{snippets}/WalletControllerTest/mustBeAbleToGetProjectWallet/http-response.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetProjectWallet/http-response.adoc[]
 
 ===== Project does not have a wallet
 .Request
-include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-request.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustGetNotFoundIfWalletIsMissing/http-request.adoc[]
 .Response
-include::{snippets}/WalletControllerTest/mustGetNotFoundIfWalletIsMissing/http-response.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustGetNotFoundIfWalletIsMissing/http-response.adoc[]
 
 ===== Non existing project
 .Request
-include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-request.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-request.adoc[]
 .Response
-include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-response.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject/http-response.adoc[]
 
 ==== Generate transaction to create project wallet
 
@@ -240,17 +240,19 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationMem
 == Project API
 Collection of endpoints for managing project
 
-=== Get all projects
-.Request
-include::{snippets}/ProjectControllerTest/mustReturnAllProjects/http-request.adoc[]
-.Response
-include::{snippets}/ProjectControllerTest/mustReturnAllProjects/http-response.adoc[]
+=== Public
 
-=== Get project
+==== Get all active projects with wallet
 .Request
-include::{snippets}/ProjectControllerTest/mustReturnProject/http-request.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetAllActiveProjectsWithWallet/http-request.adoc[]
 .Response
-include::{snippets}/ProjectControllerTest/mustReturnProject/http-response.adoc[]
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetAllActiveProjectsWithWallet/http-response.adoc[]
+
+==== Get project
+.Request
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetSpecificProject/http-request.adoc[]
+.Response
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetSpecificProject/http-response.adoc[]
 
 === Create project
 
@@ -270,9 +272,15 @@ include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizat
 
 === Get all projects for organization
 .Request
-include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-request.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectsForOrganization/http-request.adoc[]
 .Response
-include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectsForOrganization/http-response.adoc[]
+
+=== Get all projects
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetAllProjects/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetAllProjects/http-response.adoc[]
 
 === Update
 .Request

@@ -17,7 +17,6 @@ import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.ProjectService
-import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.pojo.CreateProjectServiceRequest
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.ProjectInvestmentRequest
@@ -38,31 +37,11 @@ import javax.validation.Valid
 @RestController
 class ProjectController(
     private val projectService: ProjectService,
-    private val walletService: WalletService,
     private val organizationService: OrganizationService,
     private val projectInvestmentService: ProjectInvestmentService
 ) {
 
     companion object : KLogging()
-
-    @GetMapping("/project/{id}")
-    fun getProject(@PathVariable id: Int): ResponseEntity<ProjectWithFundingResponse> {
-        logger.debug { "Received request to get project with id: $id" }
-        val project = getProjectByIdWithAllData(id)
-        val currentFunding = getCurrentFundingForProject(project)
-        logger.debug { "Project $id current funding is: $currentFunding" }
-
-        val response = ProjectWithFundingResponse(project, currentFunding)
-        return ResponseEntity.ok(response)
-    }
-
-    @GetMapping("/project")
-    fun getProject(): ResponseEntity<ProjectListResponse> {
-        logger.debug { "Received request to get project all projects" }
-        val projectsResponse = projectService.getAllProjects().map { ProjectResponse(it) }
-        val response = ProjectListResponse(projectsResponse)
-        return ResponseEntity.ok(response)
-    }
 
     @PostMapping("/project")
     fun createProject(@RequestBody @Valid request: ProjectRequest): ResponseEntity<ProjectWithFundingResponse> {
@@ -89,8 +68,16 @@ class ProjectController(
         }
     }
 
+    @GetMapping("/project")
+    fun getAllProjects(): ResponseEntity<ProjectListResponse> {
+        logger.debug { "Received request to get project all projects" }
+        val projectsResponse = projectService.getAllProjects().map { ProjectResponse(it) }
+        val response = ProjectListResponse(projectsResponse)
+        return ResponseEntity.ok(response)
+    }
+
     @GetMapping("/project/organization/{organizationId}")
-    fun getAllProjectForOrganization(@PathVariable organizationId: Int): ResponseEntity<ProjectListResponse> {
+    fun getAllProjectsForOrganization(@PathVariable organizationId: Int): ResponseEntity<ProjectListResponse> {
         logger.debug { "Received request to get all projects for organization: $organizationId" }
         val projects = projectService.getAllProjectsForOrganization(organizationId).map { ProjectResponse(it) }
         return ResponseEntity.ok(ProjectListResponse(projects))
@@ -232,14 +219,6 @@ class ProjectController(
         val serviceRequest = CreateProjectServiceRequest(request, organization, userUuid)
         val project = projectService.createProject(serviceRequest)
         return ProjectWithFundingResponse(project, null)
-    }
-
-    private fun getCurrentFundingForProject(project: Project): Long? {
-        project.wallet?.let {
-            return walletService.getWalletBalance(it)
-        }
-        logger.info { "Project ${project.id} does not have a wallet" }
-        return null
     }
 
     private fun getOrganization(organizationId: Int): Organization =

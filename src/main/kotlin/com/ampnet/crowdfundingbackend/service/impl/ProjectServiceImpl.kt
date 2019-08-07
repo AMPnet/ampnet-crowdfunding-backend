@@ -65,6 +65,11 @@ class ProjectServiceImpl(
         return projectRepository.findAll()
     }
 
+    @Transactional(readOnly = true)
+    override fun getAllActiveWithWallet(): List<Project> {
+        return projectRepository.findAllActiveWithWallet()
+    }
+
     @Transactional
     override fun updateProject(project: Project, request: ProjectUpdateRequest): Project {
         request.name?.let { project.name = it }

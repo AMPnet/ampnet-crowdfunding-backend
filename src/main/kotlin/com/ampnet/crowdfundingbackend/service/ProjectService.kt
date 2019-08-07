@@ -13,6 +13,7 @@ interface ProjectService {
     fun getProjectByIdWithAllData(id: Int): Project?
     fun getAllProjectsForOrganization(organizationId: Int): List<Project>
     fun getAllProjects(): List<Project>
+    fun getAllActiveWithWallet(): List<Project>
     fun updateProject(project: Project, request: ProjectUpdateRequest): Project
 
     fun addMainImage(project: Project, name: String, content: ByteArray)

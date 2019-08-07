@@ -266,61 +266,10 @@ class WalletControllerTest : ControllerTestBase() {
 
     @Test
     @WithMockCrowdfoundUser
-    fun mustBeAbleToGetProjectWallet() {
-        suppose("Project exists") {
-            val organization = createOrganization("Org test", userUuid)
-            testData.project = createProject("Test project", organization, userUuid)
-        }
-        suppose("Project wallet exists") {
-            testData.wallet = createWalletForProject(testData.project, testData.hash)
-        }
-
-        verify("User can get wallet") {
-            val result = mockMvc.perform(get("$projectWalletPath/${testData.project.id}"))
-                    .andExpect(status().isOk)
-                    .andReturn()
-
-            val walletResponse: WalletResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(walletResponse.id).isEqualTo(testData.wallet.id)
-            assertThat(walletResponse.hash).isEqualTo(testData.hash)
-            assertThat(walletResponse.currency).isEqualTo(testData.wallet.currency)
-            assertThat(walletResponse.type).isEqualTo(testData.wallet.type)
-            assertThat(walletResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser
-    fun mustGetNotFoundIfWalletIsMissing() {
-        suppose("Project exists") {
-            val organization = createOrganization("Org test", userUuid)
-            testData.project = createProject("Test project", organization, userUuid)
-        }
-
-        verify("User will get not found") {
-            mockMvc.perform(get("$projectWalletPath/${testData.project.id}"))
-                    .andExpect(status().isNotFound)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser
     fun mustThrowExceptionIfUserTriesToGenerateProjectWalletForNonExistingProject() {
         verify("System will throw error for missing project") {
             val response = mockMvc.perform(
                     get("$projectWalletPath/0/transaction"))
-                    .andExpect(status().isBadRequest)
-                    .andReturn()
-            verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
-        }
-    }
-
-    @Test
-    @WithMockCrowdfoundUser
-    fun mustThrowExceptionIfUserTriesToGetProjectWalletForNonExistingProject() {
-        verify("System will throw error for missing project") {
-            val response = mockMvc.perform(
-                    get("$projectWalletPath/0"))
                     .andExpect(status().isBadRequest)
                     .andReturn()
             verifyResponseErrorCode(response, ErrorCode.PRJ_MISSING)
