@@ -68,6 +68,15 @@ class ProjectController(
         }
     }
 
+    @GetMapping("/project")
+    fun getAllProjects(): ResponseEntity<ProjectListResponse> {
+        logger.debug { "Received request to get project all projects" }
+        val projectsResponse = projectService.getAllProjects().map { ProjectResponse(it) }
+        val response = ProjectListResponse(projectsResponse)
+        return ResponseEntity.ok(response)
+    }
+
+
     @GetMapping("/project/organization/{organizationId}")
     fun getAllProjectsForOrganization(@PathVariable organizationId: Int): ResponseEntity<ProjectListResponse> {
         logger.debug { "Received request to get all projects for organization: $organizationId" }

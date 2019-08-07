@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
+import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
@@ -37,15 +38,19 @@ class ProjectPublicControllerTest : ControllerTestBase() {
     }
 
     @Test
-    fun mustBeAbleToGetAllProjects() {
-        suppose("Project exists") {
+    fun mustBeAbleToGetAllActiveProjectsWithWallet() {
+        suppose("Project with wallet exists") {
             testContext.project = createProject("My project", organization, userUuid)
+            createWalletForProject(testContext.project, "0x430534053405340534")
         }
-        suppose("Another organization has project") {
+        suppose("Another organization has project without wallet") {
             val secondOrganization = createOrganization("Second organization", userUuid)
             createWalletForOrganization(secondOrganization,
                     "0xacv23e732eda043b83ea19a3a1bd2f27a65d11d6e887fa52763bb069977aa292")
             testContext.secondProject = createProject("Second project", secondOrganization, userUuid)
+        }
+        suppose("There is inactive project") {
+            createProject("Inactive project", organization, userUuid, active = false)
         }
 
         verify("Controller will return all projects") {
@@ -54,9 +59,11 @@ class ProjectPublicControllerTest : ControllerTestBase() {
                     .andReturn()
 
             val projectsResponse: ProjectListResponse = objectMapper.readValue(result.response.contentAsString)
-            assertThat(projectsResponse.projects).hasSize(2)
-            assertThat(projectsResponse.projects.map { it.id })
-                    .containsAll(listOf(testContext.project.id, testContext.secondProject.id))
+            assertThat(projectsResponse.projects).hasSize(1)
+            val project = projectsResponse.projects.first()
+            assertThat(project.id).isEqualTo(testContext.project.id)
+            assertThat(project.active).isTrue()
+            assertThat(project.walletHash).isNotEmpty()
         }
     }
 

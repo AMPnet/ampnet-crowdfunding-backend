@@ -66,7 +66,7 @@ include::{snippets}/WalletControllerTest/mustNotBeAbleToCreateAdditionalWallet/h
 === Project Wallet
 Collection of endpoints for managing Project wallet
 
-==== Get project wallet
+==== Public - Get project wallet
 
 ===== Successfully get wallet
 .Request
@@ -116,12 +116,6 @@ include::{snippets}/WalletControllerTest/mustBeAbleToGetOrganizationWallet/http-
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfOrganizationIsMissing/http-request.adoc[]
 .Response
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfOrganizationIsMissing/http-response.adoc[]
-
-===== Missing user wallet
-.Request
-include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-response.adoc[]
 
 ==== Get transaction for creating organization wallet
 .Request
@@ -246,13 +240,15 @@ include::{snippets}/OrganizationControllerTest/mustBeAbleToDeleteOrganizationMem
 == Project API
 Collection of endpoints for managing project
 
-=== Get all projects
-.Request
-include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetAllProjects/http-request.adoc[]
-.Response
-include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetAllProjects/http-response.adoc[]
+=== Public
 
-=== Get project
+==== Get all active projects with wallet
+.Request
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetAllActiveProjectsWithWallet/http-request.adoc[]
+.Response
+include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetAllActiveProjectsWithWallet/http-response.adoc[]
+
+==== Get project
 .Request
 include::{snippets}/ProjectPublicControllerTest/mustBeAbleToGetSpecificProject/http-request.adoc[]
 .Response
@@ -276,9 +272,15 @@ include::{snippets}/ProjectControllerTest/mustReturnErrorForUserWithoutOrganizat
 
 === Get all projects for organization
 .Request
-include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-request.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectsForOrganization/http-request.adoc[]
 .Response
-include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectForOrganization/http-response.adoc[]
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetListOfProjectsForOrganization/http-response.adoc[]
+
+=== Get all projects
+.Request
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetAllProjects/http-request.adoc[]
+.Response
+include::{snippets}/ProjectControllerTest/mustBeAbleToGetAllProjects/http-response.adoc[]
 
 === Update
 .Request
