@@ -117,12 +117,6 @@ include::{snippets}/WalletControllerTest/mustThrowExceptionIfOrganizationIsMissi
 .Response
 include::{snippets}/WalletControllerTest/mustThrowExceptionIfOrganizationIsMissing/http-response.adoc[]
 
-===== Missing user wallet
-.Request
-include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-request.adoc[]
-.Response
-include::{snippets}/WalletControllerTest/mustThrowExceptionIfUserWalletIsMissing/http-response.adoc[]
-
 ==== Get transaction for creating organization wallet
 .Request
 include::{snippets}/WalletControllerTest/mustBeAbleToGetCreateOrganizationWallet/http-request.adoc[]
@@ -485,3 +479,11 @@ Must have Admin role - privilege: PWA_DEPOSIT
 include::{snippets}/DepositControllerTest/mustBeAbleToDeleteDeposit/http-request.adoc[]
 .Response
 include::{snippets}/DepositControllerTest/mustBeAbleToDeleteDeposit/http-response.adoc[]
+
+=== Generate Mint transaction
+Must have Admin role - privilege: PWA_DEPOSIT
+
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToGenerateMintTransaction/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToGenerateMintTransaction/http-response.adoc[]
