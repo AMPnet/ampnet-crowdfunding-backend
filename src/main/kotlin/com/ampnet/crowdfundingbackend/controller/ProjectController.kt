@@ -76,7 +76,6 @@ class ProjectController(
         return ResponseEntity.ok(response)
     }
 
-
     @GetMapping("/project/organization/{organizationId}")
     fun getAllProjectsForOrganization(@PathVariable organizationId: Int): ResponseEntity<ProjectListResponse> {
         logger.debug { "Received request to get all projects for organization: $organizationId" }

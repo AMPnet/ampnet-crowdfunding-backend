@@ -1,7 +1,6 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectListResponse
-import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.ProjectWithFundingResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WalletResponse
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
