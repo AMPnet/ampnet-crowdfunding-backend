@@ -420,10 +420,6 @@ class WalletControllerTest : ControllerTestBase() {
         }
     }
 
-    private fun generateTransactionData(data: String): TransactionData {
-        return TransactionData(data, "to", 1, 1, 1, 1, "public_key")
-    }
-
     private class TestData {
         lateinit var wallet: Wallet
         lateinit var project: Project

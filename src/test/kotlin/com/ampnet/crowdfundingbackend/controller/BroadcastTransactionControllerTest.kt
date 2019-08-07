@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.enums.Currency
 import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.persistence.model.Deposit
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
@@ -267,6 +268,37 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    fun mustBeAbleToPostSignedMintTransaction() {
+        suppose("Deposit approved exists") {
+            testContext.deposit = createApprovedDeposit(userUuid)
+        }
+        suppose("TransactionInfo exists for invest transaction") {
+            testContext.transactionInfo = createTransactionInfo(TransactionType.MINT, userUuid, testContext.deposit.id)
+        }
+        suppose("Blockchain service will accept signed transaction for project investment confirmation") {
+            Mockito.`when`(
+                    blockchainService.postTransaction(signedTransaction, PostTransactionType.ISSUER_MINT)
+            ).thenReturn(txHash)
+        }
+
+        verify("User can post signed transaction to confirm investment in project") {
+            val result = mockMvc.perform(
+                    post(broadcastPath)
+                            .param(txSignedParam, signedTransaction)
+                            .param(txIdParam, testContext.transactionInfo.id.toString()))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(txHashResponse.txHash).isEqualTo(txHash)
+        }
+        verify("TransactionInfo is deleted") {
+            val transactionInfo = transactionInfoRepository.findById(testContext.transactionInfo.id)
+            assertThat(transactionInfo).isNotPresent
+        }
+    }
+
     private fun createTransactionInfo(
         type: TransactionType,
         userUuid: UUID,
@@ -279,5 +311,6 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
     private class TestContext {
         lateinit var transactionInfo: TransactionInfo
         lateinit var project: Project
+        lateinit var deposit: Deposit
     }
 }

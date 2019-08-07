@@ -13,6 +13,7 @@ data class DepositResponse(
     val approvedAt: ZonedDateTime?,
     val amount: Long?,
     val documentResponse: DocumentResponse?,
+    val txHash: String?,
     val createdAt: ZonedDateTime
 ) {
     constructor(deposit: Deposit) : this(
@@ -23,6 +24,7 @@ data class DepositResponse(
         deposit.approvedAt,
         deposit.amount,
         deposit.document?.let { DocumentResponse(it) },
+        deposit.txHash,
         deposit.createdAt
     )
 }
@@ -35,6 +37,7 @@ data class DepositWithUserResponse(
     val approvedAt: ZonedDateTime?,
     val amount: Long?,
     val documentResponse: DocumentResponse?,
+    val txHash: String?,
     val createdAt: ZonedDateTime
 ) {
     constructor(deposit: Deposit, userResponse: UserResponse?) : this(
@@ -45,6 +48,7 @@ data class DepositWithUserResponse(
         deposit.approvedAt,
         deposit.amount,
         deposit.document?.let { DocumentResponse(it) },
+        deposit.txHash,
         deposit.createdAt
     )
 }

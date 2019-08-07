@@ -41,6 +41,9 @@ data class Deposit(
     @JoinColumn(name = "document_id")
     var document: Document?,
 
+    @Column
+    var txHash: String?,
+
     @Column(nullable = false)
     val createdAt: ZonedDateTime
 )
