@@ -1,7 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
-import com.ampnet.crowdfundingbackend.controller.pojo.request.WithdrawApproveRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.request.WithdrawCreateRequest
+import com.ampnet.crowdfundingbackend.controller.pojo.response.TransactionResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserAndAcceptanceListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserAndAcceptanceResponse
@@ -36,36 +36,36 @@ class WithdrawController(
         return ResponseEntity.ok(WithdrawResponse(withdraw))
     }
 
-    @GetMapping("/api/v1/withdraw/unapproved")
+    @GetMapping("/api/v1/withdraw/approved")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_WITHDRAW)")
     fun getUnapprovedWithdraws(): ResponseEntity<WithdrawWithUserListResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "Received request to get Withdraws by user: ${userPrincipal.uuid}" }
         val withdraws = withdrawService.getWithdraws(false)
-        val users = userService.getUsers(withdraws.map { it.userUuid })
+        val users = userService.getUsers(withdraws.map { it.user })
         val withdrawWithUserList = mutableListOf<WithdrawWithUserResponse>()
         withdraws.forEach { withdraw ->
-            val wallet = walletService.getUserWallet(withdraw.userUuid)?.hash.orEmpty()
-            val userUuid = withdraw.userUuid.toString()
+            val wallet = walletService.getUserWallet(withdraw.user)?.hash.orEmpty()
+            val userUuid = withdraw.user.toString()
             val userResponse = users.find { it.uuid == userUuid }
             withdrawWithUserList.add(WithdrawWithUserResponse(withdraw, userResponse, wallet))
         }
         return ResponseEntity.ok(WithdrawWithUserListResponse(withdrawWithUserList))
     }
 
-    @GetMapping("/api/v1/withdraw/approved")
+    @GetMapping("/api/v1/withdraw/burned")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_WITHDRAW)")
     fun getApprovedWithdraws(): ResponseEntity<WithdrawWithUserAndAcceptanceListResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "Received request to get Withdraws by user: ${userPrincipal.uuid}" }
         val withdraws = withdrawService.getWithdraws(true)
-        val users = userService.getUsers(withdraws.map { it.userUuid })
-        val acceptors = userService.getUsers(withdraws.mapNotNull { it.approvedByUserUuid })
+        val users = userService.getUsers(withdraws.map { it.user })
+        val acceptors = userService.getUsers(withdraws.mapNotNull { it.burnedBy })
         val withdrawWithUserList = mutableListOf<WithdrawWithUserAndAcceptanceResponse>()
         withdraws.forEach { withdraw ->
-            val wallet = walletService.getUserWallet(withdraw.userUuid)?.hash.orEmpty()
-            val userUuid = withdraw.userUuid.toString()
-            val acceptorUuid = withdraw.approvedByUserUuid.toString()
+            val wallet = walletService.getUserWallet(withdraw.user)?.hash.orEmpty()
+            val userUuid = withdraw.user.toString()
+            val acceptorUuid = withdraw.burnedBy.toString()
             val userResponse = users.find { it.uuid == userUuid }
             val acceptor = acceptors.find { it.uuid == acceptorUuid }
             withdrawWithUserList.add(WithdrawWithUserAndAcceptanceResponse(withdraw, userResponse, acceptor, wallet))
@@ -73,15 +73,20 @@ class WithdrawController(
         return ResponseEntity.ok(WithdrawWithUserAndAcceptanceListResponse(withdrawWithUserList))
     }
 
-    @PostMapping("/api/v1/withdraw/{id}/approve")
-    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_WITHDRAW)")
-    fun approveWithdraw(
-        @RequestBody request: WithdrawApproveRequest,
-        @PathVariable("id") id: Int
-    ): ResponseEntity<WithdrawResponse> {
+    @PostMapping("/api/v1/withdraw/{id}/transaction/approve")
+    fun generateApproveTransaction(@PathVariable("id") id: Int): ResponseEntity<TransactionResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
-        logger.info { "Received request to approve Withdraw: $id by user: ${userPrincipal.uuid}" }
-        val withdraw = withdrawService.approveWithdraw(userPrincipal.uuid, id, request.reference)
-        return ResponseEntity.ok(WithdrawResponse(withdraw))
+        logger.info { "Received request to generate withdraw approval transaction by user: ${userPrincipal.uuid}" }
+        val transactionDataAndInfo = withdrawService.generateApprovalTransaction(id, userPrincipal.uuid)
+        return ResponseEntity.ok(TransactionResponse(transactionDataAndInfo))
+    }
+
+    @GetMapping("/api/v1/withdraw/{id}/transaction/burn")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_WITHDRAW)")
+    fun generateBurnTransaction(@PathVariable("id") id: Int): ResponseEntity<TransactionResponse> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.info { "Received request to generate withdraw burn transaction by user: ${userPrincipal.uuid}" }
+        val transactionDataAndInfo = withdrawService.generateBurnTransaction(id, userPrincipal.uuid)
+        return ResponseEntity.ok(TransactionResponse(transactionDataAndInfo))
     }
 }

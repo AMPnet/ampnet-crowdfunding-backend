@@ -6,6 +6,7 @@ import com.ampnet.crowdfunding.proto.BalanceRequest
 import com.ampnet.crowdfunding.proto.BlockchainServiceGrpc
 import com.ampnet.crowdfunding.proto.GenerateAddOrganizationTxRequest
 import com.ampnet.crowdfunding.proto.GenerateAddProjectTxRequest
+import com.ampnet.crowdfunding.proto.GenerateApproveWithdrawTxRequest
 import com.ampnet.crowdfunding.proto.GenerateBurnFromTxRequest
 import com.ampnet.crowdfunding.proto.GenerateConfirmInvestmentTxRequest
 import com.ampnet.crowdfunding.proto.GenerateInvestmentTxRequest
@@ -189,6 +190,21 @@ class BlockchainServiceImpl(
                     .setBurnFromTxHash(burnFromTxHash)
                     .setAmount(amount)
                     .build()
+            )
+            return TransactionData(response)
+        } catch (ex: StatusRuntimeException) {
+            throw getInternalExceptionFromStatusException(ex, "Could not Burn toHash: $burnFromTxHash")
+        }
+    }
+
+    override fun generateApproveBurnTransaction(burnFromTxHash: String, amount: Long): TransactionData {
+        logger.info { "Generating Approve Burn Transaction burnFromTxHash: $burnFromTxHash with amount = $amount" }
+        try {
+            val response = serviceBlockingStub.generateApproveWithdrawTx(
+                GenerateApproveWithdrawTxRequest.newBuilder()
+                        .setFromTxHash(burnFromTxHash)
+                        .setAmount(amount)
+                        .build()
             )
             return TransactionData(response)
         } catch (ex: StatusRuntimeException) {

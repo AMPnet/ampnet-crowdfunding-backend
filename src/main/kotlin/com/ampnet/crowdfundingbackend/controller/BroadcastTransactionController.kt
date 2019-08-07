@@ -13,6 +13,7 @@ import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.WalletService
+import com.ampnet.crowdfundingbackend.service.WithdrawService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -26,7 +27,8 @@ class BroadcastTransactionController(
     private val organizationService: OrganizationService,
     private val projectService: ProjectService,
     private val projectInvestmentService: ProjectInvestmentService,
-    private val depositService: DepositService
+    private val depositService: DepositService,
+    private val withdrawService: WithdrawService
 ) {
 
     companion object : KLogging()
@@ -47,6 +49,8 @@ class BroadcastTransactionController(
             TransactionType.INVEST_ALLOWANCE -> projectInvestmentService.investInProject(signedTransaction)
             TransactionType.INVEST -> projectInvestmentService.confirmInvestment(signedTransaction)
             TransactionType.MINT -> confirmMintTransaction(transactionInfo, signedTransaction)
+            TransactionType.APPROVAL -> confirmApprovalTransaction(transactionInfo, signedTransaction)
+            TransactionType.BURN -> burnTransaction(transactionInfo, signedTransaction)
         }
         logger.info { "Successfully broadcast transaction. TxHash: $txHash" }
 
@@ -78,6 +82,25 @@ class BroadcastTransactionController(
         val deposit = depositService.confirmMintTransaction(signedTransaction, depositId)
         return deposit.txHash
                 ?: throw InternalException(ErrorCode.TX_MISSING, "Missing txHash for mint transaction")
+    }
+
+    private fun confirmApprovalTransaction(transactionInfo: TransactionInfo, signedTransaction: String): String {
+        val withdrawId = getWithdrawIdFromTransactionInfo(transactionInfo)
+        val withdraw = withdrawService.confirmApproval(signedTransaction, withdrawId)
+        return withdraw.approvedTxHash
+                ?: throw InternalException(ErrorCode.TX_MISSING, "Missing approvedTxHash for withdraw transaction")
+    }
+
+    private fun burnTransaction(transactionInfo: TransactionInfo, signedTransaction: String): String {
+        val withdrawId = getWithdrawIdFromTransactionInfo(transactionInfo)
+        val withdraw = withdrawService.burn(signedTransaction, withdrawId)
+        return withdraw.approvedTxHash
+                ?: throw InternalException(ErrorCode.TX_MISSING, "Missing approvedTxHash for withdraw transaction")
+    }
+
+    private fun getWithdrawIdFromTransactionInfo(transactionInfo: TransactionInfo): Int {
+        return transactionInfo.companionId
+                ?: throw InvalidRequestException(ErrorCode.TX_COMPANION_ID_MISSING, "Missing withdraw id")
     }
 
     private fun getTransactionInfo(txId: Int) = transactionInfoService.findTransactionInfo(txId)
