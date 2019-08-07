@@ -7,7 +7,6 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
-import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.OrganizationServiceImpl
 import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.service.pojo.OrganizationServiceRequest
@@ -21,8 +20,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class OrganizationServiceTest : JpaServiceTestBase() {
-
-    private val cloudStorageService: CloudStorageServiceImpl = Mockito.mock(CloudStorageServiceImpl::class.java)
 
     private val organizationService: OrganizationService by lazy {
         val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)

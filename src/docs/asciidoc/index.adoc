@@ -487,3 +487,11 @@ Must have Admin role - privilege: PWA_DEPOSIT
 include::{snippets}/DepositControllerTest/mustBeAbleToDeleteDeposit/http-request.adoc[]
 .Response
 include::{snippets}/DepositControllerTest/mustBeAbleToDeleteDeposit/http-response.adoc[]
+
+=== Generate Mint transaction
+Must have Admin role - privilege: PWA_DEPOSIT
+
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToGenerateMintTransaction/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToGenerateMintTransaction/http-response.adoc[]

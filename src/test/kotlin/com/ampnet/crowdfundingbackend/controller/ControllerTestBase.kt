@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.TestBase
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
 import com.ampnet.crowdfundingbackend.config.DatabaseCleanerService
 import com.ampnet.crowdfundingbackend.controller.pojo.request.ProjectRequest
 import com.ampnet.crowdfundingbackend.enums.Currency
@@ -9,12 +10,14 @@ import com.ampnet.crowdfundingbackend.enums.OrganizationRoleType
 import com.ampnet.crowdfundingbackend.enums.WalletType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.ErrorResponse
+import com.ampnet.crowdfundingbackend.persistence.model.Deposit
 import com.ampnet.crowdfundingbackend.persistence.model.Document
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.repository.DepositRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationMembershipRepository
@@ -85,6 +88,8 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var userWalletRepository: UserWalletRepository
     @Autowired
     protected lateinit var pairWalletCodeRepository: PairWalletCodeRepository
+    @Autowired
+    protected lateinit var depositRepository: DepositRepository
     @Autowired
     protected lateinit var userService: UserService
     @Autowired
@@ -268,5 +273,21 @@ abstract class ControllerTestBase : TestBase() {
         project.documents = documents
         projectRepository.save(project)
         return savedDocument
+    }
+
+    protected fun generateTransactionData(data: String): TransactionData {
+        return TransactionData(data, "to", 1, 1, 1, 1, "public_key")
+    }
+
+    protected fun createApprovedDeposit(
+        user: UUID,
+        txHash: String? = null,
+        amount: Long = 1000
+    ): Deposit {
+        val document = saveDocument("doc", "document-link", "type", 1, user)
+        val deposit = Deposit(0, user, "S34SDGFT", true,
+                user, ZonedDateTime.now(), amount, document, txHash, ZonedDateTime.now()
+        )
+        return depositRepository.save(deposit)
     }
 }

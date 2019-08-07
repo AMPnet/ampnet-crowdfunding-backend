@@ -1,0 +1,1 @@
+ALTER TABLE deposit ADD COLUMN tx_hash VARCHAR;

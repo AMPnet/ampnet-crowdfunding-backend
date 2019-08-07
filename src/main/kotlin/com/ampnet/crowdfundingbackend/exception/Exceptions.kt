@@ -1,7 +1,5 @@
 package com.ampnet.crowdfundingbackend.exception
 
-class InvalidLoginMethodException(exceptionMessage: String) : Exception(exceptionMessage)
-
 class InvalidRequestException(val errorCode: ErrorCode, exceptionMessage: String, throwable: Throwable? = null) :
     Exception(exceptionMessage, throwable)
 

@@ -3,9 +3,11 @@ package com.ampnet.crowdfundingbackend.controller
 import com.ampnet.crowdfundingbackend.controller.pojo.response.TxHashResponse
 import com.ampnet.crowdfundingbackend.enums.TransactionType
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
+import com.ampnet.crowdfundingbackend.exception.InternalException
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
+import com.ampnet.crowdfundingbackend.service.DepositService
 import com.ampnet.crowdfundingbackend.service.OrganizationService
 import com.ampnet.crowdfundingbackend.service.ProjectInvestmentService
 import com.ampnet.crowdfundingbackend.service.ProjectService
@@ -17,18 +19,19 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-@RestController("/")
+@RestController
 class BroadcastTransactionController(
     private val transactionInfoService: TransactionInfoService,
     private val walletService: WalletService,
     private val organizationService: OrganizationService,
     private val projectService: ProjectService,
-    private val projectInvestmentService: ProjectInvestmentService
+    private val projectInvestmentService: ProjectInvestmentService,
+    private val depositService: DepositService
 ) {
 
     companion object : KLogging()
 
-    @PostMapping("tx_broadcast")
+    @PostMapping("/tx_broadcast")
     fun broadcastTransaction(
         @RequestParam(name = "tx_id", required = true) txId: Int,
         @RequestParam(name = "tx_sig", required = true) signedTransaction: String
@@ -43,6 +46,7 @@ class BroadcastTransactionController(
             TransactionType.CREATE_PROJECT -> createProjectWallet(transactionInfo, signedTransaction)
             TransactionType.INVEST_ALLOWANCE -> projectInvestmentService.investInProject(signedTransaction)
             TransactionType.INVEST -> projectInvestmentService.confirmInvestment(signedTransaction)
+            TransactionType.MINT -> confirmMintTransaction(transactionInfo, signedTransaction)
         }
         logger.info { "Successfully broadcast transaction. TxHash: $txHash" }
 
@@ -66,6 +70,14 @@ class BroadcastTransactionController(
                 ?: throw ResourceNotFoundException(ErrorCode.PRJ_MISSING, "Missing project with id: $projectId")
         val wallet = walletService.createProjectWallet(project, signedTransaction)
         return wallet.hash
+    }
+
+    private fun confirmMintTransaction(transactionInfo: TransactionInfo, signedTransaction: String): String {
+        val depositId = transactionInfo.companionId
+                ?: throw InvalidRequestException(ErrorCode.TX_COMPANION_ID_MISSING, "Missing deposit id")
+        val deposit = depositService.confirmMintTransaction(signedTransaction, depositId)
+        return deposit.txHash
+                ?: throw InternalException(ErrorCode.TX_MISSING, "Missing txHash for mint transaction")
     }
 
     private fun getTransactionInfo(txId: Int) = transactionInfoService.findTransactionInfo(txId)
