@@ -38,6 +38,16 @@ class DepositController(
     }
 
     @GetMapping("/api/v1/deposit")
+    fun getPendingDeposit(): ResponseEntity<DepositResponse> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.debug { "Received request to get pending deposit by user: ${userPrincipal.uuid}" }
+        depositService.getPendingForUser(userPrincipal.uuid)?.let {
+            return ResponseEntity.ok(DepositResponse(it))
+        }
+        return ResponseEntity.notFound().build()
+    }
+
+    @GetMapping("/api/v1/deposit/search")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_DEPOSIT)")
     fun getDepositByReference(
         @RequestParam("reference") reference: String

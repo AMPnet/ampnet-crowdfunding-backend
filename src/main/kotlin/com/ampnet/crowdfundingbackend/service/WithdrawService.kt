@@ -1,10 +1,16 @@
 package com.ampnet.crowdfundingbackend.service
 
+import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
 import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import java.util.UUID
 
 interface WithdrawService {
-    fun getWithdraws(approved: Boolean): List<Withdraw>
+    fun getPendingForUser(user: UUID): Withdraw?
+    fun getAllApproved(): List<Withdraw>
+    fun getAllBurned(): List<Withdraw>
     fun createWithdraw(user: UUID, amount: Long): Withdraw
-    fun approveWithdraw(user: UUID, withdrawId: Int, reference: String): Withdraw
+    fun generateApprovalTransaction(withdrawId: Int, user: UUID): TransactionDataAndInfo
+    fun confirmApproval(signedTransaction: String, withdrawId: Int): Withdraw
+    fun generateBurnTransaction(withdrawId: Int, user: UUID): TransactionDataAndInfo
+    fun burn(signedTransaction: String, withdrawId: Int): Withdraw
 }

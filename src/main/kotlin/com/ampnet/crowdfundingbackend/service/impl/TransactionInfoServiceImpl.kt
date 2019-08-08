@@ -28,6 +28,10 @@ class TransactionInfoServiceImpl(
     private val investDescription = "You are signing transaction to confirm investment to project: %s"
     private val mintTitle = "Mint"
     private val mintDescription = "You are singing mint transaction for wallet: %s"
+    private val approvalTitle = "Approval"
+    private val approvalDescription = "You are singing approval transaction to burn amount: %d"
+    private val burnTitle = "Approval"
+    private val burnDescription = "You are singing burn transaction for amount: %d"
 
     @Transactional
     override fun createOrgTransaction(organization: Organization, userUuid: UUID): TransactionInfo {
@@ -70,6 +74,21 @@ class TransactionInfoServiceImpl(
         val description = mintDescription.format(receivingWallet)
         val txRequest = CreateTransactionRequest(
                 TransactionType.MINT, mintTitle, description, request.byUser, request.depositId)
+        return createTransaction(txRequest)
+    }
+
+    @Transactional
+    override fun createApprovalTransaction(amount: Long, userUuid: UUID, withdrawId: Int): TransactionInfo {
+        val description = approvalDescription.format(amount)
+        val txRequest = CreateTransactionRequest(
+                TransactionType.BURN_APPROVAL, approvalTitle, description, userUuid, withdrawId)
+        return createTransaction(txRequest)
+    }
+
+    @Transactional
+    override fun createBurnTransaction(amount: Long, userUuid: UUID, withdrawId: Int): TransactionInfo {
+        val description = burnDescription.format(amount)
+        val txRequest = CreateTransactionRequest(TransactionType.BURN, burnTitle, description, userUuid, withdrawId)
         return createTransaction(txRequest)
     }
 

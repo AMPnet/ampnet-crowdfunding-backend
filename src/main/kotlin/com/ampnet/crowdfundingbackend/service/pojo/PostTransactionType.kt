@@ -8,5 +8,6 @@ enum class PostTransactionType(val type: TransactionType) {
     PRJ_INVEST(TransactionType.APPROVE),
     PRJ_INVEST_CONFIRM(TransactionType.INVEST),
     ISSUER_MINT(TransactionType.DEPOSIT),
-    ISSUER_BURN(TransactionType.WITHDRAW)
+    ISSUER_BURN(TransactionType.WITHDRAW),
+    APPROVAL_BURN(TransactionType.APPROVE)
 }

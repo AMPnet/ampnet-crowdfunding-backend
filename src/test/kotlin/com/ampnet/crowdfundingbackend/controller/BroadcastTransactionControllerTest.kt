@@ -9,6 +9,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Deposit
 import com.ampnet.crowdfundingbackend.persistence.model.Organization
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.TransactionInfo
+import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import com.ampnet.crowdfundingbackend.service.pojo.PostTransactionType
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -299,6 +300,69 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    fun mustBeAbleToPostSignedBurnApprovalTransaction() {
+        suppose("Withdraw exists") {
+            testContext.withdraw = createWithdraw(userUuid)
+        }
+        suppose("TransactionInfo exists for withdraw approval transaction") {
+            testContext.transactionInfo =
+                    createTransactionInfo(TransactionType.BURN_APPROVAL, userUuid, testContext.withdraw.id)
+        }
+        suppose("Blockchain service will accept signed transaction for burn approval") {
+            Mockito.`when`(
+                    blockchainService.postTransaction(signedTransaction, PostTransactionType.APPROVAL_BURN)
+            ).thenReturn(txHash)
+        }
+
+        verify("User can post signed transaction to confirm burn approval") {
+            val result = mockMvc.perform(
+                    post(broadcastPath)
+                            .param(txSignedParam, signedTransaction)
+                            .param(txIdParam, testContext.transactionInfo.id.toString()))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(txHashResponse.txHash).isEqualTo(txHash)
+        }
+        verify("TransactionInfo is deleted") {
+            val transactionInfo = transactionInfoRepository.findById(testContext.transactionInfo.id)
+            assertThat(transactionInfo).isNotPresent
+        }
+    }
+
+    @Test
+    fun mustBeAbleToPostSignedBurnTransaction() {
+        suppose("Withdraw approved exists") {
+            testContext.withdraw = createApprovedWithdraw(userUuid)
+        }
+        suppose("TransactionInfo exists for withdraw burn transaction") {
+            testContext.transactionInfo = createTransactionInfo(TransactionType.BURN, userUuid, testContext.withdraw.id)
+        }
+        suppose("Blockchain service will accept signed transaction for issuer burn") {
+            Mockito.`when`(
+                    blockchainService.postTransaction(signedTransaction, PostTransactionType.ISSUER_BURN)
+            ).thenReturn(txHash)
+        }
+
+        verify("User can post signed transaction to confirm burn") {
+            val result = mockMvc.perform(
+                    post(broadcastPath)
+                            .param(txSignedParam, signedTransaction)
+                            .param(txIdParam, testContext.transactionInfo.id.toString()))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val txHashResponse: TxHashResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(txHashResponse.txHash).isEqualTo(txHash)
+        }
+        verify("TransactionInfo is deleted") {
+            val transactionInfo = transactionInfoRepository.findById(testContext.transactionInfo.id)
+            assertThat(transactionInfo).isNotPresent
+        }
+    }
+
     private fun createTransactionInfo(
         type: TransactionType,
         userUuid: UUID,
@@ -312,5 +376,6 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         lateinit var transactionInfo: TransactionInfo
         lateinit var project: Project
         lateinit var deposit: Deposit
+        lateinit var withdraw: Withdraw
     }
 }

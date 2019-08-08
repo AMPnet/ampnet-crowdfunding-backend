@@ -23,17 +23,23 @@ data class Withdraw(
     val amount: Long,
 
     @Column(nullable = false)
-    var approved: Boolean,
+    val createdAt: ZonedDateTime,
+
+    @Column(nullable = false)
+    val bankAccountId: Int,
 
     @Column
-    var approvedReference: String?,
-
-    @Column
-    var approvedByUserUuid: UUID?,
+    var approvedTxHash: String?,
 
     @Column
     var approvedAt: ZonedDateTime?,
 
-    @Column(nullable = false)
-    val createdAt: ZonedDateTime
+    @Column
+    var burnedTxHash: String?,
+
+    @Column
+    var burnedAt: ZonedDateTime?,
+
+    @Column
+    var burnedBy: UUID?
 )
