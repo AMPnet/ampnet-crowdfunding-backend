@@ -84,6 +84,35 @@ class DepositControllerTest : ControllerTestBase() {
     }
 
     @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetPendingDeposit() {
+        suppose("Deposit exists") {
+            val deposit = createUnapprovedDeposit(userUuid)
+            testContext.deposits = listOf(deposit)
+        }
+
+        verify("User can get pending deposit") {
+            val result = mockMvc.perform(get(depositPath))
+                    .andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+
+            val deposit: DepositResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(deposit.user).isEqualTo(userUuid)
+            val savedDeposit = testContext.deposits.first()
+            assertThat(deposit.id).isEqualTo(savedDeposit.id)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser
+    fun mustGetNotFoundForNoPendingDeposit() {
+        verify("User can get pending deposit") {
+            mockMvc.perform(get(depositPath))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound)
+        }
+    }
+
+    @Test
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_DEPOSIT])
     fun mustBeAbleToSearchByReference() {
         suppose("Deposit exists") {
@@ -97,7 +126,7 @@ class DepositControllerTest : ControllerTestBase() {
         verify("Admin can search deposit by reference") {
             val savedDeposit = testContext.deposits.first()
             val result = mockMvc.perform(
-                    get(depositPath).param("reference", savedDeposit.reference))
+                    get("$depositPath/search").param("reference", savedDeposit.reference))
                     .andExpect(MockMvcResultMatchers.status().isOk)
                     .andReturn()
 
@@ -117,7 +146,7 @@ class DepositControllerTest : ControllerTestBase() {
 
         verify("Admin cannot search non-existing deposit by reference") {
             mockMvc.perform(
-                    get(depositPath).param("reference", "non-existing"))
+                    get("$depositPath/search").param("reference", "non-existing"))
                     .andExpect(MockMvcResultMatchers.status().isNotFound)
         }
     }

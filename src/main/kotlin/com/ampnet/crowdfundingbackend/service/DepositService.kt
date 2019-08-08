@@ -12,6 +12,7 @@ interface DepositService {
     fun approve(request: ApproveDepositRequest): Deposit
     fun getAllWithDocuments(approved: Boolean): List<Deposit>
     fun findByReference(reference: String): Deposit?
+    fun getPendingForUser(user: UUID): Deposit?
     fun generateMintTransaction(request: MintServiceRequest): TransactionDataAndInfo
     fun confirmMintTransaction(signedTransaction: String, depositId: Int): Deposit
 }

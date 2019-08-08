@@ -115,6 +115,15 @@ class WithdrawControllerTest : ControllerTestBase() {
     }
 
     @Test
+    @WithMockCrowdfoundUser
+    fun mustBeGetNotFoundForNoPendingWithdraw() {
+        verify("User will get not found for no pending withdraw") {
+            mockMvc.perform(get(withdrawPath))
+                    .andExpect(status().isNotFound)
+        }
+    }
+
+    @Test
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_WITHDRAW])
     fun mustBeAbleToGetApprovedWithdraws() {
         suppose("Some withdraws are created") {

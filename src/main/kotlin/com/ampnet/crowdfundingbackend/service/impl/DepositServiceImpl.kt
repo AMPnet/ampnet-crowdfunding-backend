@@ -79,6 +79,11 @@ class DepositServiceImpl(
         return ServiceUtils.wrapOptional(depositRepository.findByReference(reference))
     }
 
+    @Transactional(readOnly = true)
+    override fun getPendingForUser(user: UUID): Deposit? {
+        return depositRepository.findByUserUuid(user).find { it.approved.not() }
+    }
+
     @Transactional
     override fun generateMintTransaction(request: MintServiceRequest): TransactionDataAndInfo {
         val deposit = getDepositForId(request.depositId)
