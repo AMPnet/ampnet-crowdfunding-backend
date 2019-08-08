@@ -54,6 +54,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdrawResponse.user).isEqualTo(userUuid)
             assertThat(withdrawResponse.amount).isEqualTo(testContext.amount)
             assertThat(withdrawResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+            assertThat(withdrawResponse.bankAccountId).isNotNull()
             assertThat(withdrawResponse.approvedAt).isNull()
             assertThat(withdrawResponse.approvedAt).isNull()
             assertThat(withdrawResponse.approvedTxHash).isNull()
@@ -68,6 +69,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdraw.userUuid).isEqualTo(userUuid)
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
+            assertThat(withdraw.bankAccountId).isNotNull()
             assertThat(withdraw.approvedAt).isNull()
             assertThat(withdraw.approvedTxHash).isNull()
             assertThat(withdraw.burnedAt).isNull()
@@ -122,6 +124,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             val withdraw = withdrawList.withdraws.first()
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.id).isNotNull()
+            assertThat(withdraw.bankAccountId).isNotNull()
             assertThat(withdraw.approvedTxHash).isNotNull()
             assertThat(withdraw.approvedAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(withdraw.user?.uuid).isEqualTo(userUuid)
@@ -160,6 +163,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             val withdraw = withdrawList.withdraws.first()
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.id).isNotNull()
+            assertThat(withdraw.bankAccountId).isNotNull()
             assertThat(withdraw.approvedTxHash).isNotNull()
             assertThat(withdraw.approvedAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(withdraw.user?.uuid).isEqualTo(userUuid)
@@ -261,7 +265,7 @@ class WithdrawControllerTest : ControllerTestBase() {
     }
 
     private fun createBurnedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, testContext.amount, ZonedDateTime.now(),
+        val withdraw = Withdraw(0, user, testContext.amount, ZonedDateTime.now(), 0,
                 "approved-tx", ZonedDateTime.now(),
                 "burned-tx", ZonedDateTime.now(), UUID.randomUUID())
         return withdrawRepository.save(withdraw)

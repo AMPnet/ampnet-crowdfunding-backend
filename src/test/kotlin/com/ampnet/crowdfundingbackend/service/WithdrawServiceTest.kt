@@ -152,19 +152,21 @@ class WithdrawServiceTest : JpaServiceTestBase() {
     }
 
     private fun createBurnedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "approved-tx", ZonedDateTime.now(),
-                    "burned-tx", ZonedDateTime.now(), UUID.randomUUID())
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), 0,
+                "approved-tx", ZonedDateTime.now(),
+                "burned-tx", ZonedDateTime.now(), UUID.randomUUID())
         return withdrawRepository.save(withdraw)
     }
 
     private fun createApprovedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "approved-tx", ZonedDateTime.now(),
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), 0,
+                "approved-tx", ZonedDateTime.now(),
                 null, null, null)
         return withdrawRepository.save(withdraw)
     }
 
     private fun createWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(),
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), 0,
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }

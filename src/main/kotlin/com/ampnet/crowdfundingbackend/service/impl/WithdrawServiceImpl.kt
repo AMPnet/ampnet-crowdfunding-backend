@@ -45,7 +45,7 @@ class WithdrawServiceImpl(
                     "User must have a wallet to make Withdraw request")
         }
         validateUserDoesNotHavePendingWithdraw(user)
-        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(),
+        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), 0,
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }

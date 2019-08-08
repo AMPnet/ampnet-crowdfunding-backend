@@ -25,6 +25,9 @@ data class Withdraw(
     @Column(nullable = false)
     val createdAt: ZonedDateTime,
 
+    @Column(nullable = false)
+    val bankAccountId: Int,
+
     @Column
     var approvedTxHash: String?,
 
