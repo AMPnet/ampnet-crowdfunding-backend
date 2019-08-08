@@ -420,28 +420,40 @@ include::{snippets}/WithdrawControllerTest/mustBeAbleToCreateWithdraw/http-reque
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToCreateWithdraw/http-response.adoc[]
 
+=== Get my pending Withdraw
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetPendingWithdraw/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetPendingWithdraw/http-response.adoc[]
+
 === Get Withdraws
 Must have Admin role - privilege: PRA_WITHDRAW
 
-==== Unapproved Withdraws
-.Request
-include::{snippets}/WithdrawControllerTest/mustBeAbleToGetUnapprovedWithdraws/http-request.adoc[]
-.Response
-include::{snippets}/WithdrawControllerTest/mustBeAbleToGetUnapprovedWithdraws/http-response.adoc[]
-
-==== Approved Withdraws
+==== Approved
 .Request
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGetApprovedWithdraws/http-request.adoc[]
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGetApprovedWithdraws/http-response.adoc[]
 
-=== Approve Withdraw
+==== Burned
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetBurnedWithdraws/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGetBurnedWithdraws/http-response.adoc[]
+
+=== Generate Approve Withdraw transaction
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGenerateApprovalTransaction/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGenerateApprovalTransaction/http-response.adoc[]
+
+=== Generate Burn Withdraw transaction
 Must have Admin role - privilege: PWA_WITHDRAW
 
 .Request
-include::{snippets}/WithdrawControllerTest/mustBeAbleToApproveWithdraw/http-request.adoc[]
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGenerateBurnTransaction/http-request.adoc[]
 .Response
-include::{snippets}/WithdrawControllerTest/mustBeAbleToApproveWithdraw/http-response.adoc[]
+include::{snippets}/WithdrawControllerTest/mustBeAbleToGenerateBurnTransaction/http-response.adoc[]
 
 == Deposit API
 
@@ -451,7 +463,13 @@ include::{snippets}/DepositControllerTest/mustBeAbleToCreateDeposit/http-request
 .Response
 include::{snippets}/DepositControllerTest/mustBeAbleToCreateDeposit/http-response.adoc[]
 
-=== Get Deposit
+=== Get my pending Deposit
+.Request
+include::{snippets}/DepositControllerTest/mustBeAbleToGetPendingDeposit/http-request.adoc[]
+.Response
+include::{snippets}/DepositControllerTest/mustBeAbleToGetPendingDeposit/http-response.adoc[]
+
+=== Get Deposits
 Must have Admin role - privilege: PRA_DEPOSIT
 
 ==== Search by reference
@@ -460,13 +478,13 @@ include::{snippets}/DepositControllerTest/mustBeAbleToSearchByReference/http-req
 .Response
 include::{snippets}/DepositControllerTest/mustBeAbleToSearchByReference/http-response.adoc[]
 
-==== Unapproved Deposits
+==== Unapproved
 .Request
 include::{snippets}/DepositControllerTest/mustBeAbleToGetUnapprovedDeposits/http-request.adoc[]
 .Response
 include::{snippets}/DepositControllerTest/mustBeAbleToGetUnapprovedDeposits/http-response.adoc[]
 
-==== Approved Deposits
+==== Approved
 .Request
 include::{snippets}/DepositControllerTest/mustBeAbleToGetApprovedDeposits/http-request.adoc[]
 .Response
