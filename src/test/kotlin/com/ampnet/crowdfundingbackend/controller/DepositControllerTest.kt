@@ -287,8 +287,8 @@ class DepositControllerTest : ControllerTestBase() {
         }
         suppose("Blockchain service will return tx") {
             testContext.transactionData = generateTransactionData("signed-transaction")
-            Mockito.`when`(
-                    blockchainService.generateMintTransaction("not-needed", testContext.walletHash, testContext.amount)
+            Mockito.`when`(blockchainService.generateMintTransaction(
+                    "0x43b0d9b605e68a0c50dc436757a86c82d97787cc", testContext.walletHash, testContext.amount)
             ).thenReturn(testContext.transactionData)
         }
 

@@ -30,6 +30,8 @@ class DepositServiceImpl(
 ) : DepositService {
 
     private val charPool: List<Char> = ('A'..'Z') + ('0'..'9')
+    // TODO: remove after changing blockchain-service
+    private val mintAccount = "0x43b0d9b605e68a0c50dc436757a86c82d97787cc"
 
     @Transactional
     override fun create(user: UUID): Deposit {
@@ -86,8 +88,7 @@ class DepositServiceImpl(
         val amount = deposit.amount
                 ?: throw ResourceNotFoundException(ErrorCode.WALLET_DEPOSIT_MISSING, "Deposit is missing amount value")
         val receivingWallet = getUserWalletHash(deposit)
-        val senderWallet = "not-needed"
-        val data = blockchainService.generateMintTransaction(senderWallet, receivingWallet, amount)
+        val data = blockchainService.generateMintTransaction(mintAccount, receivingWallet, amount)
         val info = transactionInfoService.createMintTransaction(request, receivingWallet)
         return TransactionDataAndInfo(data, info)
     }
