@@ -29,6 +29,11 @@ class WithdrawServiceImpl(
     private val burnWallet = "0x43b0d9b605e68a0c50dc436757a86c82d97787cc"
 
     @Transactional(readOnly = true)
+    override fun getPendingForUser(user: UUID): Withdraw? {
+        return withdrawRepository.findByUserUuid(user).find { it.approvedTxHash == null }
+    }
+
+    @Transactional(readOnly = true)
     override fun getAllApproved(): List<Withdraw> {
         return withdrawRepository.findAllApproved()
     }

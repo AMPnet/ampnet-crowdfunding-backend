@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import java.util.UUID
 
 interface WithdrawService {
+    fun getPendingForUser(user: UUID): Withdraw?
     fun getAllApproved(): List<Withdraw>
     fun getAllBurned(): List<Withdraw>
     fun createWithdraw(user: UUID, amount: Long): Withdraw

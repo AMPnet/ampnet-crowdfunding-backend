@@ -98,6 +98,23 @@ class WithdrawControllerTest : ControllerTestBase() {
     }
 
     @Test
+    @WithMockCrowdfoundUser
+    fun mustBeAbleToGetPendingWithdraw() {
+        suppose("User has created withdraw") {
+            testContext.withdraw = createWithdraw(userUuid)
+        }
+
+        verify("User can get pending withdraw") {
+            val result = mockMvc.perform(get(withdrawPath))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+            val withdrawResponse: WithdrawResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(withdrawResponse.user).isEqualTo(userUuid)
+        }
+    }
+
+    @Test
     @WithMockCrowdfoundUser(privileges = [PrivilegeType.PRA_WITHDRAW])
     fun mustBeAbleToGetApprovedWithdraws() {
         suppose("Some withdraws are created") {

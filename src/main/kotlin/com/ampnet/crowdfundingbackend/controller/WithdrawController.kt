@@ -35,6 +35,16 @@ class WithdrawController(
         return ResponseEntity.ok(WithdrawResponse(withdraw))
     }
 
+    @GetMapping("/api/v1/withdraw")
+    fun getMyWithdraw(): ResponseEntity<WithdrawResponse> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.debug { "Received request to get my Withdraw by user: ${userPrincipal.uuid}" }
+        withdrawService.getPendingForUser(userPrincipal.uuid)?.let {
+            return ResponseEntity.ok(WithdrawResponse(it))
+        }
+        return ResponseEntity.notFound().build()
+    }
+
     @GetMapping("/api/v1/withdraw/approved")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PRA_WITHDRAW)")
     fun getApprovedWithdraws(): ResponseEntity<WithdrawWithUserListResponse> {
