@@ -9,20 +9,22 @@ data class WithdrawResponse(
     val id: Int,
     val user: UUID,
     val amount: Long,
-    val approved: Boolean,
-    val approvedReference: String?,
-    val approvedBy: UUID?,
+    val approvedTxHash: String?,
     val approvedAt: ZonedDateTime?,
+    val burnedTxHash: String?,
+    val burnedBy: UUID?,
+    val burnedAt: ZonedDateTime?,
     val createdAt: ZonedDateTime
 ) {
     constructor(withdraw: Withdraw) : this (
         withdraw.id,
         withdraw.userUuid,
         withdraw.amount,
-        withdraw.approved,
-        withdraw.approvedReference,
-        withdraw.approvedByUserUuid,
+        withdraw.approvedTxHash,
         withdraw.approvedAt,
+        withdraw.burnedTxHash,
+        withdraw.burnedBy,
+        withdraw.burnedAt,
         withdraw.createdAt
     )
 }
@@ -31,7 +33,11 @@ data class WithdrawWithUserResponse(
     val id: Int,
     val user: UserControllerResponse?,
     val amount: Long,
-    val approved: Boolean,
+    val approvedTxHash: String?,
+    val approvedAt: ZonedDateTime?,
+    val burnedTxHash: String?,
+    val burnedBy: UUID?,
+    val burnedAt: ZonedDateTime?,
     val createdAt: ZonedDateTime,
     val userWallet: String
 ) {
@@ -39,35 +45,14 @@ data class WithdrawWithUserResponse(
         withdraw.id,
         user?.let { UserControllerResponse(it) },
         withdraw.amount,
-        withdraw.approved,
-        withdraw.createdAt,
-        userWallet
-    )
-}
-
-data class WithdrawWithUserAndAcceptanceResponse(
-    val id: Int,
-    val user: UserControllerResponse?,
-    val amount: Long,
-    val approved: Boolean,
-    val approvedBy: UserControllerResponse?,
-    val approvedReference: String,
-    val approvedAt: ZonedDateTime?,
-    val createdAt: ZonedDateTime,
-    val userWallet: String
-) {
-    constructor(withdraw: Withdraw, user: UserResponse?, approvedBy: UserResponse?, userWallet: String) : this(
-        withdraw.id,
-        user?.let { UserControllerResponse(it) },
-        withdraw.amount,
-        withdraw.approved,
-        approvedBy?.let { UserControllerResponse(it) },
-        withdraw.approvedReference.orEmpty(),
+        withdraw.approvedTxHash,
         withdraw.approvedAt,
+        withdraw.burnedTxHash,
+        withdraw.burnedBy,
+        withdraw.burnedAt,
         withdraw.createdAt,
         userWallet
     )
 }
 
 data class WithdrawWithUserListResponse(val withdraws: List<WithdrawWithUserResponse>)
-data class WithdrawWithUserAndAcceptanceListResponse(val withdraws: List<WithdrawWithUserAndAcceptanceResponse>)

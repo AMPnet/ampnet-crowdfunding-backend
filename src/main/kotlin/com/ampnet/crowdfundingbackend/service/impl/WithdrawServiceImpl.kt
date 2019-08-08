@@ -1,7 +1,6 @@
 package com.ampnet.crowdfundingbackend.service.impl
 
 import com.ampnet.crowdfundingbackend.blockchain.BlockchainService
-import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
 import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionDataAndInfo
 import com.ampnet.crowdfundingbackend.exception.ErrorCode
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
@@ -27,9 +26,13 @@ class WithdrawServiceImpl(
 ) : WithdrawService {
 
     @Transactional(readOnly = true)
-    override fun getWithdraws(approved: Boolean): List<Withdraw> {
-        // TODO: change
-        return withdrawRepository.findAll()
+    override fun getAllApproved(): List<Withdraw> {
+        return withdrawRepository.findAllApproved()
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAllBurned(): List<Withdraw> {
+        return withdrawRepository.findAllBurned()
     }
 
     @Transactional
@@ -38,7 +41,7 @@ class WithdrawServiceImpl(
             throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
                     "User must have a wallet to make Withdraw request")
         }
-        withdrawRepository.findByUser(user).forEach {
+        withdrawRepository.findByUserUuid(user).forEach {
             if (it.approvedTxHash == null) {
                 throw ResourceAlreadyExistsException(ErrorCode.WALLET_WITHDRAW_EXISTS, "Unapproved Withdraw: ${it.id}")
             }
@@ -54,9 +57,11 @@ class WithdrawServiceImpl(
     @Transactional
     override fun generateApprovalTransaction(withdrawId: Int, user: UUID): TransactionDataAndInfo {
         val withdraw = getWithdraw(withdrawId)
-        // TODO: limit only for creating user
+        if (withdraw.userUuid != user) {
+            throw InvalidRequestException(ErrorCode.WALLET_WITHDRAW_MISSING, "Withdraw does not belong to this user")
+        }
         validateWithdrawForApproval(withdraw)
-        val userWallet = getUserWallet(withdraw.user)
+        val userWallet = getUserWallet(withdraw.userUuid)
         val data = blockchainService.generateApproveBurnTransaction(userWallet, withdraw.amount)
         val info = transactionInfoService.createApprovalTransaction(withdraw.amount, user, withdraw.id)
         return TransactionDataAndInfo(data, info)
@@ -74,18 +79,41 @@ class WithdrawServiceImpl(
 
     @Transactional
     override fun generateBurnTransaction(withdrawId: Int, user: UUID): TransactionDataAndInfo {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val withdraw = getWithdraw(withdrawId)
+        validateWithdrawForBurn(withdraw)
+        val userWallet = getUserWallet(withdraw.userUuid)
+        val fromWallet = "not-needed"
+        val data = blockchainService.generateBurnTransaction(fromWallet, userWallet, withdraw.amount)
+        val info = transactionInfoService.createBurnTransaction(withdraw.amount, user, withdraw.id)
+        withdraw.burnedBy = user
+        withdrawRepository.save(withdraw)
+        return TransactionDataAndInfo(data, info)
     }
 
     @Transactional
     override fun burn(signedTransaction: String, withdrawId: Int): Withdraw {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val withdraw = getWithdraw(withdrawId)
+        validateWithdrawForBurn(withdraw)
+        val burnedTxHash = blockchainService.postTransaction(signedTransaction, PostTransactionType.ISSUER_BURN)
+        withdraw.burnedTxHash = burnedTxHash
+        withdraw.burnedAt = ZonedDateTime.now()
+        return withdrawRepository.save(withdraw)
     }
 
     private fun validateWithdrawForApproval(withdraw: Withdraw) {
         if (withdraw.approvedTxHash != null) {
             throw InvalidRequestException(
                     ErrorCode.WALLET_WITHDRAW_APPROVED, "Approved txHash: ${withdraw.approvedTxHash}")
+        }
+//        if (withdraw.burnedTxHash != null) {
+//            throw InvalidRequestException(ErrorCode.WALLET_WITHDRAW_BURNED, "Burned txHash: ${withdraw.burnedTxHash}")
+//        }
+    }
+
+    private fun validateWithdrawForBurn(withdraw: Withdraw) {
+        if (withdraw.approvedTxHash == null) {
+            throw InvalidRequestException(
+                    ErrorCode.WALLET_WITHDRAW_NOT_APPROVED, "Withdraw must be approved")
         }
         if (withdraw.burnedTxHash != null) {
             throw InvalidRequestException(ErrorCode.WALLET_WITHDRAW_BURNED, "Burned txHash: ${withdraw.burnedTxHash}")

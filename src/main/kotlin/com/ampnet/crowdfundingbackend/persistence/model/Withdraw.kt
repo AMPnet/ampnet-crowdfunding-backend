@@ -17,7 +17,7 @@ data class Withdraw(
     val id: Int,
 
     @Column(nullable = false)
-    val user: UUID,
+    val userUuid: UUID,
 
     @Column(nullable = false)
     val amount: Long,
