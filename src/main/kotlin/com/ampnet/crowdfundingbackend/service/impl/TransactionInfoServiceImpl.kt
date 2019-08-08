@@ -81,7 +81,7 @@ class TransactionInfoServiceImpl(
     override fun createApprovalTransaction(amount: Long, userUuid: UUID, withdrawId: Int): TransactionInfo {
         val description = approvalDescription.format(amount)
         val txRequest = CreateTransactionRequest(
-                TransactionType.APPROVAL, approvalTitle, description, userUuid, withdrawId)
+                TransactionType.BURN_APPROVAL, approvalTitle, description, userUuid, withdrawId)
         return createTransaction(txRequest)
     }
 

@@ -31,6 +31,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
         createWalletForUser(userUuid, "user-wallet-hash")
     }
 
+    /* Create */
     @Test
     fun mustThrowExceptionIfUserHasUnapprovedWithdraw() {
         suppose("User has created withdraw") {
@@ -57,6 +58,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
         }
     }
 
+    /* Approve */
     @Test
     fun mustThrowExceptionForGeneratingApprovalTxForAnotherUser() {
         suppose("User created withdraw") {
@@ -92,6 +94,59 @@ class WithdrawServiceTest : JpaServiceTestBase() {
         verify("Service will throw exception when user tries to confirm already approved tx") {
             assertThrows<InvalidRequestException> {
                 withdrawService.confirmApproval("signed-transaction", withdraw.id)
+            }
+        }
+    }
+
+    /* Burn */
+    @Test
+    fun mustThrowExceptionForGeneratingBurnTxBeforeApproval() {
+        suppose("User created withdraw") {
+            withdraw = createWithdraw(userUuid)
+        }
+
+        verify("Service will throw exception when user tries to generate burn tx for unapproved withdraw") {
+            assertThrows<InvalidRequestException> {
+                withdrawService.generateBurnTransaction(withdraw.id, userUuid)
+            }
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionForGeneratingBurnTxForBurnedWithdraw() {
+        suppose("Withdraw is burned") {
+            withdraw = createBurnedWithdraw(userUuid)
+        }
+
+        verify("Service will throw exception when user tries to generate burn tx for burned withdraw") {
+            assertThrows<InvalidRequestException> {
+                withdrawService.generateBurnTransaction(withdraw.id, userUuid)
+            }
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionForBurningUnapprovedWithdraw() {
+        suppose("Withdraw is not approved") {
+            withdraw = createWithdraw(userUuid)
+        }
+
+        verify("Service will throw exception when user tries to burn unapproved withdraw") {
+            assertThrows<InvalidRequestException> {
+                withdrawService.burn("signed-transaction", withdraw.id)
+            }
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionForBurningAlreadyBurnedWithdraw() {
+        suppose("Withdraw is burned") {
+            withdraw = createBurnedWithdraw(userUuid)
+        }
+
+        verify("Service will throw exception when user tries to generate burn tx for burned withdraw") {
+            assertThrows<InvalidRequestException> {
+                withdrawService.burn("signed-transaction", withdraw.id)
             }
         }
     }

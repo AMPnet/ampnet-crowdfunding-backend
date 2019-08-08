@@ -6,6 +6,6 @@ enum class TransactionType(val description: String) {
     INVEST_ALLOWANCE("InvestAllowanceTx"),
     INVEST("InvestTx"),
     MINT("MintTx"),
-    APPROVAL("ApprovalTx"),
+    BURN_APPROVAL("BurnApprovalTx"),
     BURN("BurnTx")
 }

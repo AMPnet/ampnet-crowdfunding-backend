@@ -49,7 +49,7 @@ class BroadcastTransactionController(
             TransactionType.INVEST_ALLOWANCE -> projectInvestmentService.investInProject(signedTransaction)
             TransactionType.INVEST -> projectInvestmentService.confirmInvestment(signedTransaction)
             TransactionType.MINT -> confirmMintTransaction(transactionInfo, signedTransaction)
-            TransactionType.APPROVAL -> confirmApprovalTransaction(transactionInfo, signedTransaction)
+            TransactionType.BURN_APPROVAL -> confirmApprovalTransaction(transactionInfo, signedTransaction)
             TransactionType.BURN -> burnTransaction(transactionInfo, signedTransaction)
         }
         logger.info { "Successfully broadcast transaction. TxHash: $txHash" }
@@ -94,8 +94,8 @@ class BroadcastTransactionController(
     private fun burnTransaction(transactionInfo: TransactionInfo, signedTransaction: String): String {
         val withdrawId = getWithdrawIdFromTransactionInfo(transactionInfo)
         val withdraw = withdrawService.burn(signedTransaction, withdrawId)
-        return withdraw.approvedTxHash
-                ?: throw InternalException(ErrorCode.TX_MISSING, "Missing approvedTxHash for withdraw transaction")
+        return withdraw.burnedTxHash
+                ?: throw InternalException(ErrorCode.TX_MISSING, "Missing burnedTxHash for withdraw transaction")
     }
 
     private fun getWithdrawIdFromTransactionInfo(transactionInfo: TransactionInfo): Int {

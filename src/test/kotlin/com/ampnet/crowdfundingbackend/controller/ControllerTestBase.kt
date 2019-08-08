@@ -17,6 +17,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.OrganizationMembership
 import com.ampnet.crowdfundingbackend.persistence.model.Project
 import com.ampnet.crowdfundingbackend.persistence.model.UserWallet
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
+import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import com.ampnet.crowdfundingbackend.persistence.repository.DepositRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.DocumentRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.OrganizationInviteRepository
@@ -28,6 +29,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.RoleRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
+import com.ampnet.crowdfundingbackend.persistence.repository.WithdrawRepository
 import com.ampnet.crowdfundingbackend.service.CloudStorageService
 import com.ampnet.crowdfundingbackend.userservice.UserService
 import com.ampnet.userservice.proto.UserResponse
@@ -90,6 +92,8 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var pairWalletCodeRepository: PairWalletCodeRepository
     @Autowired
     protected lateinit var depositRepository: DepositRepository
+    @Autowired
+    protected lateinit var withdrawRepository: WithdrawRepository
     @Autowired
     protected lateinit var userService: UserService
     @Autowired
@@ -289,5 +293,18 @@ abstract class ControllerTestBase : TestBase() {
                 user, ZonedDateTime.now(), amount, document, txHash, ZonedDateTime.now()
         )
         return depositRepository.save(deposit)
+    }
+
+    protected fun createApprovedWithdraw(user: UUID, amount: Long = 1000): Withdraw {
+        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(),
+                "approved-tx", ZonedDateTime.now(),
+                null, null, null)
+        return withdrawRepository.save(withdraw)
+    }
+
+    protected fun createWithdraw(user: UUID, amount: Long = 1000): Withdraw {
+        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(),
+                null, null, null, null, null)
+        return withdrawRepository.save(withdraw)
     }
 }

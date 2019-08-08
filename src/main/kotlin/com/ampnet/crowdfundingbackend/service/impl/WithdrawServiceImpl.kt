@@ -25,6 +25,9 @@ class WithdrawServiceImpl(
     private val transactionInfoService: TransactionInfoService
 ) : WithdrawService {
 
+    // TODO: remove after changing blockchain-service
+    private val burnWallet = "0x43b0d9b605e68a0c50dc436757a86c82d97787cc"
+
     @Transactional(readOnly = true)
     override fun getAllApproved(): List<Withdraw> {
         return withdrawRepository.findAllApproved()
@@ -41,14 +44,7 @@ class WithdrawServiceImpl(
             throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
                     "User must have a wallet to make Withdraw request")
         }
-        withdrawRepository.findByUserUuid(user).forEach {
-            if (it.approvedTxHash == null) {
-                throw ResourceAlreadyExistsException(ErrorCode.WALLET_WITHDRAW_EXISTS, "Unapproved Withdraw: ${it.id}")
-            }
-            if (it.approvedTxHash != null && it.burnedTxHash == null) {
-                throw ResourceAlreadyExistsException(ErrorCode.WALLET_WITHDRAW_EXISTS, "Unburned Withdraw: ${it.id}")
-            }
-        }
+        validateUserDoesNotHavePendingWithdraw(user)
         val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(),
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
@@ -82,8 +78,7 @@ class WithdrawServiceImpl(
         val withdraw = getWithdraw(withdrawId)
         validateWithdrawForBurn(withdraw)
         val userWallet = getUserWallet(withdraw.userUuid)
-        val fromWallet = "not-needed"
-        val data = blockchainService.generateBurnTransaction(fromWallet, userWallet, withdraw.amount)
+        val data = blockchainService.generateBurnTransaction(burnWallet, userWallet, withdraw.amount)
         val info = transactionInfoService.createBurnTransaction(withdraw.amount, user, withdraw.id)
         withdraw.burnedBy = user
         withdrawRepository.save(withdraw)
@@ -100,14 +95,22 @@ class WithdrawServiceImpl(
         return withdrawRepository.save(withdraw)
     }
 
+    private fun validateUserDoesNotHavePendingWithdraw(user: UUID) {
+        withdrawRepository.findByUserUuid(user).forEach {
+            if (it.approvedTxHash == null) {
+                throw ResourceAlreadyExistsException(ErrorCode.WALLET_WITHDRAW_EXISTS, "Unapproved Withdraw: ${it.id}")
+            }
+            if (it.approvedTxHash != null && it.burnedTxHash == null) {
+                throw ResourceAlreadyExistsException(ErrorCode.WALLET_WITHDRAW_EXISTS, "Unburned Withdraw: ${it.id}")
+            }
+        }
+    }
+
     private fun validateWithdrawForApproval(withdraw: Withdraw) {
         if (withdraw.approvedTxHash != null) {
             throw InvalidRequestException(
                     ErrorCode.WALLET_WITHDRAW_APPROVED, "Approved txHash: ${withdraw.approvedTxHash}")
         }
-//        if (withdraw.burnedTxHash != null) {
-//            throw InvalidRequestException(ErrorCode.WALLET_WITHDRAW_BURNED, "Burned txHash: ${withdraw.burnedTxHash}")
-//        }
     }
 
     private fun validateWithdrawForBurn(withdraw: Withdraw) {

@@ -40,7 +40,7 @@ class WithdrawController(
     fun getApprovedWithdraws(): ResponseEntity<WithdrawWithUserListResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "Received request to get all approved withdraws by user: ${userPrincipal.uuid}" }
-        val response = generateResponseFromWithdraws( withdrawService.getAllApproved())
+        val response = generateResponseFromWithdraws(withdrawService.getAllApproved())
         return ResponseEntity.ok(response)
     }
 
@@ -61,7 +61,7 @@ class WithdrawController(
         return ResponseEntity.ok(TransactionResponse(transactionDataAndInfo))
     }
 
-    @GetMapping("/api/v1/withdraw/{id}/transaction/burn")
+    @PostMapping("/api/v1/withdraw/{id}/transaction/burn")
     @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_WITHDRAW)")
     fun generateBurnTransaction(@PathVariable("id") id: Int): ResponseEntity<TransactionResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
