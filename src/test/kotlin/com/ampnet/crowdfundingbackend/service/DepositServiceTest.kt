@@ -160,6 +160,19 @@ class DepositServiceTest : JpaServiceTestBase() {
         }
     }
 
+    @Test
+    fun mustThrowExceptionForDeletingMintedDeposit() {
+        suppose("Deposit is minted") {
+            testContext.deposit = createApprovedDeposit("tx-hash")
+        }
+
+        verify("User cannot delete minted deposit") {
+            assertThrows<InvalidRequestException> {
+                depositService.delete(testContext.deposit.id)
+            }
+        }
+    }
+
     private fun createApprovedDeposit(txHash: String?): Deposit {
         val document = saveDocument("doc", "doc-lni", userUuid, "type", 1)
         val deposit = Deposit(0, userUuid, "S34SDGFT", true,
