@@ -296,14 +296,14 @@ abstract class ControllerTestBase : TestBase() {
     }
 
     protected fun createApprovedWithdraw(user: UUID, amount: Long = 1000): Withdraw {
-        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), 0,
+        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), "bank-account",
                 "approved-tx", ZonedDateTime.now(),
                 null, null, null)
         return withdrawRepository.save(withdraw)
     }
 
     protected fun createWithdraw(user: UUID, amount: Long = 1000): Withdraw {
-        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), 0,
+        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), "bank-account",
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }

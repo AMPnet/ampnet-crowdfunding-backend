@@ -44,13 +44,13 @@ class WithdrawServiceImpl(
     }
 
     @Transactional
-    override fun createWithdraw(user: UUID, amount: Long, bankAccountId: Int): Withdraw {
+    override fun createWithdraw(user: UUID, amount: Long, bankAccount: String): Withdraw {
         if (userWalletRepository.findByUserUuid(user).isPresent.not()) {
             throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
                     "User must have a wallet to make Withdraw request")
         }
         validateUserDoesNotHavePendingWithdraw(user)
-        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), bankAccountId,
+        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), bankAccount,
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }

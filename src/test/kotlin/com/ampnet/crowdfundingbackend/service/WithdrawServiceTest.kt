@@ -2,6 +2,7 @@ package com.ampnet.crowdfundingbackend.service
 
 import com.ampnet.crowdfundingbackend.exception.InvalidRequestException
 import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
+import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import com.ampnet.crowdfundingbackend.persistence.repository.WithdrawRepository
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
@@ -22,13 +23,16 @@ class WithdrawServiceTest : JpaServiceTestBase() {
         val transactionInfoService = TransactionInfoServiceImpl(transactionInfoRepository)
         WithdrawServiceImpl(withdrawRepository, userWalletRepository, mockedBlockchainService, transactionInfoService)
     }
+    private val userWallet: Wallet by lazy {
+        databaseCleanerService.deleteAllWallets()
+        createWalletForUser(userUuid, "user-wallet-hash")
+    }
     private lateinit var withdraw: Withdraw
 
     @BeforeEach
     fun init() {
         databaseCleanerService.deleteAllWithdraws()
-        databaseCleanerService.deleteAllWallets()
-        createWalletForUser(userUuid, "user-wallet-hash")
+        userWallet.id
     }
 
     /* Create */
@@ -40,7 +44,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception when user tries to create new withdraw") {
             assertThrows<ResourceAlreadyExistsException> {
-                withdrawService.createWithdraw(userUuid, 100L, 1)
+                withdrawService.createWithdraw(userUuid, 100L, "bank-account")
             }
         }
     }
@@ -53,7 +57,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception when user tries to create new withdraw") {
             assertThrows<ResourceAlreadyExistsException> {
-                withdrawService.createWithdraw(userUuid, 100L, 1)
+                withdrawService.createWithdraw(userUuid, 100L, "bank-account")
             }
         }
     }
@@ -166,21 +170,21 @@ class WithdrawServiceTest : JpaServiceTestBase() {
     }
 
     private fun createBurnedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), 0,
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "bank-account",
                 "approved-tx", ZonedDateTime.now(),
                 "burned-tx", ZonedDateTime.now(), UUID.randomUUID())
         return withdrawRepository.save(withdraw)
     }
 
     private fun createApprovedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), 0,
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "bank-account",
                 "approved-tx", ZonedDateTime.now(),
                 null, null, null)
         return withdrawRepository.save(withdraw)
     }
 
     private fun createWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), 0,
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "bank-account",
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }

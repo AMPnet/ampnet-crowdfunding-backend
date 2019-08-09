@@ -43,7 +43,7 @@ class WithdrawControllerTest : ControllerTestBase() {
         }
 
         verify("User can create Withdraw") {
-            val request = WithdrawCreateRequest(testContext.amount, testContext.bankAccountId)
+            val request = WithdrawCreateRequest(testContext.amount, testContext.bankAccount)
             val result = mockMvc.perform(
                     post(withdrawPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -54,9 +54,8 @@ class WithdrawControllerTest : ControllerTestBase() {
             val withdrawResponse: WithdrawResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(withdrawResponse.user).isEqualTo(userUuid)
             assertThat(withdrawResponse.amount).isEqualTo(testContext.amount)
-            assertThat(withdrawResponse.bankAccountId).isEqualTo(testContext.bankAccountId)
+            assertThat(withdrawResponse.bankAccount).isEqualTo(testContext.bankAccount)
             assertThat(withdrawResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(withdrawResponse.bankAccountId).isNotNull()
             assertThat(withdrawResponse.approvedAt).isNull()
             assertThat(withdrawResponse.approvedAt).isNull()
             assertThat(withdrawResponse.approvedTxHash).isNull()
@@ -71,7 +70,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdraw.userUuid).isEqualTo(userUuid)
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(withdraw.bankAccountId).isEqualTo(testContext.bankAccountId)
+            assertThat(withdraw.bankAccount).isEqualTo(testContext.bankAccount)
             assertThat(withdraw.approvedAt).isNull()
             assertThat(withdraw.approvedTxHash).isNull()
             assertThat(withdraw.burnedAt).isNull()
@@ -88,7 +87,7 @@ class WithdrawControllerTest : ControllerTestBase() {
         }
 
         verify("Controller will return bad request") {
-            val request = WithdrawCreateRequest(testContext.amount, testContext.bankAccountId)
+            val request = WithdrawCreateRequest(testContext.amount, testContext.bankAccount)
             val result = mockMvc.perform(
                     post(withdrawPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -169,8 +168,8 @@ class WithdrawControllerTest : ControllerTestBase() {
             val withdraw = withdrawList.withdraws.first()
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.id).isNotNull()
-            assertThat(withdraw.bankAccountId).isNotNull()
-            assertThat(withdraw.approvedTxHash).isNotNull()
+            assertThat(withdraw.bankAccount).isNotNull()
+            assertThat(withdraw.approvedTxHash).isEqualTo(testContext.approvedTx)
             assertThat(withdraw.approvedAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(withdraw.user?.uuid).isEqualTo(userUuid)
             assertThat(withdraw.userWallet).isEqualTo(testContext.walletHash)
@@ -208,15 +207,15 @@ class WithdrawControllerTest : ControllerTestBase() {
             val withdraw = withdrawList.withdraws.first()
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.id).isNotNull()
-            assertThat(withdraw.bankAccountId).isNotNull()
-            assertThat(withdraw.approvedTxHash).isNotNull()
+            assertThat(withdraw.bankAccount).isEqualTo(testContext.bankAccount)
+            assertThat(withdraw.approvedTxHash).isEqualTo(testContext.approvedTx)
             assertThat(withdraw.approvedAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(withdraw.user?.uuid).isEqualTo(userUuid)
             assertThat(withdraw.userWallet).isEqualTo(testContext.walletHash)
             assertThat(withdraw.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(withdraw.burnedAt).isNotNull()
             assertThat(withdraw.burnedBy).isNotNull()
-            assertThat(withdraw.burnedTxHash).isNotNull()
+            assertThat(withdraw.burnedTxHash).isEqualTo(testContext.burnedTx)
         }
     }
 
@@ -310,16 +309,18 @@ class WithdrawControllerTest : ControllerTestBase() {
     }
 
     private fun createBurnedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, testContext.amount, ZonedDateTime.now(), 0,
-                "approved-tx", ZonedDateTime.now(),
-                "burned-tx", ZonedDateTime.now(), UUID.randomUUID())
+        val withdraw = Withdraw(0, user, testContext.amount, ZonedDateTime.now(), testContext.bankAccount,
+                testContext.approvedTx, ZonedDateTime.now(),
+                testContext.burnedTx, ZonedDateTime.now(), UUID.randomUUID())
         return withdrawRepository.save(withdraw)
     }
 
     private class TestContext {
         val amount = 1000L
-        val bankAccountId = 2
+        val bankAccount = "AL35202111090000000001234567"
         val walletHash = "0xa2addee8b62501fb423c8e69a6867a02eaa021a16f66583050a5dd643ad7e41b"
+        val approvedTx = "approved-tx"
+        val burnedTx = "burned-tx"
         var withdraws = listOf<Withdraw>()
         lateinit var withdraw: Withdraw
         lateinit var transactionData: TransactionData

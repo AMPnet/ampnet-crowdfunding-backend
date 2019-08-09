@@ -8,7 +8,7 @@ interface WithdrawService {
     fun getPendingForUser(user: UUID): Withdraw?
     fun getAllApproved(): List<Withdraw>
     fun getAllBurned(): List<Withdraw>
-    fun createWithdraw(user: UUID, amount: Long, bankAccountId: Int): Withdraw
+    fun createWithdraw(user: UUID, amount: Long, bankAccount: String): Withdraw
     fun deleteWithdraw(withdrawId: Int)
     fun generateApprovalTransaction(withdrawId: Int, user: UUID): TransactionDataAndInfo
     fun confirmApproval(signedTransaction: String, withdrawId: Int): Withdraw

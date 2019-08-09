@@ -32,7 +32,7 @@ class WithdrawController(
     fun createWithdraw(@RequestBody request: WithdrawCreateRequest): ResponseEntity<WithdrawResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "Received request to create Withdraw:$request by user: ${userPrincipal.uuid}" }
-        val withdraw = withdrawService.createWithdraw(userPrincipal.uuid, request.amount, request.bankAccountId)
+        val withdraw = withdrawService.createWithdraw(userPrincipal.uuid, request.amount, request.bankAccount)
         return ResponseEntity.ok(WithdrawResponse(withdraw))
     }
 
