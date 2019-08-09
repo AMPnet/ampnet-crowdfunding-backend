@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -42,7 +43,7 @@ class WithdrawControllerTest : ControllerTestBase() {
         }
 
         verify("User can create Withdraw") {
-            val request = WithdrawCreateRequest(testContext.amount)
+            val request = WithdrawCreateRequest(testContext.amount, testContext.bankAccountId)
             val result = mockMvc.perform(
                     post(withdrawPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -53,6 +54,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             val withdrawResponse: WithdrawResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(withdrawResponse.user).isEqualTo(userUuid)
             assertThat(withdrawResponse.amount).isEqualTo(testContext.amount)
+            assertThat(withdrawResponse.bankAccountId).isEqualTo(testContext.bankAccountId)
             assertThat(withdrawResponse.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
             assertThat(withdrawResponse.bankAccountId).isNotNull()
             assertThat(withdrawResponse.approvedAt).isNull()
@@ -69,7 +71,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdraw.userUuid).isEqualTo(userUuid)
             assertThat(withdraw.amount).isEqualTo(testContext.amount)
             assertThat(withdraw.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
-            assertThat(withdraw.bankAccountId).isNotNull()
+            assertThat(withdraw.bankAccountId).isEqualTo(testContext.bankAccountId)
             assertThat(withdraw.approvedAt).isNull()
             assertThat(withdraw.approvedTxHash).isNull()
             assertThat(withdraw.burnedAt).isNull()
@@ -86,7 +88,7 @@ class WithdrawControllerTest : ControllerTestBase() {
         }
 
         verify("Controller will return bad request") {
-            val request = WithdrawCreateRequest(testContext.amount)
+            val request = WithdrawCreateRequest(testContext.amount, testContext.bankAccountId)
             val result = mockMvc.perform(
                     post(withdrawPath)
                             .content(objectMapper.writeValueAsString(request))
@@ -120,6 +122,23 @@ class WithdrawControllerTest : ControllerTestBase() {
         verify("User will get not found for no pending withdraw") {
             mockMvc.perform(get(withdrawPath))
                     .andExpect(status().isNotFound)
+        }
+    }
+
+    @Test
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_WITHDRAW])
+    fun mustBeAbleToDeleteWithdraw() {
+        suppose("Approved withdraw is created") {
+            testContext.withdraw = createApprovedWithdraw(userUuid)
+        }
+
+        verify("Admin can delete withdraw") {
+            mockMvc.perform(delete("$withdrawPath/${testContext.withdraw.id}"))
+                    .andExpect(status().isOk)
+        }
+        verify("Withdraw is deleted") {
+            val deletedWithdraw = withdrawRepository.findById(testContext.withdraw.id)
+            assertThat(deletedWithdraw).isNotPresent
         }
     }
 
@@ -299,6 +318,7 @@ class WithdrawControllerTest : ControllerTestBase() {
 
     private class TestContext {
         val amount = 1000L
+        val bankAccountId = 2
         val walletHash = "0xa2addee8b62501fb423c8e69a6867a02eaa021a16f66583050a5dd643ad7e41b"
         var withdraws = listOf<Withdraw>()
         lateinit var withdraw: Withdraw

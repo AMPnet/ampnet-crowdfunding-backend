@@ -44,15 +44,24 @@ class WithdrawServiceImpl(
     }
 
     @Transactional
-    override fun createWithdraw(user: UUID, amount: Long): Withdraw {
+    override fun createWithdraw(user: UUID, amount: Long, bankAccountId: Int): Withdraw {
         if (userWalletRepository.findByUserUuid(user).isPresent.not()) {
             throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
                     "User must have a wallet to make Withdraw request")
         }
         validateUserDoesNotHavePendingWithdraw(user)
-        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), 0,
+        val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), bankAccountId,
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
+    }
+
+    @Transactional
+    override fun deleteWithdraw(withdrawId: Int) {
+        val withdraw = getWithdraw(withdrawId)
+        if (withdraw.burnedTxHash != null) {
+            throw InvalidRequestException(ErrorCode.WALLET_WITHDRAW_BURNED, "Cannot delete burned Withdraw")
+        }
+        withdrawRepository.delete(withdraw)
     }
 
     @Transactional

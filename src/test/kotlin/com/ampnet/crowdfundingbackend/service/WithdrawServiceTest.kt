@@ -40,7 +40,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception when user tries to create new withdraw") {
             assertThrows<ResourceAlreadyExistsException> {
-                withdrawService.createWithdraw(userUuid, 100L)
+                withdrawService.createWithdraw(userUuid, 100L, 1)
             }
         }
     }
@@ -53,7 +53,21 @@ class WithdrawServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception when user tries to create new withdraw") {
             assertThrows<ResourceAlreadyExistsException> {
-                withdrawService.createWithdraw(userUuid, 100L)
+                withdrawService.createWithdraw(userUuid, 100L, 1)
+            }
+        }
+    }
+
+    /* Delete */
+    @Test
+    fun mustThrowExceptionForDeletingBurnedWithdraw() {
+        suppose("Burned withdraw is created") {
+            withdraw = createBurnedWithdraw(userUuid)
+        }
+
+        verify("Service will throw exception when user tries to delete burned withdraw") {
+            assertThrows<InvalidRequestException> {
+                withdrawService.deleteWithdraw(withdraw.id)
             }
         }
     }
