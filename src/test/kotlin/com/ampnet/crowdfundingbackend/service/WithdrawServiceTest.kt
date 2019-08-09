@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.service.impl.WithdrawServiceImpl
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -27,6 +28,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
         databaseCleanerService.deleteAllWallets()
         createWalletForUser(userUuid, "user-wallet-hash")
     }
+    private val bankAccount = "bank-account"
     private lateinit var withdraw: Withdraw
 
     @BeforeEach
@@ -44,7 +46,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception when user tries to create new withdraw") {
             assertThrows<ResourceAlreadyExistsException> {
-                withdrawService.createWithdraw(userUuid, 100L, "bank-account")
+                withdrawService.createWithdraw(userUuid, 100L, bankAccount)
             }
         }
     }
@@ -57,7 +59,20 @@ class WithdrawServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception when user tries to create new withdraw") {
             assertThrows<ResourceAlreadyExistsException> {
-                withdrawService.createWithdraw(userUuid, 100L, "bank-account")
+                withdrawService.createWithdraw(userUuid, 100L, bankAccount)
+            }
+        }
+    }
+
+    @Test
+    fun mustThrowExceptionIfUserDoesNotHaveEnoughFunds() {
+        suppose("User does not have enough funds") {
+            Mockito.`when`(mockedBlockchainService.getBalance(userWallet.hash)).thenReturn(99L)
+        }
+
+        verify("Service will throw exception for insufficient funds") {
+            assertThrows<InvalidRequestException> {
+                withdrawService.createWithdraw(userUuid, 100L, bankAccount)
             }
         }
     }
@@ -170,21 +185,21 @@ class WithdrawServiceTest : JpaServiceTestBase() {
     }
 
     private fun createBurnedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "bank-account",
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), bankAccount,
                 "approved-tx", ZonedDateTime.now(),
                 "burned-tx", ZonedDateTime.now(), UUID.randomUUID())
         return withdrawRepository.save(withdraw)
     }
 
     private fun createApprovedWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "bank-account",
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), bankAccount,
                 "approved-tx", ZonedDateTime.now(),
                 null, null, null)
         return withdrawRepository.save(withdraw)
     }
 
     private fun createWithdraw(user: UUID): Withdraw {
-        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), "bank-account",
+        val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), bankAccount,
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }

@@ -41,6 +41,9 @@ class WithdrawControllerTest : ControllerTestBase() {
             databaseCleanerService.deleteAllWalletsAndOwners()
             createWalletForUser(userUuid, testContext.walletHash)
         }
+        suppose("User has enough funds on wallet") {
+            Mockito.`when`(blockchainService.getBalance(testContext.walletHash)).thenReturn(testContext.amount)
+        }
 
         verify("User can create Withdraw") {
             val request = WithdrawCreateRequest(testContext.amount, testContext.bankAccount)

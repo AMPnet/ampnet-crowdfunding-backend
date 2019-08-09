@@ -45,11 +45,8 @@ class WithdrawServiceImpl(
 
     @Transactional
     override fun createWithdraw(user: UUID, amount: Long, bankAccount: String): Withdraw {
-        if (userWalletRepository.findByUserUuid(user).isPresent.not()) {
-            throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
-                    "User must have a wallet to make Withdraw request")
-        }
         validateUserDoesNotHavePendingWithdraw(user)
+        checkIfUserHasEnoughFunds(user, amount)
         val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), bankAccount,
                 null, null, null, null, null)
         return withdrawRepository.save(withdraw)
@@ -107,6 +104,17 @@ class WithdrawServiceImpl(
         withdraw.burnedTxHash = burnedTxHash
         withdraw.burnedAt = ZonedDateTime.now()
         return withdrawRepository.save(withdraw)
+    }
+
+    private fun checkIfUserHasEnoughFunds(user: UUID, amount: Long) {
+        val wallet = userWalletRepository.findByUserUuid(user).orElseThrow {
+            throw ResourceNotFoundException(ErrorCode.WALLET_MISSING,
+                    "User must have a wallet to make Withdraw request")
+        }
+        val balance = blockchainService.getBalance(wallet.wallet.hash)
+        if (amount > balance) {
+            throw InvalidRequestException(ErrorCode.WALLET_FUNDS, "Insufficient funds")
+        }
     }
 
     private fun validateUserDoesNotHavePendingWithdraw(user: UUID) {
