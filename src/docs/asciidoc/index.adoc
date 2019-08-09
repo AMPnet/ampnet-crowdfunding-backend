@@ -426,6 +426,14 @@ include::{snippets}/WithdrawControllerTest/mustBeAbleToGetPendingWithdraw/http-r
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGetPendingWithdraw/http-response.adoc[]
 
+=== Delete Withdraw
+Must have Admin role - privilege: PWA_WITHDRAW. Cannot delete burned withdraw.
+
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToDeleteWithdraw/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToDeleteWithdraw/http-response.adoc[]
+
 === Get Withdraws
 Must have Admin role - privilege: PRA_WITHDRAW
 
@@ -499,7 +507,7 @@ include::{snippets}/DepositControllerTest/mustBeAbleToApproveDeposit/http-reques
 include::{snippets}/DepositControllerTest/mustBeAbleToApproveDeposit/http-response.adoc[]
 
 === Delete Deposit
-Must have Admin role - privilege: PWA_DEPOSIT
+Must have Admin role - privilege: PWA_DEPOSIT. Cannot delete minted deposit.
 
 .Request
 include::{snippets}/DepositControllerTest/mustBeAbleToDeleteDeposit/http-request.adoc[]

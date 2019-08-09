@@ -12,6 +12,7 @@ import com.ampnet.crowdfundingbackend.userservice.UserService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,7 +32,7 @@ class WithdrawController(
     fun createWithdraw(@RequestBody request: WithdrawCreateRequest): ResponseEntity<WithdrawResponse> {
         val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
         logger.debug { "Received request to create Withdraw:$request by user: ${userPrincipal.uuid}" }
-        val withdraw = withdrawService.createWithdraw(userPrincipal.uuid, request.amount)
+        val withdraw = withdrawService.createWithdraw(userPrincipal.uuid, request.amount, request.bankAccountId)
         return ResponseEntity.ok(WithdrawResponse(withdraw))
     }
 
@@ -43,6 +44,15 @@ class WithdrawController(
             return ResponseEntity.ok(WithdrawResponse(it))
         }
         return ResponseEntity.notFound().build()
+    }
+
+    @DeleteMapping("/api/v1/withdraw/{id}")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_WITHDRAW)")
+    fun deleteWithdraw(@PathVariable("id") withdrawId: Int): ResponseEntity<Unit> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.info { "Received request to delete Withdraw: $withdrawId by user: ${userPrincipal.uuid}" }
+        withdrawService.deleteWithdraw(withdrawId)
+        return ResponseEntity.ok().build()
     }
 
     @GetMapping("/api/v1/withdraw/approved")

@@ -52,7 +52,11 @@ class DepositServiceImpl(
 
     @Transactional
     override fun delete(id: Int) {
-        depositRepository.deleteById(id)
+        val deposit = getDepositForId(id)
+        if (deposit.txHash != null) {
+            throw InvalidRequestException(ErrorCode.WALLET_DEPOSIT_MINTED, "Cannot delete minted deposit")
+        }
+        depositRepository.delete(deposit)
     }
 
     @Transactional
