@@ -355,7 +355,7 @@ class DepositControllerTest : ControllerTestBase() {
     }
 
     private fun createUnapprovedDeposit(user: UUID): Deposit {
-        val deposit = Deposit(0, user, "S34SDGFT", false, 0,
+        val deposit = Deposit(0, user, "S34SDGFT", false, 10_000,
                 null, null, null, null, ZonedDateTime.now())
         return depositRepository.save(deposit)
     }
