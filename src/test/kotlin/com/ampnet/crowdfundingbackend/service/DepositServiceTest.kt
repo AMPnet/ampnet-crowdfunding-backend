@@ -47,7 +47,7 @@ class DepositServiceTest : JpaServiceTestBase() {
 
         verify("Service will throw exception for existing unapproved deposit") {
             assertThrows<ResourceAlreadyExistsException> {
-                depositService.create(userUuid)
+                depositService.create(userUuid, 100L)
             }
         }
     }
@@ -143,24 +143,6 @@ class DepositServiceTest : JpaServiceTestBase() {
     }
 
     @Test
-    fun mustThrowExceptionIfDepositIsMissingAmount() {
-        suppose("Deposit is missing amount") {
-            val document = saveDocument("doc", "doc-link", userUuid, "type", 1)
-            val depositWithoutAmount = Deposit(0, userUuid, "MSSNGVL1", true,
-                    userUuid, ZonedDateTime.now(), null, document, null, ZonedDateTime.now()
-            )
-            testContext.deposit = depositRepository.save(depositWithoutAmount)
-        }
-
-        verify("Service will throw exception for missing amount") {
-            assertThrows<ResourceNotFoundException> {
-                val request = MintServiceRequest(testContext.deposit.id, userUuid)
-                depositService.generateMintTransaction(request)
-            }
-        }
-    }
-
-    @Test
     fun mustThrowExceptionForDeletingMintedDeposit() {
         suppose("Deposit is minted") {
             testContext.deposit = createApprovedDeposit("tx-hash")
@@ -175,16 +157,14 @@ class DepositServiceTest : JpaServiceTestBase() {
 
     private fun createApprovedDeposit(txHash: String?): Deposit {
         val document = saveDocument("doc", "doc-lni", userUuid, "type", 1)
-        val deposit = Deposit(0, userUuid, "S34SDGFT", true,
-                userUuid, ZonedDateTime.now(), 10_000, document, txHash, ZonedDateTime.now()
-        )
+        val deposit = Deposit(0, userUuid, "S34SDGFT", true, 10_000,
+                userUuid, ZonedDateTime.now(), document, txHash, ZonedDateTime.now())
         return depositRepository.save(deposit)
     }
 
     private fun createUnapprovedDeposit(): Deposit {
-        val deposit = Deposit(0, userUuid, "S34SDGFT", false,
-                null, null, null, null, null, ZonedDateTime.now()
-        )
+        val deposit = Deposit(0, userUuid, "S34SDGFT", false, 10_000,
+                null, null, null, null, ZonedDateTime.now())
         return depositRepository.save(deposit)
     }
 

@@ -289,22 +289,21 @@ abstract class ControllerTestBase : TestBase() {
         amount: Long = 1000
     ): Deposit {
         val document = saveDocument("doc", "document-link", "type", 1, user)
-        val deposit = Deposit(0, user, "S34SDGFT", true,
-                user, ZonedDateTime.now(), amount, document, txHash, ZonedDateTime.now()
-        )
+        val deposit = Deposit(0, user, "S34SDGFT", true, amount,
+                user, ZonedDateTime.now(), document, txHash, ZonedDateTime.now())
         return depositRepository.save(deposit)
     }
 
     protected fun createApprovedWithdraw(user: UUID, amount: Long = 1000): Withdraw {
         val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), "bank-account",
                 "approved-tx", ZonedDateTime.now(),
-                null, null, null)
+                null, null, null, null)
         return withdrawRepository.save(withdraw)
     }
 
     protected fun createWithdraw(user: UUID, amount: Long = 1000): Withdraw {
         val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), "bank-account",
-                null, null, null, null, null)
+                null, null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }
 }

@@ -5,6 +5,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceAlreadyExistsException
 import com.ampnet.crowdfundingbackend.persistence.model.Wallet
 import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import com.ampnet.crowdfundingbackend.persistence.repository.WithdrawRepository
+import com.ampnet.crowdfundingbackend.service.impl.StorageServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.TransactionInfoServiceImpl
 import com.ampnet.crowdfundingbackend.service.impl.WithdrawServiceImpl
 import org.junit.jupiter.api.BeforeEach
@@ -21,8 +22,10 @@ class WithdrawServiceTest : JpaServiceTestBase() {
     lateinit var withdrawRepository: WithdrawRepository
 
     private val withdrawService: WithdrawService by lazy {
+        val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)
         val transactionInfoService = TransactionInfoServiceImpl(transactionInfoRepository)
-        WithdrawServiceImpl(withdrawRepository, userWalletRepository, mockedBlockchainService, transactionInfoService)
+        WithdrawServiceImpl(withdrawRepository, userWalletRepository, mockedBlockchainService, transactionInfoService,
+                storageServiceImpl)
     }
     private val userWallet: Wallet by lazy {
         databaseCleanerService.deleteAllWallets()
@@ -187,20 +190,20 @@ class WithdrawServiceTest : JpaServiceTestBase() {
     private fun createBurnedWithdraw(user: UUID): Withdraw {
         val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), bankAccount,
                 "approved-tx", ZonedDateTime.now(),
-                "burned-tx", ZonedDateTime.now(), UUID.randomUUID())
+                "burned-tx", ZonedDateTime.now(), UUID.randomUUID(), null)
         return withdrawRepository.save(withdraw)
     }
 
     private fun createApprovedWithdraw(user: UUID): Withdraw {
         val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), bankAccount,
                 "approved-tx", ZonedDateTime.now(),
-                null, null, null)
+                null, null, null, null)
         return withdrawRepository.save(withdraw)
     }
 
     private fun createWithdraw(user: UUID): Withdraw {
         val withdraw = Withdraw(0, user, 100L, ZonedDateTime.now(), bankAccount,
-                null, null, null, null, null)
+                null, null, null, null, null, null)
         return withdrawRepository.save(withdraw)
     }
 }

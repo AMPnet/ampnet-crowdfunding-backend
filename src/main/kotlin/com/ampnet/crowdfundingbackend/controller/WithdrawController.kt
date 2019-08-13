@@ -8,6 +8,7 @@ import com.ampnet.crowdfundingbackend.controller.pojo.response.WithdrawWithUserR
 import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.WithdrawService
+import com.ampnet.crowdfundingbackend.service.pojo.DocumentSaveRequest
 import com.ampnet.crowdfundingbackend.userservice.UserService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 class WithdrawController(
@@ -88,6 +91,19 @@ class WithdrawController(
         logger.info { "Received request to generate withdraw burn transaction by user: ${userPrincipal.uuid}" }
         val transactionDataAndInfo = withdrawService.generateBurnTransaction(id, userPrincipal.uuid)
         return ResponseEntity.ok(TransactionResponse(transactionDataAndInfo))
+    }
+
+    @PostMapping("/api/v1/withdraw/{id}/document")
+    @PreAuthorize("hasAuthority(T(com.ampnet.crowdfundingbackend.enums.PrivilegeType).PWA_WITHDRAW)")
+    fun addDocument(
+        @PathVariable("id") id: Int,
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<WithdrawResponse> {
+        val userPrincipal = ControllerUtils.getUserPrincipalFromSecurityContext()
+        logger.debug { "Adding document for withdraw" }
+        val documentRequest = DocumentSaveRequest(file, userPrincipal.uuid)
+        val withdraw = withdrawService.addDocument(id, documentRequest)
+        return ResponseEntity.ok(WithdrawResponse(withdraw))
     }
 
     private fun generateResponseFromWithdraws(withdraws: List<Withdraw>): WithdrawWithUserListResponse {

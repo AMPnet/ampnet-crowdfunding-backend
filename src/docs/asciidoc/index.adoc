@@ -449,6 +449,14 @@ include::{snippets}/WithdrawControllerTest/mustBeAbleToGetBurnedWithdraws/http-r
 .Response
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGetBurnedWithdraws/http-response.adoc[]
 
+=== Upload Document
+Must have Admin role - privilege: PRA_WITHDRAW
+
+.Request
+include::{snippets}/WithdrawControllerTest/mustBeAbleToUploadDocument/http-request.adoc[]
+.Response
+include::{snippets}/WithdrawControllerTest/mustBeAbleToUploadDocument/http-response.adoc[]
+
 === Generate Approve Withdraw transaction
 .Request
 include::{snippets}/WithdrawControllerTest/mustBeAbleToGenerateApprovalTransaction/http-request.adoc[]
