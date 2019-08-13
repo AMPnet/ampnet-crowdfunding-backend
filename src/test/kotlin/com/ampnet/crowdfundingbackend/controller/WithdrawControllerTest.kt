@@ -16,9 +16,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.fileUpload
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -65,6 +68,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdrawResponse.burnedAt).isNull()
             assertThat(withdrawResponse.burnedTxHash).isNull()
             assertThat(withdrawResponse.burnedBy).isNull()
+            assertThat(withdrawResponse.documentResponse).isNull()
         }
         verify("Withdraw is created") {
             val withdraws = withdrawRepository.findAll()
@@ -79,6 +83,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdraw.burnedAt).isNull()
             assertThat(withdraw.burnedTxHash).isNull()
             assertThat(withdraw.burnedBy).isNull()
+            assertThat(withdraw.document).isNull()
         }
     }
 
@@ -219,6 +224,7 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdraw.burnedAt).isNotNull()
             assertThat(withdraw.burnedBy).isNotNull()
             assertThat(withdraw.burnedTxHash).isEqualTo(testContext.burnedTx)
+            assertThat(withdraw.documentResponse).isNotNull()
         }
     }
 
@@ -311,10 +317,46 @@ class WithdrawControllerTest : ControllerTestBase() {
         }
     }
 
+    @Test
+    @WithMockCrowdfoundUser(privileges = [PrivilegeType.PWA_WITHDRAW])
+    fun mustBeAbleToUploadDocument() {
+        suppose("Transaction info is clean") {
+            databaseCleanerService.deleteAllTransactionInfo()
+        }
+        suppose("User has a wallet") {
+            databaseCleanerService.deleteAllWalletsAndOwners()
+            createWalletForUser(userUuid, testContext.walletHash)
+        }
+        suppose("User has created withdraw") {
+            testContext.withdraw = createApprovedWithdraw(userUuid)
+        }
+        suppose("File storage will store document") {
+            testContext.multipartFile = MockMultipartFile("file", "test.txt",
+                    "text/plain", "DocumentData".toByteArray())
+            Mockito.`when`(
+                    cloudStorageService.saveFile(testContext.multipartFile.originalFilename,
+                            testContext.multipartFile.bytes)
+            ).thenReturn(testContext.documentLink)
+        }
+
+        verify("Admin can add document") {
+            val result = mockMvc.perform(
+                    fileUpload("$withdrawPath/${testContext.withdraw.id}/document")
+                            .file(testContext.multipartFile))
+                    .andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+
+            val withdrawResponse: WithdrawResponse = objectMapper.readValue(result.response.contentAsString)
+            assertThat(withdrawResponse.id).isEqualTo(testContext.withdraw.id)
+            assertThat(withdrawResponse.documentResponse?.link).isEqualTo(testContext.documentLink)
+        }
+    }
+
     private fun createBurnedWithdraw(user: UUID): Withdraw {
+        val document = saveDocument("withdraw-doc", "doc-link", "type", 1, user)
         val withdraw = Withdraw(0, user, testContext.amount, ZonedDateTime.now(), testContext.bankAccount,
                 testContext.approvedTx, ZonedDateTime.now(),
-                testContext.burnedTx, ZonedDateTime.now(), UUID.randomUUID())
+                testContext.burnedTx, ZonedDateTime.now(), UUID.randomUUID(), document)
         return withdrawRepository.save(withdraw)
     }
 
@@ -324,8 +366,10 @@ class WithdrawControllerTest : ControllerTestBase() {
         val walletHash = "0xa2addee8b62501fb423c8e69a6867a02eaa021a16f66583050a5dd643ad7e41b"
         val approvedTx = "approved-tx"
         val burnedTx = "burned-tx"
+        val documentLink = "doc-link"
         var withdraws = listOf<Withdraw>()
         lateinit var withdraw: Withdraw
         lateinit var transactionData: TransactionData
+        lateinit var multipartFile: MockMultipartFile
     }
 }

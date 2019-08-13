@@ -15,7 +15,8 @@ data class WithdrawResponse(
     val burnedBy: UUID?,
     val burnedAt: ZonedDateTime?,
     val bankAccount: String,
-    val createdAt: ZonedDateTime
+    val createdAt: ZonedDateTime,
+    val documentResponse: DocumentResponse?
 ) {
     constructor(withdraw: Withdraw) : this (
         withdraw.id,
@@ -27,7 +28,8 @@ data class WithdrawResponse(
         withdraw.burnedBy,
         withdraw.burnedAt,
         withdraw.bankAccount,
-        withdraw.createdAt
+        withdraw.createdAt,
+        withdraw.document?.let { DocumentResponse(it) }
     )
 }
 
@@ -42,7 +44,8 @@ data class WithdrawWithUserResponse(
     val burnedAt: ZonedDateTime?,
     val createdAt: ZonedDateTime,
     val bankAccount: String,
-    val userWallet: String
+    val userWallet: String,
+    val documentResponse: DocumentResponse?
 ) {
     constructor(withdraw: Withdraw, user: UserResponse?, userWallet: String) : this(
         withdraw.id,
@@ -55,7 +58,8 @@ data class WithdrawWithUserResponse(
         withdraw.burnedAt,
         withdraw.createdAt,
         withdraw.bankAccount,
-        userWallet
+        userWallet,
+        withdraw.document?.let { DocumentResponse(it) }
     )
 }
 
