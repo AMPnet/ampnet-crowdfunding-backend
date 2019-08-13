@@ -67,6 +67,8 @@ class WebSecurityConfig(
     override fun configure(http: HttpSecurity) {
         http.cors().and().csrf().disable()
             .authorizeRequests()
+            // TODO: websocket maybe should not be open
+            .antMatchers("/websocket/**").permitAll()
             .antMatchers("/actuator/**").permitAll()
             .antMatchers("/docs/index.html").permitAll()
             .antMatchers("/issuer/**").permitAll()
