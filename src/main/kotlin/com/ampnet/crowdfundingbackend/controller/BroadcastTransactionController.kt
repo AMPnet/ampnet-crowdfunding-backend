@@ -14,6 +14,7 @@ import com.ampnet.crowdfundingbackend.service.ProjectService
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.WalletService
 import com.ampnet.crowdfundingbackend.service.WithdrawService
+import com.ampnet.crowdfundingbackend.websocket.WebSocketNotificationService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -28,7 +29,8 @@ class BroadcastTransactionController(
     private val projectService: ProjectService,
     private val projectInvestmentService: ProjectInvestmentService,
     private val depositService: DepositService,
-    private val withdrawService: WithdrawService
+    private val withdrawService: WithdrawService,
+    private val notificationService: WebSocketNotificationService
 ) {
 
     companion object : KLogging()
@@ -53,6 +55,8 @@ class BroadcastTransactionController(
             TransactionType.BURN -> burnTransaction(transactionInfo, signedTransaction)
         }
         logger.info { "Successfully broadcast transaction. TxHash: $txHash" }
+
+        notificationService.notifyTxBroadcast(txId, "SUCCESS")
 
         transactionInfoService.deleteTransaction(transactionInfo.id)
         return ResponseEntity.ok(TxHashResponse(txHash))
