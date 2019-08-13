@@ -1,0 +1,1 @@
+ALTER TABLE deposit ALTER COLUMN amount SET NOT NULL;

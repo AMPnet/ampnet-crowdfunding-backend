@@ -28,14 +28,14 @@ data class Deposit(
     @Column(nullable = false)
     var approved: Boolean,
 
+    @Column(nullable = false)
+    var amount: Long,
+
     @Column
     var approvedByUserUuid: UUID?,
 
     @Column
     var approvedAt: ZonedDateTime?,
-
-    @Column
-    var amount: Long?,
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")

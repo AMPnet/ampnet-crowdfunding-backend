@@ -1,6 +1,7 @@
 package com.ampnet.crowdfundingbackend.controller
 
 import com.ampnet.crowdfundingbackend.blockchain.pojo.TransactionData
+import com.ampnet.crowdfundingbackend.controller.pojo.request.AmountRequest
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserListResponse
 import com.ampnet.crowdfundingbackend.controller.pojo.response.DepositWithUserResponse
@@ -15,6 +16,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.fileUpload
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -47,12 +49,17 @@ class DepositControllerTest : ControllerTestBase() {
         }
 
         verify("User can create deposit") {
-            val result = mockMvc.perform(post(depositPath))
+            val request = AmountRequest(testContext.amount)
+            val result = mockMvc.perform(
+                    post(depositPath)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andExpect(MockMvcResultMatchers.status().isOk)
                     .andReturn()
 
             val deposit: DepositResponse = objectMapper.readValue(result.response.contentAsString)
             assertThat(deposit.user).isEqualTo(userUuid)
+            assertThat(deposit.amount).isEqualTo(testContext.amount)
             assertThat(deposit.approved).isFalse()
             assertThat(deposit.reference).isNotNull()
             assertThat(deposit.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
@@ -76,7 +83,11 @@ class DepositControllerTest : ControllerTestBase() {
         }
 
         verify("User can create deposit") {
-            val result = mockMvc.perform(post(depositPath))
+            val request = AmountRequest(testContext.amount)
+            val result = mockMvc.perform(
+                    post(depositPath)
+                            .content(objectMapper.writeValueAsString(request))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest)
                     .andReturn()
             verifyResponseErrorCode(result, ErrorCode.WALLET_MISSING)
@@ -344,8 +355,8 @@ class DepositControllerTest : ControllerTestBase() {
     }
 
     private fun createUnapprovedDeposit(user: UUID): Deposit {
-        val deposit = Deposit(0, user, "S34SDGFT", false,
-                null, null, null, null, null, ZonedDateTime.now())
+        val deposit = Deposit(0, user, "S34SDGFT", false, 0,
+                null, null, null, null, ZonedDateTime.now())
         return depositRepository.save(deposit)
     }
 

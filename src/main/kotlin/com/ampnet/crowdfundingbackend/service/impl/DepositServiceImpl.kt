@@ -34,7 +34,7 @@ class DepositServiceImpl(
     private val mintAccount = "0x43b0d9b605e68a0c50dc436757a86c82d97787cc"
 
     @Transactional
-    override fun create(user: UUID): Deposit {
+    override fun create(user: UUID, amount: Long): Deposit {
         if (walletRepository.findByUserUuid(user).isPresent.not()) {
             throw ResourceNotFoundException(ErrorCode.WALLET_MISSING, "User must have a wallet to create a Deposit")
         }
@@ -44,8 +44,8 @@ class DepositServiceImpl(
                     "Check your unapproved deposit: ${unapprovedDeposits.firstOrNull()?.id}")
         }
 
-        val deposit = Deposit(0, user, generateDepositReference(), false,
-            null, null, null, null, null, ZonedDateTime.now()
+        val deposit = Deposit(0, user, generateDepositReference(), false, amount,
+            null, null, null, null, ZonedDateTime.now()
         )
         return depositRepository.save(deposit)
     }
@@ -95,7 +95,6 @@ class DepositServiceImpl(
         val deposit = getDepositForId(request.depositId)
         validateDepositForMintTransaction(deposit)
         val amount = deposit.amount
-                ?: throw ResourceNotFoundException(ErrorCode.WALLET_DEPOSIT_MISSING, "Deposit is missing amount value")
         val receivingWallet = getUserWalletHash(deposit)
         val data = blockchainService.generateMintTransaction(mintAccount, receivingWallet, amount)
         val info = transactionInfoService.createMintTransaction(request, receivingWallet)

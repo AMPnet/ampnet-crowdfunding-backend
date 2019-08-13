@@ -289,8 +289,8 @@ abstract class ControllerTestBase : TestBase() {
         amount: Long = 1000
     ): Deposit {
         val document = saveDocument("doc", "document-link", "type", 1, user)
-        val deposit = Deposit(0, user, "S34SDGFT", true,
-                user, ZonedDateTime.now(), amount, document, txHash, ZonedDateTime.now()
+        val deposit = Deposit(0, user, "S34SDGFT", true, amount,
+                user, ZonedDateTime.now(), document, txHash, ZonedDateTime.now()
         )
         return depositRepository.save(deposit)
     }
