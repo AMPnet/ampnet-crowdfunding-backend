@@ -85,6 +85,10 @@ class WithdrawControllerTest : ControllerTestBase() {
             assertThat(withdraw.burnedBy).isNull()
             assertThat(withdraw.document).isNull()
         }
+        verify("Mail notification is sent") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendWithdrawRequest(userUuid, testContext.amount)
+        }
     }
 
     @Test
@@ -146,6 +150,10 @@ class WithdrawControllerTest : ControllerTestBase() {
         verify("Withdraw is deleted") {
             val deletedWithdraw = withdrawRepository.findById(testContext.withdraw.id)
             assertThat(deletedWithdraw).isNotPresent
+        }
+        verify("Mail notification is sent") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendWithdrawInfo(userUuid, false)
         }
     }
 

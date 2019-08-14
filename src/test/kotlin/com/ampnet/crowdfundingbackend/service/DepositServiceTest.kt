@@ -24,7 +24,7 @@ class DepositServiceTest : JpaServiceTestBase() {
         val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)
         val transactionInfoService = TransactionInfoServiceImpl(transactionInfoRepository)
         DepositServiceImpl(depositRepository, userWalletRepository, mockedBlockchainService,
-                transactionInfoService, storageServiceImpl)
+                transactionInfoService, storageServiceImpl, mailService)
     }
     private lateinit var testContext: TestContext
 

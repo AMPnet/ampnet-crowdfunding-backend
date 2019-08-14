@@ -298,6 +298,10 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
             val transactionInfo = transactionInfoRepository.findById(testContext.transactionInfo.id)
             assertThat(transactionInfo).isNotPresent
         }
+        verify("Mail notification is sent") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendDepositInfo(userUuid, true)
+        }
     }
 
     @Test
@@ -360,6 +364,10 @@ class BroadcastTransactionControllerTest : ControllerTestBase() {
         verify("TransactionInfo is deleted") {
             val transactionInfo = transactionInfoRepository.findById(testContext.transactionInfo.id)
             assertThat(transactionInfo).isNotPresent
+        }
+        verify("Mail notification is sent") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendWithdrawInfo(userUuid, true)
         }
     }
 

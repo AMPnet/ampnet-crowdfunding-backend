@@ -23,6 +23,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.TransactionInfoRepo
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.service.impl.CloudStorageServiceImpl
+import com.ampnet.crowdfundingbackend.service.impl.MailServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
@@ -69,6 +70,7 @@ abstract class JpaServiceTestBase : TestBase() {
 
     protected val mockedBlockchainService: BlockchainService = Mockito.mock(BlockchainService::class.java)
     protected val cloudStorageService: CloudStorageServiceImpl = Mockito.mock(CloudStorageServiceImpl::class.java)
+    protected val mailService: MailService = Mockito.mock(MailServiceImpl::class.java)
     protected val userUuid: UUID = UUID.randomUUID()
 
     protected fun createOrganization(name: String, createdByUuid: UUID): Organization {

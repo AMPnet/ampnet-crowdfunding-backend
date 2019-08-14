@@ -9,6 +9,7 @@ import com.ampnet.crowdfundingbackend.exception.ResourceNotFoundException
 import com.ampnet.crowdfundingbackend.persistence.model.Withdraw
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WithdrawRepository
+import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.StorageService
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.WithdrawService
@@ -25,7 +26,8 @@ class WithdrawServiceImpl(
     private val userWalletRepository: UserWalletRepository,
     private val blockchainService: BlockchainService,
     private val transactionInfoService: TransactionInfoService,
-    private val storageService: StorageService
+    private val storageService: StorageService,
+    private val mailService: MailService
 ) : WithdrawService {
 
     // TODO: remove after changing blockchain-service
@@ -52,7 +54,9 @@ class WithdrawServiceImpl(
         checkIfUserHasEnoughFunds(user, amount)
         val withdraw = Withdraw(0, user, amount, ZonedDateTime.now(), bankAccount,
                 null, null, null, null, null, null)
-        return withdrawRepository.save(withdraw)
+        withdrawRepository.save(withdraw)
+        mailService.sendWithdrawRequest(user, amount)
+        return withdraw
     }
 
     @Transactional
@@ -62,6 +66,7 @@ class WithdrawServiceImpl(
             throw InvalidRequestException(ErrorCode.WALLET_WITHDRAW_BURNED, "Cannot delete burned Withdraw")
         }
         withdrawRepository.delete(withdraw)
+        mailService.sendWithdrawInfo(withdraw.userUuid, false)
     }
 
     @Transactional
@@ -106,7 +111,9 @@ class WithdrawServiceImpl(
         val burnedTxHash = blockchainService.postTransaction(signedTransaction, PostTransactionType.ISSUER_BURN)
         withdraw.burnedTxHash = burnedTxHash
         withdraw.burnedAt = ZonedDateTime.now()
-        return withdrawRepository.save(withdraw)
+        withdrawRepository.save(withdraw)
+        mailService.sendWithdrawInfo(withdraw.userUuid, true)
+        return withdraw
     }
 
     @Transactional
