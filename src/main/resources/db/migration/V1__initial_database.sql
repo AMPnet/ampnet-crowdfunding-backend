@@ -22,6 +22,13 @@ CREATE TABLE user_wallet (
     user_uuid UUID NOT NULL,
     wallet_id INT REFERENCES wallet(id) NOT NULL
 );
+CREATE TABLE pair_wallet_code(
+    id SERIAL PRIMARY KEY,
+    address VARCHAR(66) UNIQUE NOT NULL,
+    public_key VARCHAR UNIQUE NOT NULL,
+    code VARCHAR(6) UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
 
 -- Organization
 CREATE TABLE organization (
@@ -112,4 +119,33 @@ CREATE TABLE transaction_info (
   description VARCHAR NOT NULL,
   user_uuid UUID NOT NULL,
   companion_id INT
+);
+
+-- Deposit
+CREATE TABLE deposit(
+    id SERIAL PRIMARY KEY,
+    user_uuid UUID NOT NULL,
+    reference VARCHAR(16) NOT NULL,
+    amount BIGINT NOT NULL,
+    approved BOOLEAN NOT NULL,
+    approved_by_user_uuid UUID,
+    approved_at TIMESTAMP,
+    document_id INT REFERENCES document(id),
+    tx_hash VARCHAR,
+    created_at TIMESTAMP NOT NULL
+);
+
+-- Withdraw
+CREATE TABLE withdraw(
+    id SERIAL PRIMARY KEY,
+    user_uuid UUID NOT NULL,
+    amount BIGINT NOT NULL,
+    bank_account VARCHAR(64) NOT NULL,
+    approved_tx_hash VARCHAR,
+    approved_at TIMESTAMP,
+    burned_tx_hash VARCHAR,
+    burned_at TIMESTAMP,
+    burned_by UUID,
+    document_id INT REFERENCES document(id),
+    created_at TIMESTAMP NOT NULL
 );
