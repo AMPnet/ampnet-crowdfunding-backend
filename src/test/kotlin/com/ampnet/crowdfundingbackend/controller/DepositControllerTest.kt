@@ -73,6 +73,10 @@ class DepositControllerTest : ControllerTestBase() {
             assertThat(deposit.reference).isNotNull()
             assertThat(deposit.createdAt).isBeforeOrEqualTo(ZonedDateTime.now())
         }
+        verify("Mail notification is sent") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendDepositRequest(userUuid, testContext.amount)
+        }
     }
 
     @Test
@@ -178,6 +182,10 @@ class DepositControllerTest : ControllerTestBase() {
         verify("Deposit is deleted") {
             val optionalDeposit = depositRepository.findById(testContext.deposits.first().id)
             assertThat(optionalDeposit).isNotPresent
+        }
+        verify("Mail notification is sent") {
+            Mockito.verify(mailService, Mockito.times(1))
+                    .sendDepositInfo(userUuid, false)
         }
     }
 

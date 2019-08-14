@@ -31,6 +31,7 @@ import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepositor
 import com.ampnet.crowdfundingbackend.persistence.repository.WalletRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.WithdrawRepository
 import com.ampnet.crowdfundingbackend.service.CloudStorageService
+import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.userservice.UserService
 import com.ampnet.userservice.proto.UserResponse
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -96,6 +97,8 @@ abstract class ControllerTestBase : TestBase() {
     protected lateinit var withdrawRepository: WithdrawRepository
     @Autowired
     protected lateinit var userService: UserService
+    @Autowired
+    protected lateinit var mailService: MailService
     @Autowired
     private lateinit var documentRepository: DocumentRepository
 

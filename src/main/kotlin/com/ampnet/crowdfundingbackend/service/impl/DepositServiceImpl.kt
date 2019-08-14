@@ -10,6 +10,7 @@ import com.ampnet.crowdfundingbackend.persistence.model.Deposit
 import com.ampnet.crowdfundingbackend.persistence.repository.DepositRepository
 import com.ampnet.crowdfundingbackend.persistence.repository.UserWalletRepository
 import com.ampnet.crowdfundingbackend.service.DepositService
+import com.ampnet.crowdfundingbackend.service.MailService
 import com.ampnet.crowdfundingbackend.service.StorageService
 import com.ampnet.crowdfundingbackend.service.TransactionInfoService
 import com.ampnet.crowdfundingbackend.service.pojo.ApproveDepositRequest
@@ -26,7 +27,8 @@ class DepositServiceImpl(
     private val walletRepository: UserWalletRepository,
     private val blockchainService: BlockchainService,
     private val transactionInfoService: TransactionInfoService,
-    private val storageService: StorageService
+    private val storageService: StorageService,
+    private val mailService: MailService
 ) : DepositService {
 
     private val charPool: List<Char> = ('A'..'Z') + ('0'..'9')
@@ -47,7 +49,9 @@ class DepositServiceImpl(
         val deposit = Deposit(0, user, generateDepositReference(), false, amount,
             null, null, null, null, ZonedDateTime.now()
         )
-        return depositRepository.save(deposit)
+        depositRepository.save(deposit)
+        mailService.sendDepositRequest(user, amount)
+        return deposit
     }
 
     @Transactional
@@ -56,6 +60,7 @@ class DepositServiceImpl(
         if (deposit.txHash != null) {
             throw InvalidRequestException(ErrorCode.WALLET_DEPOSIT_MINTED, "Cannot delete minted deposit")
         }
+        mailService.sendDepositInfo(deposit.userUuid, false)
         depositRepository.delete(deposit)
     }
 
@@ -107,7 +112,9 @@ class DepositServiceImpl(
         validateDepositForMintTransaction(deposit)
         val txHash = blockchainService.postTransaction(signedTransaction, PostTransactionType.ISSUER_MINT)
         deposit.txHash = txHash
-        return depositRepository.save(deposit)
+        depositRepository.save(deposit)
+        mailService.sendDepositInfo(deposit.userUuid, true)
+        return deposit
     }
 
     private fun validateDepositForMintTransaction(deposit: Deposit) {

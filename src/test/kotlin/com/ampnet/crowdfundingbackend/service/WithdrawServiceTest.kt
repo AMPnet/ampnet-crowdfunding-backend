@@ -25,7 +25,7 @@ class WithdrawServiceTest : JpaServiceTestBase() {
         val storageServiceImpl = StorageServiceImpl(documentRepository, cloudStorageService)
         val transactionInfoService = TransactionInfoServiceImpl(transactionInfoRepository)
         WithdrawServiceImpl(withdrawRepository, userWalletRepository, mockedBlockchainService, transactionInfoService,
-                storageServiceImpl)
+                storageServiceImpl, mailService)
     }
     private val userWallet: Wallet by lazy {
         databaseCleanerService.deleteAllWallets()
