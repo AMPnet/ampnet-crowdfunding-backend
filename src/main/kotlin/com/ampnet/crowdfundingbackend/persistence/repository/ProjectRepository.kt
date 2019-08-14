@@ -30,9 +30,7 @@ interface ProjectRepository : JpaRepository<Project, Int> {
     fun findAllByOrganizationId(organizationId: Int): List<Project>
 
     @Query("SELECT project FROM Project project " +
-            "INNER JOIN FETCH project.organization " +
             "INNER JOIN FETCH project.wallet " +
-            "LEFT JOIN FETCH project.documents " +
             "WHERE project.active=true")
     fun findAllActiveWithWallet(): List<Project>
 

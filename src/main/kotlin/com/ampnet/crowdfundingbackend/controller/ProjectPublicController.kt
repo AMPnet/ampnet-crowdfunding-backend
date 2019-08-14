@@ -32,7 +32,7 @@ class ProjectPublicController(private val projectService: ProjectService, privat
     }
 
     @GetMapping("/public/project")
-    fun getAllActiveProjectsWithProject(): ResponseEntity<ProjectListResponse> {
+    fun getAllActiveProjectsWithWallet(): ResponseEntity<ProjectListResponse> {
         logger.debug { "Received request to get project all projects" }
         val projectsResponse = projectService.getAllActiveWithWallet().map { ProjectResponse(it) }
         val response = ProjectListResponse(projectsResponse)
