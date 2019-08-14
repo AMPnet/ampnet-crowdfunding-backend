@@ -43,6 +43,7 @@ class WebSecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
+        // TODO: change allowed origins
         configuration.allowedOrigins = listOf("*")
         configuration.allowedMethods = listOf(
             HttpMethod.HEAD.name,

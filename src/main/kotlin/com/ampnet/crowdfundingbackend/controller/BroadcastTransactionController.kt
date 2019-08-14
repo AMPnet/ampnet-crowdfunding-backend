@@ -56,7 +56,7 @@ class BroadcastTransactionController(
         }
         logger.info { "Successfully broadcast transaction. TxHash: $txHash" }
 
-        notificationService.notifyTxBroadcast(txId, "SUCCESS")
+        notificationService.notifyTxBroadcast(txId, "BROADCAST")
 
         transactionInfoService.deleteTransaction(transactionInfo.id)
         return ResponseEntity.ok(TxHashResponse(txHash))
