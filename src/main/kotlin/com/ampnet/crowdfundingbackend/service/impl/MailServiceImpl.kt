@@ -21,19 +21,19 @@ class MailServiceImpl(
         MailServiceGrpc.newStub(channel)
     }
 
-    override fun sendOrganizationInvitationMail(to: String, organizationName: String) {
+    override fun sendOrganizationInvitationMail(email: String, organizationName: String) {
         val request = OrganizationInvitationRequest.newBuilder()
-                .setTo(to)
+                .setEmail(email)
                 .setOrganization(organizationName)
                 .build()
 
         mailServiceStub.sendOrganizationInvitation(request, object : StreamObserver<Empty> {
             override fun onNext(value: Empty?) {
-                logger.debug { "Successfully sent organization invitation mail to: $to" }
+                logger.debug { "Successfully sent organization invitation mail to: $email" }
             }
 
             override fun onError(t: Throwable?) {
-                logger.warn { "Failed to sent organization invitation mail to: $to. ${t?.message}" }
+                logger.warn { "Failed to sent organization invitation mail to: $email. ${t?.message}" }
             }
 
             override fun onCompleted() {

@@ -1,5 +1,5 @@
 package com.ampnet.crowdfundingbackend.service
 
 interface MailService {
-    fun sendOrganizationInvitationMail(to: String, organizationName: String)
+    fun sendOrganizationInvitationMail(email: String, organizationName: String)
 }

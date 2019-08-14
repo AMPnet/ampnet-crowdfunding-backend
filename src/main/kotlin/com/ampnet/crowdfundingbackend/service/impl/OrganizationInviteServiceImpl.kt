@@ -103,9 +103,9 @@ class OrganizationInviteServiceImpl(
         }
     }
 
-    private fun sendMailInvitationToJoinOrganization(to: String, invitedTo: Organization) {
-        logger.debug { "Sending invitation mail to user: $to for organization: ${invitedTo.name}" }
-        mailService.sendOrganizationInvitationMail(to, invitedTo.name)
+    private fun sendMailInvitationToJoinOrganization(email: String, invitedTo: Organization) {
+        logger.debug { "Sending invitation mail to user: $email for organization: ${invitedTo.name}" }
+        mailService.sendOrganizationInvitationMail(email, invitedTo.name)
     }
 
     private fun getRole(role: OrganizationRoleType): Role {
